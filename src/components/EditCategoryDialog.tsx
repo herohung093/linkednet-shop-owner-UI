@@ -13,31 +13,46 @@ import * as yup from "yup";
 type FormData = {
   typeName: string;
   levelType: number;
+  typeId: string;
+  // active: boolean;
 };
 
 const schemaValidation = yup.object({
   typeName: yup
     .string()
     .required("Please enter type name")
-    .max(10, "Type name must be less than 10 characters"),
+    .max(20, "Type name must be less than 20 characters"),
+  typeId: yup.string().required("").max(3, ""),
+  // active: yup.boolean().required(""),
   levelType: yup
     .number()
     .required("Please enter level type")
     .positive("Level type must be a positive number")
     .integer("Level type must be an integer"),
 });
-interface CategoryDialogType {
-  edit?: boolean;
+
+interface Category {
+  id: number;
+  type: string;
+  levelType: number;
+  description: string | null;
+  storeUuid: string;
+  active: boolean;
+  tenantUuid: string;
 }
-const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
+
+interface EditCategoryDialogType {
+  category?: Category;
+}
+
+const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({ category }) => {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<FormData | null>(null);
+  // const [formData, setFormData] = useState<FormData | null>(null);
   const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
   const handleUpdate = () => {
     setUpdateTrigger(!updateTrigger);
   };
 
-  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -47,45 +62,53 @@ const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
     mode: "onChange",
   });
 
+  const navigate = useNavigate();
   const onSubmit = async (data: FormData) => {
-    setFormData(data);
-    const payload = {
-      type: formData?.typeName,
-      levelType: formData?.levelType,
+    // setFormData(data);
+    const payloadEdit = {
+      type: data.typeName,
+      levelType: data.levelType,
+      description: null,
+      active: true,
     };
+    console.log(payloadEdit);
+
     if (sessionStorage.getItem("authToken")) {
       const token = getToken();
 
       if (isTokenExpired(token)) {
-        refreshToken();
+        await refreshToken();
       }
     } else {
       navigate("/session-expired");
     }
     try {
-      const response = await axiosWithToken.post("/serviceType/", payload);
+      const response = await axiosWithToken.put(
+        `/serviceType/${data.typeId}`,
+        payloadEdit
+      );
       console.log(response.data);
       handleUpdate();
       setOpen(false);
 
       if (response.status !== 200) {
-        throw new Error("Failed to submit booking.");
+        throw new Error("Failed to edit Type..");
       }
     } catch (error) {
-      console.error("Error submitting booking:", error);
+      console.error("Error editing type:", error);
     }
   };
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <button className="btn-primary">{edit ? "Edit" : "Add Type"}</button>
+        <button className="btn-primary">Edit</button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="data-[state=open]:animate-overlayShow overlay-dialog" />
         <Dialog.Content className="data-[state=open]:animate-contentShow content-dialog">
           <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium mb-5">
-            {edit ? "Edit" : "Add Type"}
+            Edit
           </Dialog.Title>
           <form onSubmit={handleSubmit(onSubmit)}>
             <fieldset className="mb-[15px] flex items-center gap-5">
@@ -98,6 +121,7 @@ const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
               <input
                 className="text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
                 id="typeName"
+                defaultValue={category?.type}
                 {...register("typeName")}
               />
               {errors.typeName && (
@@ -114,14 +138,36 @@ const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
                 Level Type
               </label>
               <input
-                className="text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
+                className={` text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]`}
                 id="levelType"
                 type="number"
+                defaultValue={category?.levelType}
                 {...register("levelType")}
               />
               {errors.levelType && (
                 <span className="text-red-500 text-sm">
                   {errors.levelType.message}
+                </span>
+              )}
+            </fieldset>
+            <fieldset className="mb-[15px] flex items-center gap-5">
+              <label
+                className="text-violet11 w-[90px] text-right text-[15px]"
+                htmlFor="typeId"
+              >
+                Type ID
+              </label>
+
+              <input
+                className={`text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]`}
+                id="typeId"
+                type="text"
+                defaultValue={category?.id}
+                {...register("typeId")}
+              />
+              {errors.typeId && (
+                <span className="text-red-500 text-sm">
+                  {errors.typeId.message}
                 </span>
               )}
             </fieldset>
@@ -131,7 +177,7 @@ const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
                 className="btn-primary"
                 disabled={isSubmitting}
               >
-                {edit ? "Edit" : "Add Type"}
+                Edit
               </button>
             </div>
           </form>
@@ -148,5 +194,4 @@ const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
     </Dialog.Root>
   );
 };
-
-export default CategoryDialog;
+export default EditCategoryDialog;

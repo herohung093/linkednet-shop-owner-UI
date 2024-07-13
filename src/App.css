@@ -4,7 +4,7 @@
 
 @layer components {
   .btn-primary {
-    @apply cursor-pointer px-5 py-[9px] bg-slate-900 text-white rounded-lg border-2 shadow-md font-bold mx-2 flex border-slate-900 items-center h-[50px];
+    @apply cursor-pointer px-5 py-[9px] bg-slate-900 text-white rounded-lg border-2 shadow-md font-bold mx-2 flex border-slate-900 items-center h-[38px];
   }
   .overlay-dialog {
     @apply bg-black opacity-50 fixed inset-0;

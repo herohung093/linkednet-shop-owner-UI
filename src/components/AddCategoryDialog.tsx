@@ -19,17 +19,33 @@ const schemaValidation = yup.object({
   typeName: yup
     .string()
     .required("Please enter type name")
-    .max(10, "Type name must be less than 10 characters"),
+    .max(20, "Type name must be less than 20 characters"),
   levelType: yup
     .number()
     .required("Please enter level type")
     .positive("Level type must be a positive number")
     .integer("Level type must be an integer"),
 });
+
+interface Category {
+  id: number;
+  type: string;
+  levelType: number;
+  description: string | null;
+  storeUuid: string;
+  active: boolean;
+  tenantUuid: string;
+}
+
 interface CategoryDialogType {
   edit?: boolean;
+  category?: Category;
 }
-const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
+
+const AddCategoryDialog: React.FC<CategoryDialogType> = ({
+  edit = false,
+  category,
+}) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<FormData | null>(null);
   const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
@@ -57,7 +73,7 @@ const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
       const token = getToken();
 
       if (isTokenExpired(token)) {
-        refreshToken();
+        await refreshToken();
       }
     } else {
       navigate("/session-expired");
@@ -69,10 +85,10 @@ const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
       setOpen(false);
 
       if (response.status !== 200) {
-        throw new Error("Failed to submit booking.");
+        throw new Error("Failed to add Type.");
       }
     } catch (error) {
-      console.error("Error submitting booking:", error);
+      console.error("Error adding Type:", error);
     }
   };
 
@@ -98,6 +114,7 @@ const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
               <input
                 className="text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
                 id="typeName"
+                defaultValue={edit ? category?.type : ""}
                 {...register("typeName")}
               />
               {errors.typeName && (
@@ -114,9 +131,10 @@ const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
                 Level Type
               </label>
               <input
-                className="text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
+                className={` text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]`}
                 id="levelType"
                 type="number"
+                defaultValue={edit ? category?.levelType : ""}
                 {...register("levelType")}
               />
               {errors.levelType && (
@@ -149,4 +167,4 @@ const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
   );
 };
 
-export default CategoryDialog;
+export default AddCategoryDialog;
