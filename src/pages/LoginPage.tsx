@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import ForgotPasswordDialog from "../components/ForgotPasswordDialog";
 import { useNavigate } from "react-router-dom";
 import { axiosInstance } from "../utils/axios";
-// import CustomGoogleLoginButton from "../components/CustomGoogleLoginButton";
+import CustomGoogleLoginButton from "../components/CustomGoogleLoginButton";
 import useAuthResonse from "../hooks/useAuthResponse";
 
 const LoginPage: React.FC = () => {
@@ -87,10 +87,10 @@ const LoginPage: React.FC = () => {
               Email or password invalid
             </div>
             <div className="mb-6 w-full">
-              {/* <CustomGoogleLoginButton
+              <CustomGoogleLoginButton
                 updateLoading={setLoading}
                 className="py-2 px-3 border rounded shadow appearance-none text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              /> */}
+              />
             </div>
             <button
               type="submit"

@@ -1,12 +1,9 @@
-import { useRouter } from "next/router";
-import React from "react";
+import { useNavigate } from "react-router";
 
-type SessionExpiredProps = {};
-
-const SessionExpired: React.FC<SessionExpiredProps> = ({}) => {
-  const router = useRouter();
+const SessionExpired: React.FC = () => {
+  const navigate = useNavigate();
   const handleLoginRedirect = () => {
-    router.push("/");
+    navigate("/");
   };
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">

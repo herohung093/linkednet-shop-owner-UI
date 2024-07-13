@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from "react";
+import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import SwitchActive from "./SwitchActive";
@@ -21,7 +21,6 @@ import NumericInput from "./NumericInput";
 import isTokenExpired from "../helper/CheckTokenExpired";
 import { refreshToken } from "../helper/RefreshToken";
 import { useNavigate } from "react-router";
-// import { useRouter } from "next/router";
 
 type FormData = {
   firstName: string;

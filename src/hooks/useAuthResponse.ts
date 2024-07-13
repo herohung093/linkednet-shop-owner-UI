@@ -1,5 +1,4 @@
-// useAuth.js
-// import { useRouter } from 'next/router';
+
 
 import { useNavigate } from "react-router";
 

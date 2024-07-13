@@ -1,4 +1,4 @@
-import React from "react";
+
 import * as Switch from "@radix-ui/react-switch";
 
 const SwitchActive: React.FC<{

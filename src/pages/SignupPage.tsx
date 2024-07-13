@@ -1,16 +1,16 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { axiosInstance } from "../utils/axios";
-// import { useRouter } from "next/router";
+import { useNavigate } from "react-router";
 // import { Spinner } from "@radix-ui/themes";
 
-const SignUp: React.FC = () => {
+const SignUpPage: React.FC = () => {
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  // const router = useRouter();
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,7 +27,7 @@ const SignUp: React.FC = () => {
       if (response.status === 200) {
         console.log(response.data);
 
-        // router.push("/");
+        navigate("/");
         setFirstName("");
         setLastName("");
         setEmail("");
@@ -139,7 +139,7 @@ const SignUp: React.FC = () => {
         <div className="flex flex-col items-center justify-between mt-4 ">
           <div className="mt-4">Or</div>
           <button
-            // onClick={() => router.push("/")}
+            onClick={() => navigate("/")}
             className="mt-4 w-full flex justify-center items-center h-[40px] bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           >
             Log In Now
@@ -153,4 +153,4 @@ const SignUp: React.FC = () => {
   );
 };
 
-export default SignUp;
+export default SignUpPage;
