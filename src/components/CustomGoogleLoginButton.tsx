@@ -43,14 +43,18 @@ const CustomGoogleLoginButton: React.FC<CustomGoogleLoginButtonProps> = ({
     }
   };
 
+  const handleClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    updateLoading(true);
+    googleLogin();
+  };
+
   return (
     <button
       className={`gsi-material-button ${className}`}
       style={{ width: "100%" }}
-      onClick={() => {
-        updateLoading(true);
-        googleLogin();
-      }}
+      onClick={handleClick}
     >
       <div className="gsi-material-button-state"></div>
       <div className="gsi-material-button-content-wrapper">
