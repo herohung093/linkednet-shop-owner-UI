@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { axiosInstance } from "../utils/axios";
 import { useNavigate } from "react-router";
-// import { Spinner } from "@radix-ui/themes";
+import { Spinner } from "@radix-ui/themes";
 
 const SignUpPage: React.FC = () => {
   const [firstName, setFirstName] = useState<string>("");
@@ -10,7 +10,7 @@ const SignUpPage: React.FC = () => {
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -128,10 +128,7 @@ const SignUpPage: React.FC = () => {
                 type="submit"
                 className="w-full flex justify-center items-center h-[40px] bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               >
-                {loading
-                  ? // <Spinner size={"3"} />
-                    "Loading"
-                  : "Sign Up"}
+                {loading ? <Spinner size={"3"} /> : "Sign Up"}
               </button>
             </div>
           </form>

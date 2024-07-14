@@ -125,7 +125,7 @@ const StaffsPage: React.FC = () => {
               type="text"
               value={searchTerm}
               onChange={handleSearchChange}
-              className="px-5 pl-[9px] pr-[38px] bg-white rounded-lg border-2 shadow-md font-bold flex items-center h-[50px] focus:outline-none"
+              className="px-5 pl-[9px] pr-[38px] bg-white rounded-lg border-2 shadow-md font-bold flex items-center h-[35px] focus:outline-none"
               placeholder="Search staff"
             />
             <SearchIcon className="cursor-pointer absolute right-[10px]" />
@@ -133,7 +133,7 @@ const StaffsPage: React.FC = () => {
 
           <select
             onChange={handleFilterChange}
-            className="cursor-pointer py-[9px] bg-white rounded-lg border-2 shadow-md font-bold flex items-center h-[50px]"
+            className="cursor-pointer  bg-white rounded-lg border-2 shadow-md font-bold flex items-center h-[35px]"
             value={filter}
           >
             <option value="true" className="rounded-md">

@@ -27,7 +27,7 @@ const schemaValidation = yup.object({
     .integer("Level type must be an integer"),
 });
 
-interface Category {
+interface ServiceType {
   id: number;
   type: string;
   levelType: number;
@@ -37,22 +37,18 @@ interface Category {
   tenantUuid: string;
 }
 
-interface CategoryDialogType {
+interface DialogServiceType {
   edit?: boolean;
-  category?: Category;
+  serviceType?: ServiceType;
+  onUpdate: () => void;
 }
 
-const AddCategoryDialog: React.FC<CategoryDialogType> = ({
+const AddCategoryDialog: React.FC<DialogServiceType> = ({
   edit = false,
-  category,
+  serviceType,
+  onUpdate,
 }) => {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<FormData | null>(null);
-  const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
-  const handleUpdate = () => {
-    setUpdateTrigger(!updateTrigger);
-  };
-
   const navigate = useNavigate();
   const {
     register,
@@ -64,11 +60,11 @@ const AddCategoryDialog: React.FC<CategoryDialogType> = ({
   });
 
   const onSubmit = async (data: FormData) => {
-    setFormData(data);
     const payload = {
-      type: formData?.typeName,
-      levelType: formData?.levelType,
+      type: data.typeName,
+      levelType: data.levelType,
     };
+
     if (sessionStorage.getItem("authToken")) {
       const token = getToken();
 
@@ -78,10 +74,11 @@ const AddCategoryDialog: React.FC<CategoryDialogType> = ({
     } else {
       navigate("/session-expired");
     }
+
     try {
       const response = await axiosWithToken.post("/serviceType/", payload);
       console.log(response.data);
-      handleUpdate();
+      onUpdate();
       setOpen(false);
 
       if (response.status !== 200) {
@@ -114,7 +111,7 @@ const AddCategoryDialog: React.FC<CategoryDialogType> = ({
               <input
                 className="text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
                 id="typeName"
-                defaultValue={edit ? category?.type : ""}
+                defaultValue={edit ? serviceType?.type : ""}
                 {...register("typeName")}
               />
               {errors.typeName && (
@@ -134,7 +131,7 @@ const AddCategoryDialog: React.FC<CategoryDialogType> = ({
                 className={` text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]`}
                 id="levelType"
                 type="number"
-                defaultValue={edit ? category?.levelType : ""}
+                defaultValue={edit ? serviceType?.levelType : ""}
                 {...register("levelType")}
               />
               {errors.levelType && (

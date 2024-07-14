@@ -9,12 +9,12 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import * as yup from "yup";
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 type FormData = {
   typeName: string;
   levelType: number;
   typeId: string;
-  // active: boolean;
 };
 
 const schemaValidation = yup.object({
@@ -31,7 +31,7 @@ const schemaValidation = yup.object({
     .integer("Level type must be an integer"),
 });
 
-interface Category {
+interface ServiceType {
   id: number;
   type: string;
   levelType: number;
@@ -42,16 +42,15 @@ interface Category {
 }
 
 interface EditCategoryDialogType {
-  category?: Category;
+  serviceType?: ServiceType;
+  onUpdate: () => void;
 }
 
-const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({ category }) => {
+const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
+  serviceType,
+  onUpdate,
+}) => {
   const [open, setOpen] = useState(false);
-  // const [formData, setFormData] = useState<FormData | null>(null);
-  const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
-  const handleUpdate = () => {
-    setUpdateTrigger(!updateTrigger);
-  };
 
   const {
     register,
@@ -88,7 +87,8 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({ category }) => {
         payloadEdit
       );
       console.log(response.data);
-      handleUpdate();
+      // handleUpdate();
+      onUpdate();
       setOpen(false);
 
       if (response.status !== 200) {
@@ -102,7 +102,8 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({ category }) => {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <button className="btn-primary">Edit</button>
+        {/* <button className="btn-primary">Edit</button> */}
+        <MoreVertIcon className="cursor-pointer"/>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="data-[state=open]:animate-overlayShow overlay-dialog" />
@@ -121,7 +122,7 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({ category }) => {
               <input
                 className="text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
                 id="typeName"
-                defaultValue={category?.type}
+                defaultValue={serviceType?.type}
                 {...register("typeName")}
               />
               {errors.typeName && (
@@ -141,7 +142,7 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({ category }) => {
                 className={` text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]`}
                 id="levelType"
                 type="number"
-                defaultValue={category?.levelType}
+                defaultValue={serviceType?.levelType}
                 {...register("levelType")}
               />
               {errors.levelType && (
@@ -162,7 +163,7 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({ category }) => {
                 className={`text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]`}
                 id="typeId"
                 type="text"
-                defaultValue={category?.id}
+                defaultValue={serviceType?.id}
                 {...register("typeId")}
               />
               {errors.typeId && (

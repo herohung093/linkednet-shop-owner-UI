@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { axiosInstance } from "../utils/axios";
 import CustomGoogleLoginButton from "../components/CustomGoogleLoginButton";
 import useAuthResonse from "../hooks/useAuthResponse";
+import { Spinner } from "@radix-ui/themes";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>("cosynails@gmail.com");
@@ -98,7 +99,7 @@ const LoginPage: React.FC = () => {
             >
               {loading ? (
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-                  {/* <Spinner /> */}
+                  <Spinner />
                 </div>
               ) : (
                 "Login"
