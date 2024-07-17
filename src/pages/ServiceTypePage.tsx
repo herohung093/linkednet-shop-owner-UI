@@ -38,7 +38,9 @@ const ServiceTypePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
   const [serviceType, setServiceType] = useState<ServiceType[]>([]);
-  const [visibleServiceType, setVisibleServiceType] = useState<number | null>(null);
+  const [visibleServiceType, setVisibleServiceType] = useState<number | null>(
+    null
+  );
   const sortedServiceType = serviceType.sort((a, b) => a.id - b.id);
   const navigate = useNavigate();
 
@@ -86,41 +88,41 @@ const ServiceTypePage: React.FC = () => {
     );
   };
 
-  // Updated handler for dropdown change
   const handleFilterChange = (event: SelectChangeEvent<string>) => {
     setFilterStatus(event.target.value);
   };
 
-  // Filtered service types based on filterStatus
-  const filteredServiceType = sortedServiceType.filter(service =>
-    filterStatus === "all" ? true : (filterStatus === "active" ? service.active : !service.active)
+  const filteredServiceType = sortedServiceType.filter((service) =>
+    filterStatus === "all"
+      ? true
+      : filterStatus === "active"
+      ? service.active
+      : !service.active
   );
 
   return (
     <div className="p-4 md:w-[80%] mx-auto">
-      <div className="mb-6 flex justify-between items-center">
-        <h2 className="text-xl font-bold mb-2">Type Name</h2>
-      {/* Dropdown Filter */}
-      <div className="mb-6 flex justify-end">
-        <Select
-          value={filterStatus}
-          onChange={handleFilterChange}
-          className="w-[110px] h-[38px]"
-        >
-          <MenuItem value="all">All</MenuItem>
-          <MenuItem value="active">Active</MenuItem>
-          <MenuItem value="inactive">Inactive</MenuItem>
-        </Select>
-        <AddCategoryDialog onUpdate={handleUpdate} />
+      <div className="mb-6 flex sm:justify-between justify-center items-center">
+        <div className="hidden sm:block"></div>
+        <div className="mb-6 flex justify-end sm:gap-x-8 ">
+          <Select
+            value={filterStatus}
+            onChange={handleFilterChange}
+            className="w-[110px] sm:w-[130px] h-[38px]"
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="inactive">Inactive</MenuItem>
+          </Select>
+          <AddCategoryDialog onUpdate={handleUpdate} />
+        </div>
       </div>
-      </div>
-
 
       {filteredServiceType.map((serviceType) => (
-        <div key={serviceType.id} className="mb-6 border-b-2">
+        <div key={serviceType.id} className="mb-6 border-b border-black">
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-md font-bold">{serviceType.type}</h3>
-            <div className="flex gap-5">
+            <div className="flex gap-5 justify-center items-center">
               {visibleServiceType === serviceType.id ? (
                 <ArrowDropUpIcon
                   className="cursor-pointer"
@@ -133,6 +135,7 @@ const ServiceTypePage: React.FC = () => {
                 />
               )}
               <ServiceDialog
+                typeName={serviceType.type}
                 mode="add"
                 onUpdate={handleUpdate}
                 typeId={serviceType.id}
@@ -145,28 +148,35 @@ const ServiceTypePage: React.FC = () => {
           </div>
           {visibleServiceType === serviceType.id && (
             <div className="ml-4">
-              {serviceType.serviceItems.map((serviceItem) => (
+              {serviceType.serviceItems.map((serviceItem, index) => (
                 <div
                   key={serviceItem.id}
-                  className="mb-2 flex justify-between items-center"
+                  className={`mb-2 flex justify-between items-center  ${
+                    index < serviceType.serviceItems.length - 1
+                      ? "border-b "
+                      : ""
+                  }`}
                 >
-                  <div>
+                  <div className="">
                     <h4 className="text-sm font-semibold">
                       {serviceItem.serviceName}
                     </h4>
-                    <p className="text-sm">{serviceItem.serviceDescription}</p>
-                    <p className="text-sm">
+                    <p className="text-sm mx-3">
+                      {serviceItem.serviceDescription}
+                    </p>
+                    <p className="text-sm mx-3">
                       Price: ${serviceItem.servicePrice.toFixed(2)}
                     </p>
-                    <p className="text-sm">
+                    <p className="text-sm mx-3">
                       Estimated Time: {serviceItem.estimatedTime} mins
                     </p>
-                    <p className="text-sm">
+                    <p className="text-sm mx-3">
                       Active: {serviceItem.active ? "Yes" : "No"}
                     </p>
                   </div>
                   <ServiceDialog
                     mode="edit"
+                    typeName={serviceType.type}
                     typeId={serviceType.id}
                     serviceItem={serviceItem}
                     onUpdate={handleUpdate}

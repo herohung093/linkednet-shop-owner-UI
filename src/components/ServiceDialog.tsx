@@ -26,6 +26,7 @@ interface ServiceItem {
 
 interface ServiceDialogProps {
   serviceItem?: ServiceItem;
+  typeName?: string;
   typeId: number;
   onUpdate: () => void;
   mode: "add" | "edit";
@@ -35,10 +36,10 @@ type ServiceItemFormData = Omit<ServiceItem, "id">;
 
 const schemaValidation = yup
   .object({
-    serviceName: yup.string().required("Please enter service name"),
+    serviceName: yup.string().required("Please enter service name").max(50,"Must be less than 50 characters"),
     serviceDescription: yup
       .string()
-      .required("Please enter service description"),
+      .required("Please enter service description").max(100,"Must be less than 100 characters"),
     servicePrice: yup
       .number()
       .required("Please enter service price")
@@ -54,8 +55,9 @@ const schemaValidation = yup
 const ServiceDialog: React.FC<ServiceDialogProps> = ({
   serviceItem,
   onUpdate,
-  typeId,
+  typeId,  
   mode,
+  typeName
 }) => {
   const navigate = useNavigate();
   const {
@@ -117,14 +119,17 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild>
-        <button className="">{mode === "edit" ? <MoreVertIcon className="cursor-pointer"/> : <AddIcon/>} </button>
+      <Dialog.Trigger asChild className=" sm:hidden">
+        <button className="">{mode === "edit" ? <MoreVertIcon className="cursor-pointer text-blue-500"/> : <AddIcon/>} </button>
+      </Dialog.Trigger>
+      <Dialog.Trigger asChild className="hidden sm:block">
+        <button className={`${mode === "edit" ? "btn-secondary":"btn-primary" }`}>{mode === "edit" ? "Edit Service" : "Add Service"} </button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="overlay-dialog data-[state=open]:animate-overlayShow " />
         <Dialog.Content className="data-[state=open]:animate-contentShow content-dialog">
           <Dialog.Title className="text-slate-700 m-0 text-[17px] font-medium mb-5">
-            {mode === "edit" ? "Edit Service" : "Add Service"}
+          {mode === "edit" ? `Edit Service from ${typeName}` : `Add Service to ${typeName}`} 
           </Dialog.Title>
           <Dialog.Description className="text-mauve11 mt-[10px] mb-5 text-[15px] leading-normal">
             {mode === "edit" ? "Edit your service. Click save when you're done." : "Add a new service. Click save when you're done."}
@@ -133,21 +138,21 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
             <div className="input-box">
               <label className="label">Service Name</label>
               <input {...register("serviceName")} className="input" />
+            </div>
               {errors.serviceName && (
-                <div className="text-red-500 text-sm">
+                <div className="error-message">
                   {errors.serviceName.message}
                 </div>
               )}
-            </div>
             <div className="input-box">
               <label className="label">Service Description</label>
               <input {...register("serviceDescription")} className="input" />
+            </div>
               {errors.serviceDescription && (
-                <div className="text-red-500 text-sm">
+                <div className="error-message">
                   {errors.serviceDescription.message}
                 </div>
               )}
-            </div>
             <div className="input-box">
               <label className="label">Service Price</label>
               <input
@@ -155,12 +160,12 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
                 {...register("servicePrice")}
                 className="input "
               />
+            </div>
               {errors.servicePrice && (
-                <div className="text-red-500 text-sm">
+                <div className="error-message">
                   {errors.servicePrice.message}
                 </div>
               )}
-            </div>
             <div className="input-box">
               <label className="label">Estimated Time</label>
               <input
@@ -168,12 +173,12 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
                 {...register("estimatedTime")}
                 className="input"
               />
+            </div>
               {errors.estimatedTime && (
-                <div className="text-red-500 text-sm">
+                <div className="error-message">
                   {errors.estimatedTime.message}
                 </div>
               )}
-            </div>
             <Controller
               control={control}
               name="active"
@@ -190,7 +195,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
                 className={`hover:bg-blue-500 focus:shadow-blue-700 inline-flex h-[35px] w-[135px] items-center justify-center rounded-md px-[15px] font-medium leading-none focus:shadow-[0_0_0_2px] focus:outline-none ${
                   !isValid
                     ? "bg-slate-500 text-white"
-                    : "bg-blue-700 text-white"
+                    : "bg-slate-950 text-white"
                 }`}
                 disabled={!isValid}
               >

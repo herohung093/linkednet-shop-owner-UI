@@ -26,7 +26,7 @@ const MenubarDemo = () => {
   const menuItems: MenuItem[] = [
     { label: "Dashboard", path: "/dashboard" },
     { label: "Staffs", path: "/staffs" },
-    { label: "Service Type", path: "/service-type" },
+    { label: "Services", path: "/services" },
     { label: "Bookings", path: "/bookings" },
     { label: "Logout", path: "", onClick: logoutHandler },
   ];

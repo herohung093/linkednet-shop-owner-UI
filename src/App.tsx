@@ -27,7 +27,7 @@ const router = createBrowserRouter(
           element={<DashboardPage></DashboardPage>}
         ></Route>
         <Route path="staffs" element={<StaffsPage></StaffsPage>}></Route>
-        <Route path="service-type" element={<ServiceTypePage></ServiceTypePage>}></Route>
+        <Route path="services" element={<ServiceTypePage></ServiceTypePage>}></Route>
       </Route>
     </Route>
   )

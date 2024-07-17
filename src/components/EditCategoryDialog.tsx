@@ -9,7 +9,7 @@ import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useNavigate } from "react-router";
 import * as yup from "yup";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SwitchActive from "./SwitchActive";
 
 type FormData = {
@@ -66,7 +66,7 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
       typeName: serviceType?.type || "",
       levelType: serviceType?.levelType || 1,
       typeId: serviceType?.id.toString() || "",
-      active: serviceType?.active ,
+      active: serviceType?.active,
     },
   });
 
@@ -108,12 +108,18 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
     }
   };
 
-
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild>
-        <MoreVertIcon className="cursor-pointer"/>
-      </Dialog.Trigger>
+      <Dialog.Trigger asChild className="sm:hidden" >
+        <button>
+          <MoreVertIcon className="cursor-pointer" />
+        </button>     
+      </Dialog.Trigger> 
+      <Dialog.Trigger asChild className="hidden sm:block" >
+        <button className="btn-primary">
+          Edit Type
+        </button>     
+      </Dialog.Trigger> 
       <Dialog.Portal>
         <Dialog.Overlay className="data-[state=open]:animate-overlayShow overlay-dialog" />
         <Dialog.Content className="data-[state=open]:animate-contentShow content-dialog">
@@ -160,7 +166,7 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
               )}
             </fieldset>
 
-            <fieldset className="mb-[15px] flex items-center gap-5">          
+            <fieldset className="mb-[15px] flex items-center gap-5">
               <Controller
                 control={control}
                 name="active"
