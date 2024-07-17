@@ -93,7 +93,7 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <button className="btn-primary">{edit ? "Edit" : "Add Type"}</button>
+        <button className="btn-primary">{edit ? "Edit" : "Add"}</button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="data-[state=open]:animate-overlayShow overlay-dialog" />

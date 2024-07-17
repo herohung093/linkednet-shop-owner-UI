@@ -99,7 +99,7 @@ const ServiceTypePage: React.FC = () => {
   return (
     <div className="p-4 md:w-[80%] mx-auto">
       <div className="mb-6 flex justify-between items-center">
-        <h2 className="text-xl font-bold mb-2">Service Type Name</h2>
+        <h2 className="text-xl font-bold mb-2">Type Name</h2>
       {/* Dropdown Filter */}
       <div className="mb-6 flex justify-end">
         <Select
