@@ -12,10 +12,16 @@
   .content-dialog {
     @apply fixed top-[50%] left-[50%] max-h-[85vh] w-[90vw] max-w-[510px] translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none;
   }
+  .input {
+    @apply h-[35px] w-[150px] sm:w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none;
+  }
+  .input-box {
+    @apply mb-4 flex justify-center items-center gap-x-5;
+  }
+  .label {
+    @apply w-[80px] text-right text-[15px];
+  }
 }
-
-
-
 
 /* Google Custome Login Button */
 

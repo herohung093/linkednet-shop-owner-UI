@@ -63,6 +63,7 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
     const payload = {
       type: data.typeName,
       levelType: data.levelType,
+      active: true,
     };
 
     if (sessionStorage.getItem("authToken")) {
@@ -100,6 +101,7 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
           <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium mb-5">
             {edit ? "Edit" : "Add Type"}
           </Dialog.Title>
+          <Dialog.Description></Dialog.Description>
           <form onSubmit={handleSubmit(onSubmit)}>
             <fieldset className="mb-[15px] flex items-center gap-5">
               <label

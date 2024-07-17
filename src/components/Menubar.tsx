@@ -48,7 +48,7 @@ const MenubarDemo = () => {
                     : navigate(menuItem.path);
                   setIsOpen(false);
                 }}
-                className={`py-2 mb-4 px-3 outline-none select-none font-bold leading-none rounded text-slate-900 text-[15px] lg:text-base flex items-center justify-between gap-[4px] hover:underline ${
+                className={`cursor-pointer py-2 mb-4 px-3 outline-none select-none font-bold leading-none rounded text-slate-900 text-[15px] lg:text-base flex items-center justify-between gap-[4px] hover:underline ${
                   currentPath === menuItem.path && "underline underline-offset-4"
                 }`}
               >
@@ -95,7 +95,7 @@ const MenubarDemo = () => {
                   ? logoutHandler()
                   : navigate(menuItem.path)
               }
-              className={`py-2 px-3 outline-none select-none font-medium leading-none rounded text-slate-900 text-[13px] lg:text-base flex items-center justify-between gap-[2px] hover:underline hover:underline-offset-4 ${
+              className={` cursor-pointer py-2 px-3 outline-none select-none font-medium leading-none rounded text-slate-900 text-[13px] lg:text-base flex items-center justify-between gap-[2px] hover:underline hover:underline-offset-4 ${
                 currentPath === menuItem.path && "underline underline-offset-4"
               }`}
             >

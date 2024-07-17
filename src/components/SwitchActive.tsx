@@ -9,7 +9,7 @@ const SwitchActive: React.FC<{
     <>
       <div className="flex items-center gap-x-5">
         <label
-          className="text-violet11 w-[80px] text-right text-[15px]"
+          className="label"
           htmlFor="airplane-mode"
         >
           Active

@@ -3,6 +3,7 @@ import React from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import { axiosInstance } from "../utils/axios";
 import useAuthResonse from "../hooks/useAuthResponse";
+import { useNavigate } from "react-router";
 
 interface CustomGoogleLoginButtonProps {
   updateLoading: (isLoading: boolean) => void;
@@ -14,7 +15,7 @@ const CustomGoogleLoginButton: React.FC<CustomGoogleLoginButtonProps> = ({
   className,
 }) => {
   const handleAuthResponse = useAuthResonse();
-
+  const navigate = useNavigate();
   const googleLogin = useGoogleLogin({
     onSuccess: (codeResponse) => exchangeCodeForTokens(codeResponse.code),
     onError: () => {
@@ -36,6 +37,7 @@ const CustomGoogleLoginButton: React.FC<CustomGoogleLoginButtonProps> = ({
 
       // Handle the response, e.g., store the tokens, update UI, etc.
       console.log("Tokens:", response.data);
+      navigate("/dashboard");
     } catch (error) {
       console.error(error);
     } finally {
@@ -43,14 +45,18 @@ const CustomGoogleLoginButton: React.FC<CustomGoogleLoginButtonProps> = ({
     }
   };
 
+  const handleClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    updateLoading(true);
+    googleLogin();
+  };
+
   return (
     <button
       className={`gsi-material-button ${className}`}
       style={{ width: "100%" }}
-      onClick={() => {
-        updateLoading(true);
-        googleLogin();
-      }}
+      onClick={handleClick}
     >
       <div className="gsi-material-button-state"></div>
       <div className="gsi-material-button-content-wrapper">
