@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "tsc -b && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
@@ -23,6 +23,7 @@
     "@radix-ui/themes": "^3.1.1",
     "@react-input/mask": "^1.2.5",
     "@react-oauth/google": "^0.12.1",
+    "@reduxjs/toolkit": "^2.2.6",
     "axios": "^1.7.2",
     "i": "^0.3.7",
     "jwt-decode": "^4.0.0",

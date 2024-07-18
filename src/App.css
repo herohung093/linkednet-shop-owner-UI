@@ -25,7 +25,7 @@
     @apply w-[80px] text-right text-[15px];
   }
   .error-message {
-    @apply text-red-500 text-sm flex justify-end mb-3;
+    @apply text-red-500 text-sm flex justify-start mb-3;
   }
 }
 

@@ -7,8 +7,8 @@ import useAuthResonse from "../hooks/useAuthResponse";
 import { Spinner } from "@radix-ui/themes";
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState<string>("cosynails@gmail.com");
-  const [password, setPassword] = useState<string>("cosynails@gmail.com");
+  const [email, setEmail] = useState<string>("testing@gmail.com");
+  const [password, setPassword] = useState<string>("testing@gmail.com");
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();

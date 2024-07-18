@@ -9,7 +9,7 @@ export const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use((config) => {
   config.headers.set("Content-Type", "application/json");
-  config.headers.set("X-StoreID", "cosy_nails");
+  config.headers.set("X-StoreID", "63a6afad-51b9-4bed-9fa7-a4722987bffe");
   return config;
 });
 
@@ -19,7 +19,7 @@ export const axiosWithToken = axios.create({
 
 axiosWithToken.interceptors.request.use((config) => {
   config.headers.set("Content-Type", "application/json");
-  config.headers.set("X-StoreID", "cosy_nails");
+  config.headers.set("X-StoreID", "63a6afad-51b9-4bed-9fa7-a4722987bffe");
   config.headers["Authorization"] = `Bearer ${getToken()}`;
   return config;
 });

@@ -12,3 +12,17 @@ declare interface Staff {
   tenantUuid: string;
   isActive: boolean;
 }
+
+declare interface Store {
+  zoneId: string;
+  id: number;
+  storeUuid: string;
+  storeName: string;
+  shortStoreName: string;
+  storeAddress: string;
+  storePhoneNumber: string;
+  storeEmail: string;
+  frontEndUrl: string;
+  enableReservationConfirmation: boolean;
+  automaticApproved: boolean;
+}
