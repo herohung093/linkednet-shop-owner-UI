@@ -5,12 +5,15 @@ import { axiosInstance } from "../utils/axios";
 import CustomGoogleLoginButton from "../components/CustomGoogleLoginButton";
 import useAuthResonse from "../hooks/useAuthResponse";
 import { Spinner } from "@radix-ui/themes";
+import {  useDispatch } from 'react-redux'
+import { setStoresList } from "../redux toolkit/storesListSlice";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>("testing@gmail.com");
   const [password, setPassword] = useState<string>("testing@gmail.com");
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const dispatch = useDispatch()
   const navigate = useNavigate();
   const handleAuthResponse = useAuthResonse();
 
@@ -28,8 +31,10 @@ const LoginPage: React.FC = () => {
       console.log(response.data);
       if (response.status === 200) {
         handleAuthResponse(response.data.token, response.data.refreshToken);
+
         setEmail("");
         setPassword("");
+        dispatch(setStoresList(response?.data?.storeConfig))
         navigate("/dashboard");
       } else {
         throw new Error("Failed to submit booking.");

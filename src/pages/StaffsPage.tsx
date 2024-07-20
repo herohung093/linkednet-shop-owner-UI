@@ -37,7 +37,8 @@ const StaffsPage: React.FC = () => {
       const token = getToken();
 
       if (isTokenExpired(token)) {
-        refreshToken();
+        console.log("Token expired");        
+        refreshToken(navigate);
       }
     } else {
       navigate("/session-expired");

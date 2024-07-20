@@ -49,7 +49,7 @@ const ServiceTypePage: React.FC = () => {
       const token = getToken();
 
       if (isTokenExpired(token)) {
-        refreshToken();
+        refreshToken(navigate);
       }
     } else {
       navigate("/session-expired");

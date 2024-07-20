@@ -13,6 +13,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import googleOAuthConfig from "./config/googleOAuthConfig";
 import SignUpPage from "./pages/SignupPage.tsx";
 import ServiceTypePage from "./pages/ServiceTypePage.tsx";
+import SessionExpired from "./pages/SessionExpiredPage.tsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -20,6 +21,10 @@ const router = createBrowserRouter(
       <Route>
         <Route path="/" element={<LoginPage></LoginPage>}></Route>
         <Route path="/signup" element={<SignUpPage></SignUpPage>}></Route>
+          <Route
+          path="session-expired"
+          element={<SessionExpired></SessionExpired>}
+        ></Route>
       </Route>
       <Route path="/" element={<Main />}>
         <Route
@@ -27,7 +32,11 @@ const router = createBrowserRouter(
           element={<DashboardPage></DashboardPage>}
         ></Route>
         <Route path="staffs" element={<StaffsPage></StaffsPage>}></Route>
-        <Route path="services" element={<ServiceTypePage></ServiceTypePage>}></Route>
+        <Route
+          path="services"
+          element={<ServiceTypePage></ServiceTypePage>}
+        ></Route>
+      
       </Route>
     </Route>
   )

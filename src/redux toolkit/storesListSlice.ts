@@ -1,14 +1,25 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-
+interface Store {
+  zoneId: string;
+  id: number;
+  storeUuid: string;
+  storeName: string;
+  shortStoreName: string;
+  storeAddress: string;
+  storePhoneNumber: string;
+  storeEmail: string;
+  frontEndUrl: string;
+  enableReservationConfirmation: boolean;
+  automaticApproved: boolean;
+}
 interface StoresState {
   storesList: Store[];
 }
 
 const initialState: StoresState = {
-  storesList: [],
+  storesList: []
 };
-
 const storesListSlice = createSlice({
   name: 'storesList',
   initialState,
