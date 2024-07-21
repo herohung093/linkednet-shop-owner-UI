@@ -57,7 +57,7 @@ const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
       const token = getToken();
 
       if (isTokenExpired(token)) {
-        refreshToken();
+        refreshToken(navigate);
       }
     } else {
       navigate("/session-expired");

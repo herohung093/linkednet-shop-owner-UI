@@ -123,7 +123,7 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
       const token = getToken();
 
       if (isTokenExpired(token)) {
-        refreshToken();
+        refreshToken(navigate);
       }
     } else {
       navigate("/session-expired");

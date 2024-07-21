@@ -70,7 +70,7 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
       const token = getToken();
 
       if (isTokenExpired(token)) {
-        await refreshToken();
+        await refreshToken(navigate);
       }
     } else {
       navigate("/session-expired");

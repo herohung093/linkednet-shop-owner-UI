@@ -95,7 +95,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
       const token = getToken();
 
       if (isTokenExpired(token)) {
-        await refreshToken();
+        await refreshToken(navigate);
       }
     } else {
       navigate("/session-expired");
