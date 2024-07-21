@@ -1,16 +1,13 @@
 import AddCategoryDialog from "../components/AddCategoryDialog";
 import EditCategoryDialog from "../components/EditCategoryDialog";
 import CustomLoading from "../components/Loading";
-import isTokenExpired from "../helper/CheckTokenExpired";
-import { refreshToken } from "../helper/RefreshToken";
-import { getToken } from "../helper/getToken";
 import { axiosWithToken } from "../utils/axios";
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ServiceDialog from "../components/ServiceDialog";
-import { MenuItem, Select, SelectChangeEvent } from "@mui/material"; // Import SelectChangeEvent
+import { MenuItem, Select, SelectChangeEvent } from "@mui/material"; 
+import useAuthCheck from "../hooks/useAuthCheck";
 
 interface ServiceItem {
   id: number;
@@ -33,6 +30,7 @@ interface ServiceType {
 }
 
 const ServiceTypePage: React.FC = () => {
+  useAuthCheck()
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,19 +40,7 @@ const ServiceTypePage: React.FC = () => {
     null
   );
   const sortedServiceType = serviceType.sort((a, b) => a.id - b.id);
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (sessionStorage.getItem("authToken")) {
-      const token = getToken();
-
-      if (isTokenExpired(token)) {
-        refreshToken(navigate);
-      }
-    } else {
-      navigate("/session-expired");
-    }
-  }, [navigate]);
 
   const fetchCategories = useCallback(async () => {
     setLoading(true);

@@ -2,11 +2,8 @@ import  { useEffect, useState, useCallback } from "react";
 import CustomLoading from "../components/Loading";
 import SearchIcon from "@mui/icons-material/Search";
 import Staff from "../components/Staff";
-import isTokenExpired from "../helper/CheckTokenExpired";
-import { getToken } from "../helper/getToken";
+import useAuthCheck from "../hooks/useAuthCheck";
 import { axiosInstance } from "../utils/axios";
-import { refreshToken } from "../helper/RefreshToken";
-import { useNavigate } from "react-router";
 
 interface Staff {
   id: number | null;
@@ -30,20 +27,8 @@ const StaffsPage: React.FC = () => {
   const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
   const [filter, setFilter] = useState<string>("true");
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const navigate = useNavigate()
 
-  useEffect(() => {
-    if (sessionStorage.getItem("authToken")) {
-      const token = getToken();
-
-      if (isTokenExpired(token)) {
-        console.log("Token expired");        
-        refreshToken(navigate);
-      }
-    } else {
-      navigate("/session-expired");
-    }
-  }, []);
+  useAuthCheck()
 
   const fetchStaffs = useCallback(async () => {
     setLoading(true);
