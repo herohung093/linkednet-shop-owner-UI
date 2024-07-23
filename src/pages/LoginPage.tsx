@@ -29,7 +29,6 @@ const LoginPage: React.FC = () => {
     try {
       const response = await axiosInstance.post("/auth/authenticate", payload);
 
-      console.log(response.data);
       if (response.status === 200) {
         handleAuthResponse(response.data.token, response.data.refreshToken);
 
@@ -49,7 +48,7 @@ const LoginPage: React.FC = () => {
         setErrormessage("User email has not been activated. Please check your email to activate your account.");
       }
       else {
-        setErrormessage(error.response.data);
+        setErrormessage("Invalid username or password");
       }
 
     }
