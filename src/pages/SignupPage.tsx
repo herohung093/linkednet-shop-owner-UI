@@ -8,7 +8,8 @@ const SignUpPage: React.FC = () => {
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<unknown>(null);
+  const [error, setError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
@@ -25,19 +26,18 @@ const SignUpPage: React.FC = () => {
       const response = await axiosInstance.post("/auth/register", payload);
 
       if (response.status === 200) {
-        console.log(response.data);
-
-        navigate("/");
         setFirstName("");
         setLastName("");
         setEmail("");
         setPassword("");
+        navigate("/email-confirmation", { replace: true });
       } else {
         throw new Error("Failed to submit booking.");
       }
       setLoading(false);
-    } catch (error) {
-      setError(error);
+    } catch (error: any) {
+      setError(true);
+      setErrorMessage(error.response.data.message);
       setLoading(false);
     }
   };
@@ -121,7 +121,7 @@ const SignUpPage: React.FC = () => {
               />
             </div>
             <div className={`mb-4 text-red-700 ${!error && "hidden"} `}>
-              Email or password invalid
+              {errorMessage}
             </div>
             <div className="flex items-center justify-between">
               <button
