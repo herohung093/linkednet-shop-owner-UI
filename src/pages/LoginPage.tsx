@@ -26,10 +26,13 @@ const LoginPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await axiosInstance.post("/auth/authenticate", payload);   
+      const response = await axiosInstance.post("/auth/authenticate", payload);
       if (response.status === 200) {
-        handleAuthResponse(response.data.token, response.data.refreshToken);              
-        localStorage.setItem("storeUuid", response?.data?.storeConfig[0].storeUuid);
+        handleAuthResponse(response.data.token, response.data.refreshToken);
+        localStorage.setItem(
+          "storeUuid",
+          response?.data?.storeConfig[0].storeUuid
+        );
         setEmail("");
         setPassword("");
         dispatch(setStoresList(response?.data?.storeConfig));
