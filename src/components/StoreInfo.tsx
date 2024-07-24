@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { axiosInstance } from "../utils/axios";
+// import * as yup from "yup";
+// import { yupResolver } from "@hookform/resolvers/yup";
+import { axiosInstance, axiosWithToken } from "../utils/axios";
+import CustomLoading from "./Loading";
 
 type BusinessHour = {
   dayOfWeek: string;
@@ -18,70 +19,84 @@ type StoreInfo = {
   storePhoneNumber: string;
   storeEmail: string;
   isAutomaticApproved: boolean;
-  emailAppPassword: string;
   frontEndUrl: string;
   enableReservationConfirmation: boolean;
   businessHoursList: BusinessHour[];
 };
 
-const schema = yup.object().shape({
-  storeName: yup.string().required(),
-  shortStoreName: yup.string().required(),
-  zoneId: yup.string().required(),
-  storeAddress: yup.string().required(),
-  storePhoneNumber: yup.string().required(),
-  storeEmail: yup.string().email().required(),
-  isAutomaticApproved: yup.boolean().required(),
-  emailAppPassword: yup.string().required(),
-  frontEndUrl: yup.string().url().required(),
-  enableReservationConfirmation: yup.boolean().required(),
-  businessHoursList: yup
-    .array()
-    .of(
-      yup.object().shape({
-        dayOfWeek: yup.string().required(),
-        openingTime: yup.string().required(),
-        closingTime: yup.string().required(),
-      })
-    )
-    .required(),
-});
+// const schema = yup.object().shape({
+//   storeName: yup.string().required("Store Name is required"),
+//   shortStoreName: yup.string().required("Short Store Name is required"),
+//   zoneId: yup.string().required("Zone ID is required"),
+//   storeAddress: yup.string().required("Store Address is required"),
+//   storePhoneNumber: yup
+//     .string()
+//     .required("Store Phone Number is required")
+//     .matches(/^04\d{8}$/, "Store Phone Number must be in the format 04xxxxxxxx"),
+//   storeEmail: yup.string().email("Invalid email format").required("Store Email is required"),
+//   isAutomaticApproved: yup.boolean().required(),
+//   frontEndUrl: yup.string().url("Invalid URL").required("Front End URL is required"),
+//   enableReservationConfirmation: yup.boolean().required(),
+//   businessHoursList: yup
+//     .array()
+//     .of(
+//       yup.object().shape({
+//         dayOfWeek: yup.string().required("Day of the week is required"),
+//         openingTime: yup.string().required("Opening Time is required"),
+//         closingTime: yup.string().required("Closing Time is required"),
+//       })
+//     )
+//     .required(),
+// });
 
 interface StoreInfoProps {
-  storeId: string;
+  storeUuid: string;
+  handleUpdate: () => void;
 }
 
-const StoreInfo: React.FC<StoreInfoProps> = ({ storeId }) => {
-//   const [storeInfo, setStoreInfo] = useState<StoreInfo | null>(null);
+const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  const { control, handleSubmit, reset, setValue } = useForm<StoreInfo>({
-    resolver: yupResolver(schema),
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors, isValid },
+  } = useForm<StoreInfo>({
+    // resolver: yupResolver(schema),
   });
 
   const fetchStoreInfo = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axiosInstance.get<StoreInfo>(
-        `/storeConfig/${storeId}`
+        `/storeConfig/${storeUuid}`
       );
-    //   setStoreInfo(response.data);
-      reset(response.data); 
+      reset(response.data);
       setError(null);
     } catch (error) {
       setError("Error fetching store info");
     } finally {
       setLoading(false);
     }
-  }, [storeId, reset]);
+  }, [storeUuid, reset]);
 
   useEffect(() => {
     fetchStoreInfo();
-  }, [fetchStoreInfo]);
-
-  const onSubmit = (data: StoreInfo) => {
-    console.log("Updated store info:", data);
+  }, [storeUuid]);
+  // const navigate = useNavigate();
+  const onSubmit = async (data: StoreInfo) => {
+    // const isTokenValid = await ValidateAndRefreshToken();
+    // if (!isTokenValid) return;
+    try {
+      const response = await axiosWithToken.put("/storeConfig/", data);
+      console.log(response.data);
+      handleUpdate();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleChange = (
@@ -90,14 +105,14 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeId }) => {
     value: string
   ) => {
     const updatedBusinessHoursList = (
-      control._getWatch("businessHoursList") as BusinessHour[]
+      watch("businessHoursList") as BusinessHour[]
     ).map((hour) =>
       hour.dayOfWeek === day ? { ...hour, [field]: value } : hour
     );
     setValue("businessHoursList", updatedBusinessHoursList);
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <CustomLoading />;
   if (error) return <p>{error}</p>;
 
   return (
@@ -115,11 +130,15 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeId }) => {
             <input
               type="text"
               {...field}
-              className="border border-gray-300 p-2 w-full rounded-md"
-              readOnly
+              className={`border p-2 w-full rounded-md ${
+                errors.storeName ? "border-red-500" : "border-gray-300"
+              }`}
             />
           )}
         />
+        {errors.storeName && (
+          <p className="text-red-500">{errors.storeName.message}</p>
+        )}
       </div>
       <div className="mb-4">
         <label className="block text-gray-700 font-bold mb-2">
@@ -132,11 +151,15 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeId }) => {
             <input
               type="text"
               {...field}
-              className="border border-gray-300 p-2 w-full rounded-md"
-              readOnly
+              className={`border p-2 w-full rounded-md ${
+                errors.shortStoreName ? "border-red-500" : "border-gray-300"
+              }`}
             />
           )}
         />
+        {errors.shortStoreName && (
+          <p className="text-red-500">{errors.shortStoreName.message}</p>
+        )}
       </div>
       <div className="mb-4">
         <label className="block text-gray-700 font-bold mb-2">Zone ID</label>
@@ -147,11 +170,15 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeId }) => {
             <input
               type="text"
               {...field}
-              className="border border-gray-300 p-2 w-full rounded-md"
-              readOnly
+              className={`border p-2 w-full rounded-md ${
+                errors.zoneId ? "border-red-500" : "border-gray-300"
+              }`}
             />
           )}
         />
+        {errors.zoneId && (
+          <p className="text-red-500">{errors.zoneId.message}</p>
+        )}
       </div>
       <div className="mb-4">
         <label className="block text-gray-700 font-bold mb-2">
@@ -164,11 +191,15 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeId }) => {
             <input
               type="text"
               {...field}
-              className="border border-gray-300 p-2 w-full rounded-md"
-              readOnly
+              className={`border p-2 w-full rounded-md ${
+                errors.storeAddress ? "border-red-500" : "border-gray-300"
+              }`}
             />
           )}
         />
+        {errors.storeAddress && (
+          <p className="text-red-500">{errors.storeAddress.message}</p>
+        )}
       </div>
       <div className="mb-4">
         <label className="block text-gray-700 font-bold mb-2">
@@ -181,11 +212,15 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeId }) => {
             <input
               type="text"
               {...field}
-              className="border border-gray-300 p-2 w-full rounded-md"
-              readOnly
+              className={`border p-2 w-full rounded-md ${
+                errors.storePhoneNumber ? "border-red-500" : "border-gray-300"
+              }`}
             />
           )}
         />
+        {errors.storePhoneNumber && (
+          <p className="text-red-500">{errors.storePhoneNumber.message}</p>
+        )}
       </div>
       <div className="mb-4">
         <label className="block text-gray-700 font-bold mb-2">
@@ -198,29 +233,15 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeId }) => {
             <input
               type="email"
               {...field}
-              className="border border-gray-300 p-2 w-full rounded-md"
-              readOnly
+              className={`border p-2 w-full rounded-md ${
+                errors.storeEmail ? "border-red-500" : "border-gray-300"
+              }`}
             />
           )}
         />
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-2">
-          Email App Password
-        </label>
-        <Controller
-          name="emailAppPassword"
-          control={control}
-          render={({ field }) => (
-            <input
-              type="text"
-              {...field}
-              className="border border-gray-300 p-2 w-full rounded-md"
-              readOnly
-            />
-          )}
-        />
+        {errors.storeEmail && (
+          <p className="text-red-500">{errors.storeEmail.message}</p>
+        )}
       </div>
       <div className="mb-4">
         <label className="block text-gray-700 font-bold mb-2">
@@ -233,44 +254,90 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeId }) => {
             <input
               type="text"
               {...field}
-              className="border border-gray-300 p-2 w-full rounded-md"
-              readOnly
+              className={`border p-2 w-full rounded-md ${
+                errors.frontEndUrl ? "border-red-500" : "border-gray-300"
+              }`}
             />
           )}
         />
+        {errors.frontEndUrl && (
+          <p className="text-red-500">{errors.frontEndUrl.message}</p>
+        )}
       </div>
 
       <div>
         <h2 className="text-xl font-semibold mb-2">Business Hours</h2>
-        {control._getWatch("businessHoursList")?.map((hours: BusinessHour) => (
-          <div key={hours.dayOfWeek} className="mb-4">
+        {watch("businessHoursList")?.map((hours, index) => (
+          <div key={index} className="mb-4">
             <h3 className="text-lg font-medium mb-2">{hours.dayOfWeek}</h3>
             <div className="flex gap-4">
               <div className="flex-1">
                 <label className="block text-gray-700 font-bold mb-1">
                   Opening Time
                 </label>
-                <input
-                  type="time"
-                  value={hours.openingTime}
-                  onChange={(e) =>
-                    handleChange(hours.dayOfWeek, "openingTime", e.target.value)
-                  }
-                  className="border border-gray-300 p-2 w-full rounded-md"
+                <Controller
+                  name={`businessHoursList.${index}.openingTime`}
+                  control={control}
+                  render={({ field }) => (
+                    <input
+                      type="time"
+                      {...field}
+                      value={field.value}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        handleChange(
+                          hours.dayOfWeek,
+                          "openingTime",
+                          e.target.value
+                        );
+                      }}
+                      className={`border p-2 w-full rounded-md ${
+                        errors.businessHoursList?.[index]?.openingTime
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                    />
+                  )}
                 />
+                {errors.businessHoursList?.[index]?.openingTime && (
+                  <p className="text-red-500">
+                    {errors.businessHoursList[index].openingTime.message}
+                  </p>
+                )}
               </div>
               <div className="flex-1">
                 <label className="block text-gray-700 font-bold mb-1">
                   Closing Time
                 </label>
-                <input
-                  type="time"
-                  value={hours.closingTime}
-                  onChange={(e) =>
-                    handleChange(hours.dayOfWeek, "closingTime", e.target.value)
-                  }
-                  className="border border-gray-300 p-2 w-full rounded-md"
+                <Controller
+                  name={`businessHoursList.${index}.closingTime`}
+                  control={control}
+                  render={({ field }) => (
+                    <input
+                      type="time"
+                      {...field}
+                      value={field.value}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        handleChange(
+                          hours.dayOfWeek,
+                          "closingTime",
+                          e.target.value
+                        );
+                      }}
+                      className={`border p-2 w-full rounded-md ${
+                        errors.businessHoursList?.[index]?.closingTime
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                    />
+                  )}
                 />
+                {errors.businessHoursList?.[index]?.closingTime && (
+                  <p className="text-red-500">
+                    {errors.businessHoursList[index].closingTime.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -279,9 +346,11 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeId }) => {
       <div className="mt-4 flex justify-end">
         <button
           type="submit"
-          className="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`${
+            isValid ? "bg-blue-500 text-white" : "bg-slate-400 text-slate-950"
+          }  rounded-md px-4 py-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500`}
         >
-          Edit
+          Update Store
         </button>
       </div>
     </form>
