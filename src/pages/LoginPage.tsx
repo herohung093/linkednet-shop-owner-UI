@@ -1,19 +1,19 @@
-import  { useState } from "react";
+import { useState } from "react";
 import ForgotPasswordDialog from "../components/ForgotPasswordDialog";
 import { useNavigate } from "react-router-dom";
-import { axiosInstance } from "../utils/axios";
 import CustomGoogleLoginButton from "../components/CustomGoogleLoginButton";
 import useAuthResonse from "../hooks/useAuthResponse";
 import { Spinner } from "@radix-ui/themes";
-import {  useDispatch } from 'react-redux'
+import { useDispatch } from "react-redux";
 import { setStoresList } from "../redux toolkit/storesListSlice";
+import { axiosInstance } from "../utils/axios";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>("testing@gmail.com");
   const [password, setPassword] = useState<string>("testing@gmail.com");
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const handleAuthResponse = useAuthResonse();
 
@@ -26,15 +26,13 @@ const LoginPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await axiosInstance.post("/auth/authenticate", payload);
-
-      console.log(response.data);
+      const response = await axiosInstance.post("/auth/authenticate", payload);   
       if (response.status === 200) {
-        handleAuthResponse(response.data.token, response.data.refreshToken);
-
+        handleAuthResponse(response.data.token, response.data.refreshToken);              
+        localStorage.setItem("storeUuid", response?.data?.storeConfig[0].storeUuid);
         setEmail("");
         setPassword("");
-        dispatch(setStoresList(response?.data?.storeConfig))
+        dispatch(setStoresList(response?.data?.storeConfig));
         navigate("/dashboard");
       } else {
         throw new Error("Failed to submit booking.");

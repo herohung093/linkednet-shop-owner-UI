@@ -8,7 +8,6 @@ import { refreshToken } from '../helper/RefreshToken';
 
 const useAuthCheck = () => {
   const navigate = useNavigate();
-
   useEffect(() => {
     if (sessionStorage.getItem('authToken')) {
       const token = getToken();

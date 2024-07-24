@@ -8,14 +8,14 @@ interface RefreshTokenResponse {
 export const refreshToken = async (
   navigate: (path: string) => void
 ): Promise<RefreshTokenResponse> => {
-  const refreshToken = localStorage.getItem("refreshToken");
+  const refreshToken = sessionStorage.getItem("refreshToken");
   try {
     const response = await axiosInstance.post("/auth/refresh-token", {
       refreshToken,
     });
     const { authToken, refreshToken: newRefreshToken } = response.data;
-    localStorage.setItem("authToken", authToken);
-    localStorage.setItem("refreshToken", newRefreshToken);
+    sessionStorage.setItem("authToken", authToken);
+    sessionStorage.setItem("refreshToken", newRefreshToken);
     return { authToken, refreshToken: newRefreshToken };
   } catch (error) {
     navigate("/session-expired");

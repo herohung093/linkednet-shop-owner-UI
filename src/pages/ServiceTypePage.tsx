@@ -6,8 +6,8 @@ import { useCallback, useEffect, useState } from "react";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ServiceDialog from "../components/ServiceDialog";
-import { MenuItem, Select, SelectChangeEvent } from "@mui/material"; 
-import useAuthCheck from "../hooks/useAuthCheck";
+import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
+import AuthCheck from "../hooks/useAuthCheck";
 
 interface ServiceItem {
   id: number;
@@ -30,7 +30,7 @@ interface ServiceType {
 }
 
 const ServiceTypePage: React.FC = () => {
-  useAuthCheck()
+  AuthCheck();
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,8 +41,8 @@ const ServiceTypePage: React.FC = () => {
   );
   const sortedServiceType = serviceType.sort((a, b) => a.id - b.id);
 
-
   const fetchCategories = useCallback(async () => {
+    // AuthCheck()
     setLoading(true);
     try {
       const response = await axiosWithToken.get<ServiceType[]>(`/serviceType/`);

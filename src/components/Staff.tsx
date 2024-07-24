@@ -5,7 +5,6 @@ import { Cross2Icon } from "@radix-ui/react-icons";
 import SwitchActive from "./SwitchActive";
 import { axiosWithToken } from "../utils/axios";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import { getToken } from "../helper/getToken";
 import StaffField from "./StaffField";
 import WorkingDayRadio from "./WorkingDayRadio";
 import SkillLevelRadio from "./SkillLevelRadio";
@@ -18,9 +17,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import CustomLoading from "./Loading";
 import NumericInput from "./NumericInput";
-import isTokenExpired from "../helper/CheckTokenExpired";
-import { refreshToken } from "../helper/RefreshToken";
-import { useNavigate } from "react-router";
+import AuthCheck from "../hooks/useAuthCheck";
 
 type FormData = {
   firstName: string;
@@ -71,7 +68,7 @@ const schemaValidation = yup.object({
 });
 
 const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
-  const navigate = useNavigate();
+
   const [day, month, year] = staff.dateOfBirth.split("/");
   const {
     register,
@@ -111,7 +108,7 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
     setFormData({ ...formData, workingDays: newWorkingDays });
   };
 
-  // const router = useRouter();
+  
   const onSubmitHandler = async (values: any) => {
     const payload = {
       ...formData,
@@ -119,15 +116,7 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
       dateOfBirth: formatDate(values.dateOfBirth),
       workingDays: formData.workingDays.join(","),
     };
-    if (sessionStorage.getItem("authToken")) {
-      const token = getToken();
-
-      if (isTokenExpired(token)) {
-        refreshToken(navigate);
-      }
-    } else {
-      navigate("/session-expired");
-    }
+    AuthCheck()
 
     try {
       const response = await axiosWithToken.post("/staff/", payload);
