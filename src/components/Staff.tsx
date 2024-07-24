@@ -17,7 +17,6 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import CustomLoading from "./Loading";
 import NumericInput from "./NumericInput";
-import AuthCheck from "../hooks/useAuthCheck";
 
 type FormData = {
   firstName: string;
@@ -116,7 +115,7 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
       dateOfBirth: formatDate(values.dateOfBirth),
       workingDays: formData.workingDays.join(","),
     };
-    AuthCheck()
+   
 
     try {
       const response = await axiosWithToken.post("/staff/", payload);
