@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import CustomGoogleLoginButton from "../components/CustomGoogleLoginButton";
 import useAuthResonse from "../hooks/useAuthResponse";
 import { Spinner } from "@radix-ui/themes";
+
 import { useDispatch } from "react-redux";
 import { setStoresList } from "../redux toolkit/storesListSlice";
 import { axiosInstance } from "../utils/axios";
@@ -12,6 +13,7 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>("testing@gmail.com");
   const [password, setPassword] = useState<string>("testing@gmail.com");
   const [error, setError] = useState<unknown>(null);
+  const [errorMessage, setErrormessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -27,6 +29,7 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       const response = await axiosInstance.post("/auth/authenticate", payload);
+
       if (response.status === 200) {
         handleAuthResponse(response.data.token, response.data.refreshToken);
         localStorage.setItem(
@@ -41,11 +44,17 @@ const LoginPage: React.FC = () => {
         throw new Error("Failed to submit booking.");
       }
       setLoading(false);
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
 
-      setError(error);
+      setError(true);
       setLoading(false);
+      if (error?.response?.status === 461) {
+        setErrormessage("User email has not been activated. Please check your email to activate your account.");
+      }
+      else {
+        setErrormessage("Invalid username or password");
+      }
+
     }
   };
 
@@ -53,7 +62,7 @@ const LoginPage: React.FC = () => {
     <div className="relative lg:grid lg:grid-cols-2">
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-2xl text-slate-900 -mt-20 mb-10">
-          Shop Owner login
+          Shop Owner Login
         </div>
         <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-3">
           <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
@@ -91,7 +100,7 @@ const LoginPage: React.FC = () => {
               />
             </div>
             <div className={`mb-4 text-red-700 ${!error && "hidden"} `}>
-              Email or password invalid
+              {errorMessage}
             </div>
             <div className="mb-6 w-full">
               <CustomGoogleLoginButton

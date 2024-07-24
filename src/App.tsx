@@ -14,6 +14,9 @@ import googleOAuthConfig from "./config/googleOAuthConfig";
 import SignUpPage from "./pages/SignupPage.tsx";
 import ServiceTypePage from "./pages/ServiceTypePage.tsx";
 import SessionExpired from "./pages/SessionExpiredPage.tsx";
+import EmailConfirmationPage from "./pages/EmailConfirmationPage.tsx";
+import ResetPasswordVerificationPage from "./pages/ResetPasswordVerificationPage.tsx";
+import PasswordResetPage from "./pages/PasswordResetPage.tsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -21,6 +24,9 @@ const router = createBrowserRouter(
       <Route>
         <Route path="/" element={<LoginPage></LoginPage>}></Route>
         <Route path="/signup" element={<SignUpPage></SignUpPage>}></Route>
+        <Route path="/email-confirmation" element={<EmailConfirmationPage></EmailConfirmationPage>}></Route>
+        <Route path="/reset-password-verification" element={<ResetPasswordVerificationPage></ResetPasswordVerificationPage>}></Route>
+        <Route path="/password-reset" element={<PasswordResetPage></PasswordResetPage>}></Route>
           <Route
           path="session-expired"
           element={<SessionExpired></SessionExpired>}
