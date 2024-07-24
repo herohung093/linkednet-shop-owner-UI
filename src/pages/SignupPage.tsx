@@ -37,7 +37,11 @@ const SignUpPage: React.FC = () => {
       setLoading(false);
     } catch (error: any) {
       setError(true);
-      setErrorMessage(error.response.data.message);
+      if (error?.response?.data?.message) {
+        setErrorMessage(error?.response?.data?.message);
+      } else {
+        setErrorMessage("Failed to sign up. Please try again");
+      }
       setLoading(false);
     }
   };

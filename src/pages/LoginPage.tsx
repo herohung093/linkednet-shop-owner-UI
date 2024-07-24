@@ -44,7 +44,7 @@ const LoginPage: React.FC = () => {
 
       setError(true);
       setLoading(false);
-      if (error.response.status === 461) {
+      if (error?.response?.status === 461) {
         setErrormessage("User email has not been activated. Please check your email to activate your account.");
       }
       else {
