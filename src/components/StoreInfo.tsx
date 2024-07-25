@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-// import * as yup from "yup";
-// import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { axiosInstance, axiosWithToken } from "../utils/axios";
 import CustomLoading from "./Loading";
+import CustomPageLoading from "./CustomPageLoading";
 
 type BusinessHour = {
   dayOfWeek: string;
@@ -18,36 +19,41 @@ type StoreInfo = {
   storeAddress: string;
   storePhoneNumber: string;
   storeEmail: string;
-  isAutomaticApproved: boolean;
   frontEndUrl: string;
   enableReservationConfirmation: boolean;
   businessHoursList: BusinessHour[];
 };
 
-// const schema = yup.object().shape({
-//   storeName: yup.string().required("Store Name is required"),
-//   shortStoreName: yup.string().required("Short Store Name is required"),
-//   zoneId: yup.string().required("Zone ID is required"),
-//   storeAddress: yup.string().required("Store Address is required"),
-//   storePhoneNumber: yup
-//     .string()
-//     .required("Store Phone Number is required")
-//     .matches(/^04\d{8}$/, "Store Phone Number must be in the format 04xxxxxxxx"),
-//   storeEmail: yup.string().email("Invalid email format").required("Store Email is required"),
-//   isAutomaticApproved: yup.boolean().required(),
-//   frontEndUrl: yup.string().url("Invalid URL").required("Front End URL is required"),
-//   enableReservationConfirmation: yup.boolean().required(),
-//   businessHoursList: yup
-//     .array()
-//     .of(
-//       yup.object().shape({
-//         dayOfWeek: yup.string().required("Day of the week is required"),
-//         openingTime: yup.string().required("Opening Time is required"),
-//         closingTime: yup.string().required("Closing Time is required"),
-//       })
-//     )
-//     .required(),
-// });
+const schema = yup.object().shape({
+  storeName: yup.string().required("Store Name is required"),
+  shortStoreName: yup.string().required("Short Store Name is required"),
+  zoneId: yup.string().required("Zone ID is required"),
+  storeAddress: yup.string().required("Store Address is required"),
+  storePhoneNumber: yup
+    .string()
+    .required("Store Phone Number is required")
+    .matches(
+      /^04\d{8}$/,
+      "Store Phone Number must be in the format 04xxxxxxxx"
+    ),
+  storeEmail: yup
+    .string()
+    .email("Invalid email format")
+    .required("Store Email is required"),
+  frontEndUrl: yup.string().required("Front End URL is required"),
+  enableReservationConfirmation: yup.boolean().required(),
+  businessHoursList: yup
+    .array()
+    .of(
+      yup.object().shape({
+        dayOfWeek: yup.string().required("Day of the week is required"),
+        openingTime: yup.string().required("Opening Time is required"),
+        closingTime: yup.string().required("Closing Time is required"),
+      })
+    )
+    .required()
+    .min(1, "At least one business hour entry is required"),
+});
 
 interface StoreInfoProps {
   storeUuid: string;
@@ -55,8 +61,8 @@ interface StoreInfoProps {
 }
 
 const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const {
     control,
     handleSubmit,
@@ -65,19 +71,17 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
     watch,
     formState: { errors, isValid },
   } = useForm<StoreInfo>({
-    // resolver: yupResolver(schema),
+    resolver: yupResolver(schema),
   });
 
   const fetchStoreInfo = useCallback(async () => {
-    setLoading(true);
     try {
       const response = await axiosInstance.get<StoreInfo>(
         `/storeConfig/${storeUuid}`
       );
       reset(response.data);
-      setError(null);
     } catch (error) {
-      setError("Error fetching store info");
+      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -85,17 +89,17 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
 
   useEffect(() => {
     fetchStoreInfo();
-  }, [storeUuid]);
-  // const navigate = useNavigate();
+  }, [fetchStoreInfo, storeUuid]);
   const onSubmit = async (data: StoreInfo) => {
-    // const isTokenValid = await ValidateAndRefreshToken();
-    // if (!isTokenValid) return;
+    setSubmitting(true);
     try {
       const response = await axiosWithToken.put("/storeConfig/", data);
       console.log(response.data);
       handleUpdate();
     } catch (error) {
       console.log(error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -112,8 +116,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
     setValue("businessHoursList", updatedBusinessHoursList);
   };
 
-  if (loading) return <CustomLoading />;
-  if (error) return <p>{error}</p>;
+  if (loading) return <CustomPageLoading />;
 
   return (
     <form
@@ -348,9 +351,9 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
           type="submit"
           className={`${
             isValid ? "bg-blue-500 text-white" : "bg-slate-400 text-slate-950"
-          }  rounded-md px-4 py-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+          } w-[150px] flex items-center justify-center rounded-md px-4 py-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500`}
         >
-          Update Store
+          {submitting ? <CustomLoading /> : "Update Store"}
         </button>
       </div>
     </form>

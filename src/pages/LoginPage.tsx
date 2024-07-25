@@ -44,6 +44,7 @@ const LoginPage: React.FC = () => {
         throw new Error("Failed to submit booking.");
       }
       setLoading(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
 
       setError(true);

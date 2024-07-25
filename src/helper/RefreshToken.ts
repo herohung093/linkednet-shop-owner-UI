@@ -1,7 +1,7 @@
 import { axiosInstance } from "../utils/axios";
 
 interface RefreshTokenResponse {
-  authToken: string;
+  token: string;
   refreshToken: string;
 }
 
@@ -13,10 +13,16 @@ export const refreshToken = async (
     const response = await axiosInstance.post("/auth/refresh-token", {
       refreshToken,
     });
-    const { authToken, refreshToken: newRefreshToken } = response.data;
-    sessionStorage.setItem("authToken", authToken);
+    console.log(response.data);
+    
+    const { token, refreshToken: newRefreshToken } = response.data;
+    sessionStorage.setItem("authToken", token);
     sessionStorage.setItem("refreshToken", newRefreshToken);
-    return { authToken, refreshToken: newRefreshToken };
+    console.log("Token refreshed");
+    console.log("token",token);
+    
+    
+    return { token, refreshToken: newRefreshToken };
   } catch (error) {
     navigate("/session-expired");
     console.error("Failed to refresh token:", error);

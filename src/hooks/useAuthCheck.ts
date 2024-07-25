@@ -11,7 +11,6 @@ const useAuthCheck = () => {
   useEffect(() => {
     if (sessionStorage.getItem('authToken')) {
       const token = getToken();
-
       if (isTokenExpired(token)) {
         console.log('Token expired');
         refreshToken(navigate);

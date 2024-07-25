@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Select,
@@ -21,8 +21,7 @@ const DashboardPage: React.FC = () => {
 
   const fetchAllStore = useCallback(async () => {
     try {
-      const response = await axiosWithToken.get("/storeConfig/");
-      console.log(response.data);
+      const response = await axiosWithToken.get("/storeConfig/");    
       dispatch(setStoresList(response.data));
     } catch (error) {
       console.error("Error fetching store config:", error);
@@ -33,18 +32,36 @@ const DashboardPage: React.FC = () => {
     fetchAllStore();
   }, [fetchAllStore, updateTrigger]);
 
-  const storeConfig = useSelector(
+  const storeConfigRedux = useSelector(
     (state: RootState) => state.storesList.storesList
+  );
+  const storeConfig = useMemo(() => {
+    if (storeConfigRedux) {
+      return storeConfigRedux.slice().sort((a, b) => a.id - b.id);
+    }
+    return [];
+  }, [storeConfigRedux]);
+
+  const currentStoreUuid = localStorage.getItem("storeUuid");
+  const currentStore = storeConfig.find(
+    (store) => store.storeUuid === currentStoreUuid
   );
 
   useEffect(() => {
-    if (storeConfig.length > 0) {
-      setSelectedStore(storeConfig[0].id);
+    if (storeConfig.length > 0 && currentStore) {
+      setSelectedStore(currentStore.id);
     }
-  }, [storeConfig]);
+  }, [storeConfig, currentStore]);
 
   const handleStoreChange = (event: SelectChangeEvent<string | number>) => {
     setSelectedStore(event.target.value as number);
+    const selectedStore = storeConfig.find(
+      (store) => store.id === event.target.value
+    );
+    if (selectedStore) {
+      localStorage.setItem("storeUuid", selectedStore.storeUuid);
+    }
+    console.log(selectedStore);
   };
 
   const selectedStoreInfo = storeConfig.find(
