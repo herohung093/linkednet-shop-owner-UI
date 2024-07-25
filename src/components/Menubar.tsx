@@ -21,6 +21,7 @@ const MenubarDemo = () => {
     navigate("/");
     sessionStorage.removeItem("authToken");
     sessionStorage.removeItem("refreshToken");
+    localStorage.removeItem("storeUuid");
   };
 
   const menuItems: MenuItem[] = [

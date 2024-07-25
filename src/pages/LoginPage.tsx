@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ForgotPasswordDialog from "../components/ForgotPasswordDialog";
 import { useNavigate } from "react-router-dom";
 import CustomGoogleLoginButton from "../components/CustomGoogleLoginButton";
@@ -8,6 +8,7 @@ import { Spinner } from "@radix-ui/themes";
 import { useDispatch } from "react-redux";
 import { setStoresList } from "../redux toolkit/storesListSlice";
 import { axiosInstance } from "../utils/axios";
+import isTokenExpired from "../helper/CheckTokenExpired";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>("testing@gmail.com");
@@ -18,6 +19,31 @@ const LoginPage: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const handleAuthResponse = useAuthResonse();
+
+  useEffect(() => {
+    const authToken = sessionStorage.getItem("authToken");
+    const refreshToken = sessionStorage.getItem("refreshToken");
+
+    if (authToken && !isTokenExpired(authToken)) {
+      navigate("/dashboard");
+    } else if (refreshToken && !isTokenExpired(refreshToken)) {
+      refreshAuthToken(refreshToken);
+    }
+  }, [navigate]);
+
+  const refreshAuthToken = async (refreshToken: string) => {
+    try {
+      const response = await axiosInstance.post("/auth/refresh-token", { refreshToken });
+      if (response.status === 200) {
+        handleAuthResponse(response.data.token, response.data.refreshToken);
+        navigate("/dashboard");
+      } else {
+        console.log("Failed to refresh token.");
+      }
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
