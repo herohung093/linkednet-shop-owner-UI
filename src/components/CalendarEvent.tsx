@@ -25,7 +25,7 @@ const CalendarEvent: React.FC<CalendarEventProps> = ({ reservation }) => {
         <ChakraProvider>
             <Box bg={getStatusBackgroundColor(status)} p={1} height="100%" color="black">
                 <Stack spacing={1} flexDirection="column" alignItems="flex-start">
-                    <Text fontSize="xs" as='samp'>{staff.firstName}</Text>
+                    <Text fontSize="xs" as='samp'>{staff.nickname}</Text>
                     <Text fontSize="xs" as='samp'>{bookingTime.split(' ')[1]} - {endTime.split(' ')[1]}</Text>
                     <Text fontSize="xs" as='samp'>{customer.firstName}</Text>
                 </Stack>
