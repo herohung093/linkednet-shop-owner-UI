@@ -26,3 +26,52 @@ declare interface Store {
   enableReservationConfirmation: boolean;
   automaticApproved: boolean;
 }
+
+declare interface ServiceItem {
+  id: number;
+  serviceName: string;
+  serviceDescription: string;
+  servicePrice: number;
+  estimatedTime: number;
+  active: boolean;
+}
+
+declare interface Reservation {
+  id: number;
+  customer: Customer;
+  note: string;
+  bookingTime: string;
+  endTime: string;
+  createdTime: string;
+  status: string;
+  serviceItems: ServiceItem[];
+  totalEstimatedTime: number;
+  totalPrice: number;
+  staff: Staff;
+}
+
+declare interface ProcessedEvent {
+  event_id: number;
+  title: string;
+  start: Date;
+  end: Date;
+}
+
+declare interface Customer {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
+
+declare ReservationStatus = {
+  PENDING: "PENDING",
+  CONFIRMED: "CONFIRMED",
+  CANCELLED: "CANCELLED",
+  APPROVED: "APPROVED",
+}
+
+declare interface ReservationEvent extends ProcessedEvent {
+  data: Reservation;
+}

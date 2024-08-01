@@ -137,3 +137,242 @@
   background-color: #303030;
   opacity: 8%;
 }
+
+.calendar-container {
+  height: 700px;
+  width: 100%;
+  overflow-x: auto;
+  margin: 0 auto; /* Center horizontally */
+}
+
+/* Apply max-width 90% on larger screens */
+@media (min-width: 768px) {
+  .calendar-container {
+    max-width: 90%;
+  }
+}
+
+/* Apply max-width 100% on mobile screens */
+@media (max-width: 767px) {
+  .calendar-container {
+    max-width: 100%;
+  }
+}
+
+.rbc-timeslot-group {
+  border-bottom: 1px solid #ddd;
+  min-height: 100px !important;
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.calendar {
+  display: flex;
+}
+
+.rbc-time-slot {
+  /* background-color: #eaf3fa; */
+  color: #74a4c3;
+}
+
+.rbc-header {
+  background: #79b8e4;
+  color: white;
+  padding: 10px;
+  font-size: 12px;
+}
+
+/* .rbc-time-slot {
+  height: 50px;
+} */
+
+.rbc-event {
+  padding: 0px !important;
+  border-radius: 0px !important;
+  border: none !important;
+  background-color: transparent !important;
+}
+
+.rbc-event-label {
+  display: none !important;
+}
+
+.rbc-events-container {
+  width: 100% !important;
+}
+
+.rbc-background-event {
+  padding: 0px !important;
+  border-radius: 0px !important;
+  border: none !important;
+  background-color: transparent !important;
+}
+
+.rbc-timeslot-group {
+  min-height: 120px !important;
+}
+
+.rbc-current-time-indicator {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #74ad31;
+  pointer-events: none;
+}
+
+.rbc-time-header {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: row;
+}
+
+@media (max-width: 480px) {
+  .rbc-time-header {
+    margin-right: 0px !important;
+  }
+}
+
+.rbc-toolbar .rbc-toolbar-label {
+  font-weight: bold;
+  font-size: 1.2em;
+  border: 1px solid #005f99;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  color: cornflowerblue; 
+  border-radius: 5px;
+}
+
+.status-container {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 1px;
+}
+
+.status-item {
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+}
+
+.confirmed {
+  background-color: springgreen;
+}
+
+.pending {
+  background-color: darkorange;
+}
+
+.cancelled {
+  background-color: crimson;
+}
+
+.approved {
+  background-color: skyblue;
+}
+
+.Input {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: left;
+  flex: 1;
+  border-radius: 4px;
+  padding: 0 10px;
+  font-size: 13px;
+  line-height: 1;
+  color: #0b0613;
+  box-shadow: 0 0 0 1px #000000;
+  min-height: 25px;
+  /* Ensure a minimum height */
+  word-break: break-word;
+}
+
+.Input:focus {
+  box-shadow: 0 0 0 2px #8b5cf6;
+}
+
+.SelectTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  padding: 0 15px;
+  font-size: 13px;
+  line-height: 1;
+  height: 35px;
+  gap: 5px;
+  background-color: white;
+  color: #7c3aed;
+  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1);
+}
+
+.SelectTrigger:hover {
+  background-color: #e0e0e0;
+}
+
+.SelectTrigger:focus {
+  box-shadow: 0 0 0 2px black;
+}
+
+.SelectTrigger[data-placeholder] {
+  color: #8b5cf6;
+}
+
+.SelectIcon {
+  color: #7c3aed;
+}
+
+.SelectContent {
+  overflow: hidden;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0px 10px 38px -10px rgba(22, 23, 24, 0.35), 0px 10px 20px -15px rgba(22, 23, 24, 0.2);
+}
+
+.SelectViewport {
+  padding: 5px;
+}
+
+.SelectItem {
+  font-size: 13px;
+  line-height: 1;
+  color: #7c3aed;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  height: 25px;
+  padding: 0 35px 0 25px;
+  position: relative;
+  user-select: none;
+}
+
+.SelectItem[data-disabled] {
+  color: #a8a8a8;
+  pointer-events: none;
+}
+
+.SelectItem[data-highlighted] {
+  outline: none;
+  background-color: #8b5cf6;
+  color: #f3e8ff;
+}
+
+.SelectItemIndicator {
+  position: absolute;
+  left: 0;
+  width: 25px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.non-editable-label {
+  background-color: #f0f0f0;
+  padding: 5px;
+  border-radius: 4px;
+  cursor: not-allowed;
+  color: #888;
+}

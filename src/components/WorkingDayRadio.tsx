@@ -5,7 +5,7 @@ interface WorkingDayRadioProps {
     id: number | null;
     firstName: string;
     lastName: string;
-    nickname: string;
+    nickName: string;
     phone: string;
     skillLevel: number | null;
     dateOfBirth: string;

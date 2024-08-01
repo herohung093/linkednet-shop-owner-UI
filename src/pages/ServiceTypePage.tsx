@@ -9,14 +9,7 @@ import ServiceDialog from "../components/ServiceDialog";
 import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import AuthCheck from "../hooks/useAuthCheck";
 
-interface ServiceItem {
-  id: number;
-  serviceName: string;
-  serviceDescription: string;
-  servicePrice: number;
-  estimatedTime: number;
-  active: boolean;
-}
+
 
 interface ServiceType {
   id: number;
