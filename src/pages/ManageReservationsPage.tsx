@@ -266,9 +266,9 @@ const ManageReservationsPage: React.FC = () => {
 					}// End time at 10 PM
 					formats={{
 						timeGutterFormat: 'HH:mm',
-						eventTimeRangeFormat: ({ start, end }, culture, localizer) =>
+						eventTimeRangeFormat: ({ start, end }, culture) =>
 							`${mLocalizer.format(start, 'HH:mm', culture)} - ${mLocalizer.format(end, 'HH:mm', culture)}`,
-						agendaTimeRangeFormat: ({ start, end }, culture, localizer) =>
+						agendaTimeRangeFormat: ({ start, end }, culture) =>
 							`${mLocalizer.format(start, 'HH:mm', culture)} - ${mLocalizer.format(end, 'HH:mm', culture)}`,
 					}}
 					onSelectEvent={handleEventClick}
