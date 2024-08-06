@@ -84,6 +84,7 @@ const MenubarDemo = () => {
   }, [storeConfig, selectedStore, dispatch]);
 
   const handleStoreChange = (event: SelectChangeEvent<string | undefined>) => {
+    toggleMenu()
     const storeUuid = event.target.value as string | undefined;
     setSelectedStore(storeUuid);
     if (storeUuid !== undefined) {
