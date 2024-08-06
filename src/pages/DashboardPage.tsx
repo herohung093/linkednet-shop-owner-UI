@@ -32,6 +32,8 @@ const DashboardPage: React.FC = () => {
     (state: RootState) => state.selectedStore.storeId
   );
 
+  
+
   const storeConfig = useMemo(() => {
     if (storeConfigRedux) {
       return storeConfigRedux.slice().sort((a, b) => a.id - b.id);
@@ -61,23 +63,7 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="min-h-screen xl:w-[90%] 2xl:w-[80%] mx-auto">
-      <div className="flex justify-end items-center mb-4">
-        {/* <FormControl variant="outlined" style={{ minWidth: 200 }}>
-          <InputLabel id="store-select-label">Select Store</InputLabel>
-          <Select
-            className="h-[38px]"
-            labelId="store-select-label"
-            value={selectedStore}
-            onChange={handleStoreChange}
-            label="Select Store"
-          >
-            {storeConfig.map((store) => (
-              <MenuItem key={store.id} value={store.id}>
-                {store.storeName}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl> */}
+      <div className="flex justify-end items-center mb-4">      
         <button className="btn-primary ml-4 px-4 py-2">Create Store</button>
       </div>
       {storeConfig.length > 0 ? (

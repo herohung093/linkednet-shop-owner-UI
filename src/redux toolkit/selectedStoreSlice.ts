@@ -1,15 +1,15 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface SelectedStoreState {
-  storeId: number | string;
+  storeId: number | string | null;
 }
 
 const initialState: SelectedStoreState = {
-  storeId: '',
+  storeId: localStorage.getItem("storeUuid"),
 };
 
 const selectedStoreSlice = createSlice({
-  name: 'selectedStore',
+  name: "selectedStore",
   initialState,
   reducers: {
     setSelectedStoreRedux(state, action: PayloadAction<number | string>) {

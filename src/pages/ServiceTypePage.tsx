@@ -8,8 +8,8 @@ import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ServiceDialog from "../components/ServiceDialog";
 import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import AuthCheck from "../hooks/useAuthCheck";
-
-
+import { useSelector } from "react-redux";
+import { RootState } from "../redux toolkit/store";
 
 interface ServiceType {
   id: number;
@@ -49,10 +49,13 @@ const ServiceTypePage: React.FC = () => {
       setLoading(false);
     }
   }, []);
+  const selectedStoreId = useSelector(
+    (state: RootState) => state.selectedStore.storeId
+  );
 
   useEffect(() => {
     fetchCategories();
-  }, [fetchCategories, updateTrigger]);
+  }, [fetchCategories, updateTrigger, selectedStoreId]);
 
   if (loading) return <CustomLoading />;
   if (error) return <div>Error</div>;

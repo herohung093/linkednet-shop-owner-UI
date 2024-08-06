@@ -45,7 +45,6 @@ const MenubarDemo = () => {
     { label: "Logout", path: "", onClick: logoutHandler },
   ];
   useAuthCheck();
-  // const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
   const [selectedStore, setSelectedStore] = useState<number | string>("");
   const dispatch = useDispatch();
 

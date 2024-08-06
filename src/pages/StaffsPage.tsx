@@ -4,6 +4,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import Staff from "../components/Staff";
 import useAuthCheck from "../hooks/useAuthCheck";
 import { axiosInstance } from "../utils/axios";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux toolkit/store";
 
 interface Staff {
   id: number | null;
@@ -44,10 +46,13 @@ const StaffsPage: React.FC = () => {
       setLoading(false);
     }
   }, [filter]);
+  const selectedStoreId = useSelector(
+    (state: RootState) => state.selectedStore.storeId
+  );
 
   useEffect(() => {
     fetchStaffs();
-  }, [updateTrigger]);
+  }, [updateTrigger,selectedStoreId]);
 
   const handleUpdate = () => {
     setUpdateTrigger(!updateTrigger);
