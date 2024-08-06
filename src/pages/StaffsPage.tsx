@@ -47,7 +47,7 @@ const StaffsPage: React.FC = () => {
     }
   }, [filter]);
   const selectedStoreId = useSelector(
-    (state: RootState) => state.selectedStore.storeId
+    (state: RootState) => state.selectedStore.storeUuid
   );
 
   useEffect(() => {

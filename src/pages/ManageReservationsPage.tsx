@@ -117,7 +117,7 @@ const ManageReservationsPage: React.FC = () => {
   };
 
   const selectedStoreId = useSelector(
-    (state: RootState) => state.selectedStore.storeId
+    (state: RootState) => state.selectedStore.storeUuid
   );
 
   useEffect(() => {

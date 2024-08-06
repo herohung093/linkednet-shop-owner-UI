@@ -9,6 +9,7 @@ import { useDispatch } from "react-redux";
 import { setStoresList } from "../redux toolkit/storesListSlice";
 import { axiosInstance } from "../utils/axios";
 import isTokenExpired from "../helper/CheckTokenExpired";
+import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>("testing@gmail.com");
@@ -33,7 +34,9 @@ const LoginPage: React.FC = () => {
 
   const refreshAuthToken = async (refreshToken: string) => {
     try {
-      const response = await axiosInstance.post("/auth/refresh-token", { refreshToken });
+      const response = await axiosInstance.post("/auth/refresh-token", {
+        refreshToken,
+      });
       if (response.status === 200) {
         handleAuthResponse(response.data.token, response.data.refreshToken);
         navigate("/dashboard");
@@ -58,10 +61,12 @@ const LoginPage: React.FC = () => {
 
       if (response.status === 200) {
         handleAuthResponse(response.data.token, response.data.refreshToken);
-        localStorage.setItem(
-          "storeUuid",
-          response?.data?.storeConfig[0].storeUuid
+        const storeListSorted = response?.data?.storeConfig.sort(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (a: any, b: any) => a.id - b.id
         );
+        localStorage.setItem("storeUuid", storeListSorted[0].storeUuid);
+        dispatch(setSelectedStoreRedux(storeListSorted[0].storeUuid));
         setEmail("");
         setPassword("");
         dispatch(setStoresList(response?.data?.storeConfig));
@@ -70,18 +75,17 @@ const LoginPage: React.FC = () => {
         throw new Error("Failed to submit booking.");
       }
       setLoading(false);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-
       setError(true);
       setLoading(false);
       if (error?.response?.status === 461) {
-        setErrormessage("User email has not been activated. Please check your email to activate your account.");
-      }
-      else {
+        setErrormessage(
+          "User email has not been activated. Please check your email to activate your account."
+        );
+      } else {
         setErrormessage("Invalid username or password");
       }
-
     }
   };
 

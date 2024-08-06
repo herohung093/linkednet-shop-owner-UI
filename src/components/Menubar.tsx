@@ -1,9 +1,4 @@
-import {
-  FormControl,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-} from "@mui/material";
+import { SelectChangeEvent } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router";
 import useAuthCheck from "../hooks/useAuthCheck";
@@ -12,9 +7,9 @@ import { axiosWithToken } from "../utils/axios";
 import { setStoresList } from "../redux toolkit/storesListSlice";
 import { RootState } from "../redux toolkit/store";
 import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
+import SelectStore from "./SelectStore";
 
-
-interface MenuItem {
+interface MenuItemProps {
   label: string;
   path: string;
   onClick?: () => void;
@@ -37,15 +32,21 @@ const MenubarDemo = () => {
     localStorage.removeItem("storeUuid");
   };
 
-  const menuItems: MenuItem[] = [
+  const menuItems: MenuItemProps[] = [
     { label: "Dashboard", path: "/dashboard" },
     { label: "Staffs", path: "/staffs" },
     { label: "Services", path: "/services" },
     { label: "Manage Reservations", path: "/manage-reservations" },
     { label: "Logout", path: "", onClick: logoutHandler },
   ];
+
   useAuthCheck();
-  const [selectedStore, setSelectedStore] = useState<number | string>("");
+  const localStorageStoreUuid = localStorage.getItem("storeUuid");
+  const [selectedStore, setSelectedStore] = useState<string | undefined>(
+    localStorageStoreUuid || undefined
+  );
+  console.log(selectedStore);
+  
   const dispatch = useDispatch();
 
   const fetchAllStore = useCallback(async () => {
@@ -71,30 +72,30 @@ const MenubarDemo = () => {
     return [];
   }, [storeConfigRedux]);
 
-  const currentStoreUuid = localStorage.getItem("storeUuid");
-  const currentStore = storeConfig.find(
-    (store) => store.storeUuid === currentStoreUuid
-  );
-
   useEffect(() => {
-    if (storeConfig.length > 0 && currentStore) {
-      setSelectedStore(currentStore.id);
+    if (storeConfig.length > 0) {
+      const firstStoreUuid = storeConfig[0].storeUuid;
+      if (!selectedStore) {
+        setSelectedStore(firstStoreUuid);
+        localStorage.setItem("storeUuid", firstStoreUuid);
+        dispatch(setSelectedStoreRedux(firstStoreUuid));
+      }
     }
-  }, [storeConfig, currentStore]);
+  }, [storeConfig, selectedStore, dispatch]);
 
-  const handleStoreChange = (event: SelectChangeEvent<string | number>) => {
-    setSelectedStore(event.target.value as number);
-    const selectedStore = storeConfig.find(
-      (store) => store.id === event.target.value
-    );
-    if (selectedStore) {
-      localStorage.setItem("storeUuid", selectedStore.storeUuid);
-      dispatch(setSelectedStoreRedux(selectedStore.storeUuid))
+  const handleStoreChange = (event: SelectChangeEvent<string | undefined>) => {
+    const storeUuid = event.target.value as string | undefined;
+    setSelectedStore(storeUuid);
+    if (storeUuid !== undefined) {
+      const selectedStore = storeConfig.find(
+        (store) => store.storeUuid === storeUuid
+      );
+      if (selectedStore) {
+        localStorage.setItem("storeUuid", selectedStore.storeUuid);
+        dispatch(setSelectedStoreRedux(selectedStore.storeUuid));
+      }
     }
-    console.log(localStorage.getItem("storeUuid"));
   };
-
-
 
   return (
     <div className="mb-[100px] relative z-10">
@@ -104,40 +105,21 @@ const MenubarDemo = () => {
             isOpen ? "block" : "hidden"
           }`}
         >
-          <FormControl sx={{ minWidth: 150}}>
-            <Select
-              sx={{
-                border: "none",
-                boxShadow: "none",
-                "& .MuiOutlinedInput-notchedOutline": { border: 0 },
-                "&:hover .MuiOutlinedInput-notchedOutline": { border: 0 },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: 0 },
-                fontWeight: "bold"
-              }}
-              className="h-[38px]"
-              labelId="store-select-label"
-              value={selectedStore}
-              onChange={handleStoreChange}
-            >
-              {storeConfig.map((store) => (
-                <MenuItem
-                  key={store.id}
-                  value={store.id}
-                 
-                >
-                  {store.storeName}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <SelectStore
+            handleStoreChange={handleStoreChange}
+            selectedStore={selectedStore}
+            storeConfig={storeConfig}
+          />
 
           {menuItems.map((menuItem, index) => (
             <div key={index}>
               <div
                 onClick={() => {
-                  menuItem.label === "Logout"
-                    ? logoutHandler()
-                    : navigate(menuItem.path);
+                  if (menuItem.onClick) {
+                    menuItem.onClick();
+                  } else {
+                    navigate(menuItem.path);
+                  }
                   setIsOpen(false);
                 }}
                 className={`cursor-pointer py-2 mb-4 px-3 outline-none select-none font-bold leading-none rounded text-slate-900 text-[15px] lg:text-base flex items-center justify-between gap-[4px] hover:underline ${
@@ -180,40 +162,22 @@ const MenubarDemo = () => {
       {/* Laptop and larger screens */}
       <div className="h-[1px]"></div>
       <div className="hidden md:flex bg-white p-[3px] mt-5 w-[90%] sm:w-[70%] lg:w-[50%] mx-auto justify-center rounded-md shadow-[0_2px_10px] shadow-blackA4">
-        <FormControl sx={{ minWidth: 150, fontWeight: "bold" }}>
-          <Select
-            sx={{
-              border: "none",
-              boxShadow: "none",
-              "& .MuiOutlinedInput-notchedOutline": { border: 0 },
-              "&:hover .MuiOutlinedInput-notchedOutline": { border: 0 },
-              "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: 0 },
-              fontWeight: "bold"
-            }}
-            className="h-[38px]"
-            labelId="store-select-label"
-            value={selectedStore}
-            onChange={handleStoreChange}
-          >
-            {storeConfig.map((store) => (
-              <MenuItem
-                key={store.id}
-                value={store.id}               
-              >
-                {store.storeName}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <SelectStore
+          handleStoreChange={handleStoreChange}
+          selectedStore={selectedStore}
+          storeConfig={storeConfig}
+        />
 
         {menuItems.map((menuItem, index) => (
           <div key={index}>
             <div
-              onClick={() =>
-                menuItem.label === "Logout"
-                  ? logoutHandler()
-                  : navigate(menuItem.path)
-              }
+              onClick={() => {
+                if (menuItem.onClick) {
+                  menuItem.onClick();
+                } else {
+                  navigate(menuItem.path);
+                }
+              }}
               className={` cursor-pointer py-2 px-3 outline-none select-none font-medium leading-none rounded text-slate-900 text-[13px] lg:text-base flex items-center justify-between gap-[2px] hover:underline hover:underline-offset-4 ${
                 currentPath === menuItem.path && "underline underline-offset-4"
               }`}

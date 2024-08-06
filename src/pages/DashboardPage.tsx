@@ -29,9 +29,10 @@ const DashboardPage: React.FC = () => {
     (state: RootState) => state.storesList.storesList
   );
   const selectedStoreId = useSelector(
-    (state: RootState) => state.selectedStore.storeId
+    (state: RootState) => state.selectedStore.storeUuid
   );
 
+  console.log(selectedStoreId);
   
 
   const storeConfig = useMemo(() => {
