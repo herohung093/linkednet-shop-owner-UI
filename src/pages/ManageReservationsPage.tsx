@@ -136,6 +136,7 @@ const ManageReservationsPage: React.FC = () => {
     };
 
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStoreId]);
 
   const checkTokenExpiredAndRefresh = async () => {
@@ -192,7 +193,7 @@ const ManageReservationsPage: React.FC = () => {
   };
 
   const components = {
-    event: ({ event }: { event: ReservationEvent }) => {
+    event: ({ event }: { event: any }) => {
       const data = event?.data;
       return <CalendarEvent reservation={data} />;
     },
