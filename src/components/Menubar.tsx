@@ -1,5 +1,18 @@
-import { useState } from "react";
+import {
+  FormControl,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+} from "@mui/material";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router";
+import useAuthCheck from "../hooks/useAuthCheck";
+import { useDispatch, useSelector } from "react-redux";
+import { axiosWithToken } from "../utils/axios";
+import { setStoresList } from "../redux toolkit/storesListSlice";
+import { RootState } from "../redux toolkit/store";
+import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
+
 
 interface MenuItem {
   label: string;
@@ -31,6 +44,58 @@ const MenubarDemo = () => {
     { label: "Manage Reservations", path: "/manage-reservations" },
     { label: "Logout", path: "", onClick: logoutHandler },
   ];
+  useAuthCheck();
+  // const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
+  const [selectedStore, setSelectedStore] = useState<number | string>("");
+  const dispatch = useDispatch();
+
+  const fetchAllStore = useCallback(async () => {
+    try {
+      const response = await axiosWithToken.get("/storeConfig/");
+      dispatch(setStoresList(response.data));
+    } catch (error) {
+      console.error("Error fetching store config:", error);
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
+    fetchAllStore();
+  }, [fetchAllStore]);
+
+  const storeConfigRedux = useSelector(
+    (state: RootState) => state.storesList.storesList
+  );
+  const storeConfig = useMemo(() => {
+    if (storeConfigRedux) {
+      return storeConfigRedux.slice().sort((a, b) => a.id - b.id);
+    }
+    return [];
+  }, [storeConfigRedux]);
+
+  const currentStoreUuid = localStorage.getItem("storeUuid");
+  const currentStore = storeConfig.find(
+    (store) => store.storeUuid === currentStoreUuid
+  );
+
+  useEffect(() => {
+    if (storeConfig.length > 0 && currentStore) {
+      setSelectedStore(currentStore.id);
+    }
+  }, [storeConfig, currentStore]);
+
+  const handleStoreChange = (event: SelectChangeEvent<string | number>) => {
+    setSelectedStore(event.target.value as number);
+    const selectedStore = storeConfig.find(
+      (store) => store.id === event.target.value
+    );
+    if (selectedStore) {
+      localStorage.setItem("storeUuid", selectedStore.storeUuid);
+      dispatch(setSelectedStoreRedux(selectedStore.storeUuid))
+    }
+    console.log(localStorage.getItem("storeUuid"));
+  };
+
+
 
   return (
     <div className="mb-[100px] relative z-10">
@@ -40,6 +105,33 @@ const MenubarDemo = () => {
             isOpen ? "block" : "hidden"
           }`}
         >
+          <FormControl sx={{ minWidth: 150}}>
+            <Select
+              sx={{
+                border: "none",
+                boxShadow: "none",
+                "& .MuiOutlinedInput-notchedOutline": { border: 0 },
+                "&:hover .MuiOutlinedInput-notchedOutline": { border: 0 },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: 0 },
+                fontWeight: "bold"
+              }}
+              className="h-[38px]"
+              labelId="store-select-label"
+              value={selectedStore}
+              onChange={handleStoreChange}
+            >
+              {storeConfig.map((store) => (
+                <MenuItem
+                  key={store.id}
+                  value={store.id}
+                 
+                >
+                  {store.storeName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           {menuItems.map((menuItem, index) => (
             <div key={index}>
               <div
@@ -50,7 +142,8 @@ const MenubarDemo = () => {
                   setIsOpen(false);
                 }}
                 className={`cursor-pointer py-2 mb-4 px-3 outline-none select-none font-bold leading-none rounded text-slate-900 text-[15px] lg:text-base flex items-center justify-between gap-[4px] hover:underline ${
-                  currentPath === menuItem.path && "underline underline-offset-4"
+                  currentPath === menuItem.path &&
+                  "underline underline-offset-4"
                 }`}
               >
                 {menuItem.label}
@@ -88,6 +181,32 @@ const MenubarDemo = () => {
       {/* Laptop and larger screens */}
       <div className="h-[1px]"></div>
       <div className="hidden md:flex bg-white p-[3px] mt-5 w-[90%] sm:w-[70%] lg:w-[50%] mx-auto justify-center rounded-md shadow-[0_2px_10px] shadow-blackA4">
+        <FormControl sx={{ minWidth: 150, fontWeight: "bold" }}>
+          <Select
+            sx={{
+              border: "none",
+              boxShadow: "none",
+              "& .MuiOutlinedInput-notchedOutline": { border: 0 },
+              "&:hover .MuiOutlinedInput-notchedOutline": { border: 0 },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: 0 },
+              fontWeight: "bold"
+            }}
+            className="h-[38px]"
+            labelId="store-select-label"
+            value={selectedStore}
+            onChange={handleStoreChange}
+          >
+            {storeConfig.map((store) => (
+              <MenuItem
+                key={store.id}
+                value={store.id}               
+              >
+                {store.storeName}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
         {menuItems.map((menuItem, index) => (
           <div key={index}>
             <div

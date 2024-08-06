@@ -213,7 +213,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
           control={control}
           render={({ field }) => (
             <input
-              type="text"
+              type="phone"
               {...field}
               className={`border p-2 w-full rounded-md ${
                 errors.storePhoneNumber ? "border-red-500" : "border-gray-300"

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useCallback, useEffect, useState } from "react";
 import MenubarDemo from "../components/Menubar";
 import { axiosWithToken } from "../utils/axios";
@@ -177,14 +178,12 @@ const ManageReservationsPage: React.FC = () => {
 		updateReservationEvent(selectedEvent as ReservationEvent);
 	};
 
-	const components = {
-		// @ts-ignore
-		event: ({ event }) => {
+const components = {
+		event: ({ event }: { event: ReservationEvent }) => {
 			const data = event?.data;
 			return <CalendarEvent reservation={data} />;
 		},
 	};
-
 	const updateEventData = (response: { data: { id: string;[key: string]: any } }) => {
 		const updatedEvents = (events as ReservationEvent[]).map(event => {
 			if (event.data.id.toString() === response.data.id.toString()) {

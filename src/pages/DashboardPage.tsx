@@ -1,12 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  SelectChangeEvent,
-} from "@mui/material";
 import { RootState } from "../redux toolkit/store";
 import StoreInfo from "../components/StoreInfo";
 import useAuthCheck from "../hooks/useAuthCheck";
@@ -35,16 +28,19 @@ const DashboardPage: React.FC = () => {
   const storeConfigRedux = useSelector(
     (state: RootState) => state.storesList.storesList
   );
+  const selectedStoreId = useSelector(
+    (state: RootState) => state.selectedStore.storeId
+  );
+
   const storeConfig = useMemo(() => {
     if (storeConfigRedux) {
       return storeConfigRedux.slice().sort((a, b) => a.id - b.id);
     }
     return [];
   }, [storeConfigRedux]);
-
-  const currentStoreUuid = localStorage.getItem("storeUuid");
+ 
   const currentStore = storeConfig.find(
-    (store) => store.storeUuid === currentStoreUuid
+    (store) => store.storeUuid === selectedStoreId
   );
 
   useEffect(() => {
@@ -53,16 +49,7 @@ const DashboardPage: React.FC = () => {
     }
   }, [storeConfig, currentStore]);
 
-  const handleStoreChange = (event: SelectChangeEvent<string | number>) => {
-    setSelectedStore(event.target.value as number);
-    const selectedStore = storeConfig.find(
-      (store) => store.id === event.target.value
-    );
-    if (selectedStore) {
-      localStorage.setItem("storeUuid", selectedStore.storeUuid);
-    }
-    console.log(selectedStore);
-  };
+
 
   const selectedStoreInfo = storeConfig.find(
     (store) => store.id === selectedStore
@@ -75,7 +62,7 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="min-h-screen xl:w-[90%] 2xl:w-[80%] mx-auto">
       <div className="flex justify-end items-center mb-4">
-        <FormControl variant="outlined" style={{ minWidth: 200 }}>
+        {/* <FormControl variant="outlined" style={{ minWidth: 200 }}>
           <InputLabel id="store-select-label">Select Store</InputLabel>
           <Select
             className="h-[38px]"
@@ -90,7 +77,7 @@ const DashboardPage: React.FC = () => {
               </MenuItem>
             ))}
           </Select>
-        </FormControl>
+        </FormControl> */}
         <button className="btn-primary ml-4 px-4 py-2">Create Store</button>
       </div>
       {storeConfig.length > 0 ? (
