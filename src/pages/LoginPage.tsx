@@ -133,15 +133,9 @@ const LoginPage: React.FC = () => {
             <div className={`mb-4 text-red-700 ${!error && "hidden"} `}>
               {errorMessage}
             </div>
-            <div className="mb-6 w-full">
-              <CustomGoogleLoginButton
-                updateLoading={setLoading}
-                className="py-2 px-3 border rounded shadow appearance-none text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              />
-            </div>
             <button
               type="submit"
-              className="w-full flex justify-center items-center h-[40px] bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              className="w-full flex justify-center items-center h-[40px] bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-6"
             >
               {loading ? (
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center">
@@ -151,6 +145,12 @@ const LoginPage: React.FC = () => {
                 "Login"
               )}
             </button>
+            <div className="w-full">
+              <CustomGoogleLoginButton
+                updateLoading={setLoading}
+                className="py-2 px-3 border rounded shadow appearance-none text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              />
+            </div>
             <div className="mt-5 cursor-pointer">
               <ForgotPasswordDialog />
             </div>
