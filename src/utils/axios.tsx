@@ -2,7 +2,7 @@ import { getStoreUuid } from "../helper/getStoreUuid";
 import { getToken } from "../helper/getToken";
 import axios from "axios";
 
-const BASE_URL = "https://big-umbrella-c5c3450b8837.herokuapp.com/";
+export const BASE_URL = "https://big-umbrella-c5c3450b8837.herokuapp.com/";
 // export const BASE_URL = "http://localhost:8080/";
 export const axiosInstance = axios.create({
   baseURL: BASE_URL,
