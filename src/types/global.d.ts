@@ -75,3 +75,18 @@ declare ReservationStatus = {
 declare interface ReservationEvent extends ProcessedEvent {
   data: Reservation;
 }
+
+declare interface Notification {
+  id: number;
+  message: string;
+  timestamp: string;
+  seen: boolean;
+  type: string;
+}
+
+declare module 'sockjs-client/dist/sockjs' {
+  import SockJS from '@types/sockjs-client';
+
+  export = SockJS;
+  export as namespace SockJS;
+}

@@ -8,6 +8,7 @@ import { setStoresList } from "../redux toolkit/storesListSlice";
 import { RootState } from "../redux toolkit/store";
 import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
 import SelectStore from "./SelectStore";
+import NotificationIcon from "./NotificationIcon";
 
 interface MenuItemProps {
   label: string;
@@ -45,7 +46,6 @@ const MenubarDemo = () => {
   const [selectedStore, setSelectedStore] = useState<string | undefined>(
     localStorageStoreUuid || undefined
   );
-  console.log(selectedStore);
   
   const dispatch = useDispatch();
 
@@ -187,6 +187,9 @@ const MenubarDemo = () => {
             </div>
           </div>
         ))}
+        <div className="notification-icon">
+          <NotificationIcon />
+        </div>
       </div>
     </div>
   );

@@ -32,9 +32,6 @@ const DashboardPage: React.FC = () => {
     (state: RootState) => state.selectedStore.storeUuid
   );
 
-  console.log(selectedStoreId);
-  
-
   const storeConfig = useMemo(() => {
     if (storeConfigRedux) {
       return storeConfigRedux.slice().sort((a, b) => a.id - b.id);

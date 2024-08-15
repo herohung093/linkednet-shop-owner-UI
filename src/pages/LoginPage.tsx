@@ -12,8 +12,8 @@ import isTokenExpired from "../helper/CheckTokenExpired";
 import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState<string>("testing@gmail.com");
-  const [password, setPassword] = useState<string>("testing@gmail.com");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<unknown>(null);
   const [errorMessage, setErrormessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
