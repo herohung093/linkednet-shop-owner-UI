@@ -17,9 +17,13 @@ const NotificationIcon: React.FC = () => {
 	const [showNotifications, setShowNotifications] = useState(false);
 	const [notifications, setNotifications] = useState<Notification[]>([]);
 	const dropdownRef = useRef<HTMLDivElement>(null);
+	const notificationIconRef = useRef<HTMLDivElement>(null);
+	const originalTitle = useRef(document.title);
 	const [notificationPage, setNotificationPage] = useState(1);
 	const [loadingNotifications, setLoadingNotifications] = useState(false);
 	const stompClient = useRef<Client | null>(null);
+	// Interval to toggle the title when a new notification is received
+	const titleInterval = useRef<NodeJS.Timeout | null>(null);
 	const navigate = useNavigate();
 
 	const checkTokenExpiredAndRefresh = async () => {
@@ -74,12 +78,34 @@ const NotificationIcon: React.FC = () => {
 		return response.data.content;
 	};
 
-	const toggleNotifications = async () => {
-		// always fetch the latest notifications when the dropdown is opened
-		const latestNotifications = await fetchRecentNotifications(0);
-		setNotifications(latestNotifications);
-		setShowNotifications(!showNotifications);
-	};
+	useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const latestNotifications = await fetchRecentNotifications(0);
+				setNotifications(latestNotifications);
+      } catch (error) {
+        console.error('Failed to fetch recent notifications:', error);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+	const toggleNotifications = () => {
+    setShowNotifications(prevState => {
+			if (prevState) {
+					markNotificationsAsSeen();
+			}
+			return !prevState;
+	});
+
+		// clear the new notification interval when the dropdown is opened
+		if (titleInterval.current) {
+			clearInterval(titleInterval.current);
+			document.title = originalTitle.current;
+			titleInterval.current = null;
+	}
+  };
 
 	async function markNotificationsAsSeen() {
 		const unseenNotifications = notifications.filter(notification => !notification.seen);
@@ -119,7 +145,7 @@ const NotificationIcon: React.FC = () => {
 	}
 
 	const handleClickOutside = (event: MouseEvent) => {
-		if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+		if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) && notificationIconRef.current && !notificationIconRef.current.contains(event.target as Node)) {
 			markNotificationsAsSeen();
 			setShowNotifications(false);
 			// Reset the notification page to 0 when the dropdown is closed
@@ -154,6 +180,15 @@ const NotificationIcon: React.FC = () => {
 					const notification = JSON.parse(message.body);
 					setNotifications((prevNotifications) => [notification, ...prevNotifications]);
 					setNotificationCount((prevCount) => prevCount + 1);
+					
+					// Start the interval to toggle the title when a new notification is received
+					if (!titleInterval.current) {
+						let toggle = false;
+						titleInterval.current = setInterval(() => {
+								document.title = toggle ? ` New Notification!` : originalTitle.current;
+								toggle = !toggle;
+						}, 1000);
+				}
 				});
 			},
 			onStompError: (frame) => {
@@ -166,6 +201,10 @@ const NotificationIcon: React.FC = () => {
 
 		return () => {
 			stompClient.current?.deactivate();
+			if (titleInterval.current) {
+				clearInterval(titleInterval.current);
+				document.title = originalTitle.current;
+		}
 		};
 	}, []);
 
@@ -193,7 +232,7 @@ const NotificationIcon: React.FC = () => {
 
 	return (
 		<div className="notification-container">
-			<Badge badgeContent={notificationCount} color="primary" onClick={toggleNotifications}>
+			<Badge badgeContent={notificationCount} color="primary" onClick={toggleNotifications} ref={notificationIconRef}>
 				<NotificationsIcon />
 			</Badge>
 			{showNotifications && (
