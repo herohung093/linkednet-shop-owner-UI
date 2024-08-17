@@ -161,7 +161,7 @@ const MenubarDemo = () => {
       </div>
       {/* Laptop and larger screens */}
       <div className="h-[1px]"></div>
-      <div className="hidden md:flex bg-white p-[3px] mt-5 w-[90%] sm:w-[70%] lg:w-[50%] mx-auto justify-center rounded-md shadow-[0_2px_10px] shadow-blackA4">
+      <div className="hidden md:flex bg-white p-[3px] mt-5 w-[90%] sm:w-[90%] lg:w-[50%] mx-auto justify-center rounded-md shadow-[0_2px_10px] shadow-blackA4">
         <SelectStore
           handleStoreChange={handleStoreChange}
           selectedStore={selectedStore}
