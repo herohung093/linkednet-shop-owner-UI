@@ -79,33 +79,33 @@ const NotificationIcon: React.FC = () => {
 	};
 
 	useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const latestNotifications = await fetchRecentNotifications(0);
+		const fetchNotifications = async () => {
+			try {
+				const latestNotifications = await fetchRecentNotifications(0);
 				setNotifications(latestNotifications);
-      } catch (error) {
-        console.error('Failed to fetch recent notifications:', error);
-      }
-    };
+			} catch (error) {
+				console.error('Failed to fetch recent notifications:', error);
+			}
+		};
 
-    fetchNotifications();
-  }, []);
+		fetchNotifications();
+	}, []);
 
 	const toggleNotifications = () => {
-    setShowNotifications(prevState => {
+		setShowNotifications(prevState => {
 			if (prevState) {
-					markNotificationsAsSeen();
+				markNotificationsAsSeen();
 			}
 			return !prevState;
-	});
+		});
 
 		// clear the new notification interval when the dropdown is opened
 		if (titleInterval.current) {
 			clearInterval(titleInterval.current);
 			document.title = originalTitle.current;
 			titleInterval.current = null;
-	}
-  };
+		}
+	};
 
 	async function markNotificationsAsSeen() {
 		const unseenNotifications = notifications.filter(notification => !notification.seen);
@@ -180,15 +180,15 @@ const NotificationIcon: React.FC = () => {
 					const notification = JSON.parse(message.body);
 					setNotifications((prevNotifications) => [notification, ...prevNotifications]);
 					setNotificationCount((prevCount) => prevCount + 1);
-					
+
 					// Start the interval to toggle the title when a new notification is received
 					if (!titleInterval.current) {
 						let toggle = false;
 						titleInterval.current = setInterval(() => {
-								document.title = toggle ? ` New Notification!` : originalTitle.current;
-								toggle = !toggle;
+							document.title = toggle ? ` New Notification!` : originalTitle.current;
+							toggle = !toggle;
 						}, 1000);
-				}
+					}
 				});
 			},
 			onStompError: (frame) => {
@@ -204,7 +204,7 @@ const NotificationIcon: React.FC = () => {
 			if (titleInterval.current) {
 				clearInterval(titleInterval.current);
 				document.title = originalTitle.current;
-		}
+			}
 		};
 	}, []);
 
@@ -236,12 +236,27 @@ const NotificationIcon: React.FC = () => {
 				<NotificationsIcon />
 			</Badge>
 			{showNotifications && (
-				<div className="notifications-dropdown" ref={dropdownRef}>
+				<div className="notifications-dropdown rounded-md" ref={dropdownRef}>
 					{notifications.length > 0 ? (
 						<>
 							{notifications.map((notification, index) => (
 								<div key={index} className="notification-item" style={{ display: 'flex', alignItems: 'center' }}>
 									<div style={{ flex: 1 }}>
+										{notification.type === 'BOOKING_CREATED' && (
+											<div style={{ fontSize: '15px', fontWeight: 'bold'}}>
+												New booking
+											</div>
+										)}
+										{notification.type === 'BOOKING_CANCELLATION' && (
+											<div style={{ fontSize: '15px', fontWeight: 'bold'}}>
+												Booking cancel
+											</div>
+										)}
+										{notification.type === 'BOOKING_CONFIRMATION' && (
+											<div style={{ fontSize: '15px', fontWeight: 'bold'}}>
+												Booking confimed
+											</div>
+										)}
 										<div style={{ fontSize: '14px', color: '#333', padding: '5px 0' }}>
 											{notification.message}
 										</div>
