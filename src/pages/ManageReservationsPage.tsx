@@ -14,6 +14,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import * as Select from "@radix-ui/react-select";
 import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons";
+import Chip from '@mui/material/Chip';
 import isTokenExpired from "../helper/CheckTokenExpired";
 import { refreshToken } from "../helper/RefreshToken";
 import { getToken } from "../helper/getToken";
@@ -424,6 +425,14 @@ const ManageReservationsPage: React.FC = () => {
                         <label className="Input non-editable-label">
                           {selectedEvent.data.customer.phone}
                         </label>
+                      </fieldset>
+                    )}
+                    {selectedEvent.data.customer.blacklisted && (
+                      <fieldset className="flex items-center gap-3 w-full sm:w-auto">
+                        <label className="w-[100px] text-left text-[15px] sm:text-right">
+                          Status
+                        </label>
+                        <Chip label="Blacklisted" color="error" variant="outlined" />
                       </fieldset>
                     )}
                   </div>

@@ -63,6 +63,7 @@ declare interface Customer {
   lastName: string;
   email: string;
   phone: string;
+  blacklisted: boolean;
 }
 
 declare ReservationStatus = {
