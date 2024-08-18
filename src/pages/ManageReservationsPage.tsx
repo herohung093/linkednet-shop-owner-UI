@@ -71,6 +71,7 @@ const ManageReservationsPage: React.FC = () => {
   const fetchReservations = async (
     params: FetchReservationsParams
   ): Promise<Reservation[]> => {
+    checkTokenExpiredAndRefresh();
     try {
       const response = await axiosWithToken.get<Reservation[]>(
         "/reservation/byTimeFrame",
