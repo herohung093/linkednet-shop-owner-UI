@@ -27,7 +27,7 @@ const router = createBrowserRouter(
         <Route path="/signup" element={<SignUpPage></SignUpPage>}></Route>
         <Route path="/email-confirmation" element={<EmailConfirmationPage></EmailConfirmationPage>}></Route>
         <Route path="/reset-password-verification" element={<ResetPasswordVerificationPage></ResetPasswordVerificationPage>}></Route>
-        <Route path="/manage-reservations" element={<ManageReservationsPage />} />
+        <Route path="/manage-bookings" element={<ManageReservationsPage />} />
         <Route path="/password-reset" element={<PasswordResetPage></PasswordResetPage>}></Route>
           <Route
           path="session-expired"

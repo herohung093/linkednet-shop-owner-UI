@@ -37,7 +37,7 @@ const MenubarDemo = () => {
     { label: "Dashboard", path: "/dashboard" },
     { label: "Staffs", path: "/staffs" },
     { label: "Services", path: "/services" },
-    { label: "Manage Reservations", path: "/manage-reservations" },
+    { label: "Manage Bookings", path: "/manage-bookings" },
     { label: "Logout", path: "", onClick: logoutHandler },
   ];
 
