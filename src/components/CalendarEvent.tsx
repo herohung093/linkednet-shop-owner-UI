@@ -1,12 +1,11 @@
-import { Box, ChakraProvider, Stack, Text } from "@chakra-ui/react";
 import React from 'react';
-
+import { Box, Typography } from '@mui/material';
 interface CalendarEventProps {
     reservation: Reservation;
 }
 
 const CalendarEvent: React.FC<CalendarEventProps> = ({ reservation }) => {
-    const { staff, bookingTime, endTime, status, customer } = reservation;
+    const { staff, bookingTime, endTime, status } = reservation;
 
     const getStatusBackgroundColor = (status: string) => {
         switch (status) {
@@ -17,20 +16,40 @@ const CalendarEvent: React.FC<CalendarEventProps> = ({ reservation }) => {
             case 'CANCELLED':
                 return 'crimson';
             default:
-                return 'gray';
+                return 'default';
+        }
+    };
+
+    const getHoverBackgroundColor = (status: string) => {
+        switch (status) {
+            case 'CONFIRMED':
+                return 'success.dark';
+            case 'PENDING':
+                return 'warning.dark';
+            case 'CANCELLED':
+                return 'error.dark';
+            default:
+                return 'default';
         }
     };
 
     return (
-        <ChakraProvider>
-            <Box bg={getStatusBackgroundColor(status)} p={1} height="100%" color="black">
-                <Stack spacing={1} flexDirection="column" alignItems="flex-start">
-                    <Text fontSize="xs" as='samp'>{staff.nickname}</Text>
-                    <Text fontSize="xs" as='samp'>{bookingTime.split(' ')[1]} - {endTime.split(' ')[1]}</Text>
-                    <Text fontSize="xs" as='samp'>{customer.firstName}</Text>
-                </Stack>
-            </Box>
-        </ChakraProvider>
+        <Box sx={{
+            width: 100,
+            height: 100,
+            borderRadius: 1,
+            bgcolor: getStatusBackgroundColor(status),
+            '&:hover': {
+                bgcolor: getHoverBackgroundColor(status),
+            },
+        }}>
+            <Typography variant="body2" sx={{ fontWeight: 'bold', marginBottom: '1px' }}>
+                {staff.nickname}
+            </Typography>
+            <Typography variant="body2">
+                {bookingTime.split(' ')[1]} - {endTime.split(' ')[1]}
+            </Typography>
+        </Box>
 
     );
 };
