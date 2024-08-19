@@ -9,6 +9,7 @@ import { RootState } from "../redux toolkit/store";
 import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
 import SelectStore from "./SelectStore";
 import NotificationIcon from "./NotificationIcon";
+import Account from "./Account";
 
 interface MenuItemProps {
   label: string;
@@ -26,19 +27,11 @@ const MenubarDemo = () => {
     setIsOpen(!isOpen);
   };
 
-  const logoutHandler = () => {
-    navigate("/");
-    sessionStorage.removeItem("authToken");
-    sessionStorage.removeItem("refreshToken");
-    localStorage.removeItem("storeUuid");
-  };
-
   const menuItems: MenuItemProps[] = [
     { label: "Dashboard", path: "/dashboard" },
     { label: "Staffs", path: "/staffs" },
     { label: "Services", path: "/services" },
     { label: "Manage Bookings", path: "/manage-bookings" },
-    { label: "Logout", path: "", onClick: logoutHandler },
   ];
 
   useAuthCheck();
@@ -84,7 +77,7 @@ const MenubarDemo = () => {
   }, [storeConfig, selectedStore, dispatch]);
 
   const handleStoreChange = (event: SelectChangeEvent<string | undefined>) => {
-    toggleMenu()
+    toggleMenu();
     const storeUuid = event.target.value as string | undefined;
     setSelectedStore(storeUuid);
     if (storeUuid !== undefined) {
@@ -102,15 +95,15 @@ const MenubarDemo = () => {
     <div className="mb-[100px] relative z-10">
       <div className="flex justify-between items-center font-bold text-lg">
         <div
-          className={`absolute top-[60px] left-0 right-0 bg-white shadow-md rounded-md md:hidden ${isOpen ? "block" : "hidden"
-            }`}
+          className={`absolute top-[60px] left-0 right-0 bg-white shadow-md rounded-md md:hidden ${
+            isOpen ? "block" : "hidden"
+          }`}
         >
           <SelectStore
             handleStoreChange={handleStoreChange}
             selectedStore={selectedStore}
             storeConfig={storeConfig}
           />
-
           {menuItems.map((menuItem, index) => (
             <div key={index}>
               <div
@@ -122,17 +115,47 @@ const MenubarDemo = () => {
                   }
                   setIsOpen(false);
                 }}
-                className={`cursor-pointer py-2 mb-4 px-3 outline-none select-none font-bold leading-none rounded text-slate-900 text-[15px] lg:text-base flex items-center justify-between gap-[4px] hover:underline ${currentPath === menuItem.path &&
+                className={`cursor-pointer py-2 mb-4 px-3 outline-none select-none font-bold leading-none rounded text-slate-900 text-[15px] lg:text-base flex items-center justify-between gap-[4px] hover:underline ${
+                  currentPath === menuItem.path &&
                   "underline underline-offset-4"
-                  }`}
+                }`}
               >
                 {menuItem.label}
               </div>
             </div>
           ))}
+          <Account />
         </div>
         <div className="absolute right-0 top-1 flex justify-evenly md:hidden bg-white p-[3px] mt-5 w-[20%] mx-4 rounded-md border-2">
+          <div className={`cursor-pointer`} onClick={toggleMenu}>
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              {isOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16m-7 6h7"
+                />
+              )}
+            </svg>
+          </div>
+        </div>
+        <div className="absolute top-1 flex justify-evenly md:hidden bg-white p-[3px] mt-5 w-[20%] mx-4 rounded-md border-2">
           <NotificationIcon />
+        </div>
+        <div className="absolute right-0 top-1 flex justify-evenly md:hidden bg-white p-[3px] mt-5 w-[20%] mx-4 rounded-md border-2">
           <div className={`cursor-pointer`} onClick={toggleMenu}>
             <svg
               className="w-6 h-6"
@@ -178,14 +201,16 @@ const MenubarDemo = () => {
                   navigate(menuItem.path);
                 }
               }}
-              className={` cursor-pointer py-2 px-3 outline-none select-none font-medium leading-none rounded text-slate-900 text-[13px] lg:text-base flex items-center justify-between gap-[2px] hover:underline hover:underline-offset-4 ${currentPath === menuItem.path && "underline underline-offset-4"
-                }`}
+              className={` cursor-pointer py-2 px-3 outline-none select-none font-medium leading-none rounded text-slate-900 text-[13px] lg:text-base flex items-center justify-between gap-[2px] hover:underline hover:underline-offset-4 ${
+                currentPath === menuItem.path && "underline underline-offset-4"
+              }`}
             >
               {menuItem.label}
             </div>
           </div>
         ))}
-        <div className="notification-icon">
+        <Account />
+        <div className="notification-icon ">
           <NotificationIcon />
         </div>
       </div>
