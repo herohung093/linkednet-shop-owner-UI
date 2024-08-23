@@ -315,7 +315,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
             <input
               type="text"
               {...field}
-              className={`border p-2 w-full rounded-md ${
+              className={`border p-2 w-full rounded-md cursor-pointer ${
                 errors.frontEndUrl ? "border-red-500" : "border-gray-300"
               }`}
               readOnly
