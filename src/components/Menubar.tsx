@@ -95,7 +95,7 @@ const MenubarDemo = () => {
     <div className="mb-[100px] relative z-10">
       <div className="flex justify-between items-center font-bold text-lg">
         <div
-          className={`absolute top-[60px] left-0 right-0 bg-white shadow-md rounded-md md:hidden ${
+          className={`absolute top-[80px] px-4 left-0 right-0 bg-white shadow-md rounded-md md:hidden ${
             isOpen ? "block" : "hidden"
           }`}
         >
@@ -115,7 +115,7 @@ const MenubarDemo = () => {
                   }
                   setIsOpen(false);
                 }}
-                className={`cursor-pointer py-2 mb-4 px-3 outline-none select-none font-bold leading-none rounded text-slate-900 text-[15px] lg:text-base flex items-center justify-between gap-[4px] hover:underline ${
+                className={`cursor-pointer py-2 mb-4 px-3 outline-none select-none font-medium leading-none rounded text-slate-900 text-[15px] lg:text-base flex items-center justify-between gap-[4px] hover:underline ${
                   currentPath === menuItem.path &&
                   "underline underline-offset-4"
                 }`}
@@ -184,7 +184,7 @@ const MenubarDemo = () => {
       </div>
       {/* Laptop and larger screens */}
       <div className="h-[1px]"></div>
-      <div className="hidden md:flex bg-white p-[3px] mt-5 w-[90%] sm:w-[90%] lg:w-[50%] mx-auto justify-center rounded-md shadow-[0_2px_10px] shadow-blackA4">
+      <div className="hidden md:flex bg-white mt-5 w-[90%] sm:w-[80%] lg:w-[60%] mx-auto justify-around border-b-2 py-2">
         <SelectStore
           handleStoreChange={handleStoreChange}
           selectedStore={selectedStore}
@@ -201,7 +201,7 @@ const MenubarDemo = () => {
                   navigate(menuItem.path);
                 }
               }}
-              className={` cursor-pointer py-2 px-3 outline-none select-none font-medium leading-none rounded text-slate-900 text-[13px] lg:text-base flex items-center justify-between gap-[2px] hover:underline hover:underline-offset-4 ${
+              className={` cursor-pointer py-2 px-3  outline-none select-none font-medium leading-none rounded text-slate-900  lg:text-base flex items-center justify-between gap-[2px] hover:underline hover:underline-offset-4 ${
                 currentPath === menuItem.path && "underline underline-offset-4"
               }`}
             >

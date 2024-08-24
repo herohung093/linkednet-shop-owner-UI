@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { axiosInstance, axiosWithToken } from "../utils/axios";
-import CustomLoading from "./Loading";
+
 import CustomPageLoading from "./CustomPageLoading";
 
 type BusinessHour = {
@@ -47,8 +47,28 @@ const schema = yup.object().shape({
     .of(
       yup.object().shape({
         dayOfWeek: yup.string().required("Day of the week is required"),
-        openingTime: yup.string().required("Opening Time is required"),
-        closingTime: yup.string().required("Closing Time is required"),
+        openingTime: yup
+          .string()
+          .required("Opening Time is required")
+          .test(
+            "opening-closing-time",
+            "Opening and Closing times are required",
+            function (value) {
+              const closingTime = this.parent.closingTime;
+              return value && closingTime;
+            }
+          ),
+        closingTime: yup
+          .string()
+          .required("Closing Time is required")
+          .test(
+            "opening-closing-time",
+            "Opening and Closing times are required",
+            function (value) {
+              const openingTime = this.parent.openingTime;
+              return value && openingTime;
+            }
+          ),
       })
     )
     .required()
@@ -73,13 +93,34 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
   } = useForm<StoreInfo>({
     resolver: yupResolver(schema),
   });
-
+  const daysOfWeekOrder = [
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+    "FRIDAY",
+    "SATURDAY",
+    "SUNDAY",
+  ];
+  
   const fetchStoreInfo = useCallback(async () => {
     try {
       const response = await axiosInstance.get<StoreInfo>(
         `/storeConfig/${storeUuid}`
       );
-      reset(response.data);
+      const sortedBusinessHoursList = response.data.businessHoursList.sort(
+        (a, b) => {
+          return (
+            daysOfWeekOrder.indexOf(a.dayOfWeek) -
+            daysOfWeekOrder.indexOf(b.dayOfWeek)
+          );
+        }
+      );
+  
+      // Reset the form with sorted business hours
+      reset({ ...response.data, businessHoursList: sortedBusinessHoursList });
+      console.log({ ...response.data, businessHoursList: sortedBusinessHoursList });
+      
     } catch (error) {
       console.log(error);
     } finally {
@@ -90,6 +131,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
   useEffect(() => {
     fetchStoreInfo();
   }, [fetchStoreInfo, storeUuid]);
+
   const onSubmit = async (data: StoreInfo) => {
     setSubmitting(true);
     try {
@@ -170,13 +212,27 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
           name="zoneId"
           control={control}
           render={({ field }) => (
-            <input
-              type="text"
+            <select
               {...field}
               className={`border p-2 w-full rounded-md ${
                 errors.zoneId ? "border-red-500" : "border-gray-300"
               }`}
-            />
+            >
+              <option value="">Select Zone ID</option>
+              {[
+                "Australia/Sydney",
+                "Australia/Melbourne",
+                "Australia/Brisbane",
+                "Australia/Perth",
+                "Australia/Adelaide",
+                "Australia/Hobart",
+                "Australia/Darwin",
+              ].map((zone) => (
+                <option key={zone} value={zone}>
+                  {zone}
+                </option>
+              ))}
+            </select>
           )}
         />
         {errors.zoneId && (
@@ -213,8 +269,10 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
           control={control}
           render={({ field }) => (
             <input
-              type="phone"
+              type="tel"
               {...field}
+              pattern="\d*"
+              maxLength={10}
               className={`border p-2 w-full rounded-md ${
                 errors.storePhoneNumber ? "border-red-500" : "border-gray-300"
               }`}
@@ -257,9 +315,11 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
             <input
               type="text"
               {...field}
-              className={`border p-2 w-full rounded-md ${
+              className={`border p-2 w-full rounded-md cursor-pointer ${
                 errors.frontEndUrl ? "border-red-500" : "border-gray-300"
               }`}
+              readOnly
+              onClick={() => window.open(field.value, "_blank")}
             />
           )}
         />
@@ -267,93 +327,76 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
           <p className="text-red-500">{errors.frontEndUrl.message}</p>
         )}
       </div>
-
-      <div>
-        <h2 className="text-xl font-semibold mb-2">Business Hours</h2>
-        {watch("businessHoursList")?.map((hours, index) => (
+      <div className="mb-4">
+        <label className="block text-gray-700 font-bold mb-2">
+          Enable Reservation Confirmation
+        </label>
+        <Controller
+          name="enableReservationConfirmation"
+          control={control}
+          render={({ field }) => (
+            <input
+              type="checkbox"
+              checked={field.value} 
+              onChange={(e) => field.onChange(e.target.checked)} 
+              className="border p-2 rounded-md border-gray-300"
+            />
+          )}
+        />
+      </div>
+      <div className="mb-4">
+        <h2 className="text-lg font-bold">Business Hours</h2>
+        {watch("businessHoursList").map((hour, index) => (
           <div key={index} className="mb-4">
-            <h3 className="text-lg font-medium mb-2">{hours.dayOfWeek}</h3>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="block text-gray-700 font-bold mb-1">
-                  Opening Time
-                </label>
-                <Controller
-                  name={`businessHoursList.${index}.openingTime`}
-                  control={control}
-                  render={({ field }) => (
-                    <input
-                      type="time"
-                      {...field}
-                      value={field.value}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        handleChange(
-                          hours.dayOfWeek,
-                          "openingTime",
-                          e.target.value
-                        );
-                      }}
-                      className={`border p-2 w-full rounded-md ${
-                        errors.businessHoursList?.[index]?.openingTime
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                    />
-                  )}
+            <div className="flex justify-between items-center">
+              <label className="block text-gray-700 font-bold">
+                {hour.dayOfWeek}
+              </label>
+              <div className="flex space-x-2">
+                <input
+                  type="time"
+                  value={hour.openingTime}
+                  onChange={(e) =>
+                    handleChange(hour.dayOfWeek, "openingTime", e.target.value)
+                  }
+                  className={`border p-2 rounded-md ${
+                    errors.businessHoursList?.[index]?.openingTime
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
                 />
-                {errors.businessHoursList?.[index]?.openingTime && (
-                  <p className="text-red-500">
-                    {errors.businessHoursList[index].openingTime.message}
-                  </p>
-                )}
-              </div>
-              <div className="flex-1">
-                <label className="block text-gray-700 font-bold mb-1">
-                  Closing Time
-                </label>
-                <Controller
-                  name={`businessHoursList.${index}.closingTime`}
-                  control={control}
-                  render={({ field }) => (
-                    <input
-                      type="time"
-                      {...field}
-                      value={field.value}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        handleChange(
-                          hours.dayOfWeek,
-                          "closingTime",
-                          e.target.value
-                        );
-                      }}
-                      className={`border p-2 w-full rounded-md ${
-                        errors.businessHoursList?.[index]?.closingTime
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                    />
-                  )}
+                <input
+                  type="time"
+                  value={hour.closingTime}
+                  onChange={(e) =>
+                    handleChange(hour.dayOfWeek, "closingTime", e.target.value)
+                  }
+                  className={`border p-2 rounded-md ${
+                    errors.businessHoursList?.[index]?.closingTime
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
                 />
-                {errors.businessHoursList?.[index]?.closingTime && (
-                  <p className="text-red-500">
-                    {errors.businessHoursList[index].closingTime.message}
-                  </p>
-                )}
               </div>
             </div>
+            {errors.businessHoursList?.[index] && (
+              <p className="text-red-500">
+                {errors.businessHoursList[index]?.openingTime?.message ||
+                  errors.businessHoursList[index]?.closingTime?.message}
+              </p>
+            )}
           </div>
         ))}
       </div>
-      <div className="mt-4 flex justify-end">
+      <div className="text-center">
         <button
           type="submit"
-          className={`${
-            isValid ? "bg-blue-500 text-white" : "bg-slate-400 text-slate-950"
-          } w-[150px] flex items-center justify-center rounded-md px-4 py-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+          className={`bg-blue-500 text-white py-2 px-4 rounded-md ${
+            submitting ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={!isValid || submitting}
         >
-          {submitting ? <CustomLoading /> : "Update Store"}
+          {submitting ? "Saving..." : "Save"}
         </button>
       </div>
     </form>

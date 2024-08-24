@@ -14,7 +14,7 @@ const Account = () => {
   return (
     <Menubar.Root className="flex z-1000">
       <Menubar.Menu>
-        <Menubar.Trigger className="cursor-pointer py-2 px-3  outline-none select-none font-medium leading-none rounded text-black text-base flex items-center justify-between gap-[2px] hover:underline hover:underline-offset-4">
+        <Menubar.Trigger className="cursor-pointer py-2 px-3  outline-none select-none font-medium leading-none rounded text-black text-base flex lg:mt-1  justify-between gap-[2px] hover:underline hover:underline-offset-4">
           Account
         </Menubar.Trigger>
         <Menubar.Portal>
