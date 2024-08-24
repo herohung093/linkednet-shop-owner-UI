@@ -90,8 +90,12 @@ const ManageReservationsPage: React.FC = () => {
   };
 
   const handleRangeChange = (range: any, view: any) => {
-    if (view === undefined) {
+    if (range.start !== undefined) {
+      view = Views.MONTH;
+    } else if (range.length === 7){
       view = Views.WEEK;
+    } else {
+      view = Views.DAY;
     }
     let startDate;
     let endDate;
