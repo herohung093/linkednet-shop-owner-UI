@@ -55,6 +55,7 @@ declare interface ProcessedEvent {
   title: string;
   start: Date;
   end: Date;
+  data: Reservation;
 }
 
 declare interface Customer {

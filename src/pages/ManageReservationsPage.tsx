@@ -21,6 +21,14 @@ import { getToken } from "../helper/getToken";
 import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
+import { useMediaQuery } from 'react-responsive'
+import { Typography, Box, List, ListItem, ListItemText, Divider, Avatar, ListItemAvatar, ButtonBase } from '@mui/material';
+import Badge from '@mui/material/Badge';
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { PickersDay, PickersDayProps } from '@mui/x-date-pickers/PickersDay';
+import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
+import { DayCalendarSkeleton } from '@mui/x-date-pickers/DayCalendarSkeleton';
 
 interface FetchReservationsParams {
   startDate: string; //dd/MM/yyyy
@@ -50,19 +58,26 @@ moment.tz.setDefault(moment.tz.guess());
 const ManageReservationsPage: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<ProcessedEvent[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<ProcessedEvent[]>([]);
   const [selectedTimezone, setSelectedTimezone] = useState(moment.tz.guess());
-  const [selectedEvent, setSelectedEvent] = useState<ReservationEvent | null>(
+  const [selectedEvent, setSelectedEvent] = useState<ProcessedEvent | null>(
     null
   );
   const [isStatusModified, setIsStatusModified] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [view, setView] = useState<String>(Views.WEEK);
   const navigate = useNavigate();
+  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' })
+  const [selectedDate, setSelectedDate] = useState<moment.Moment | null>(moment());
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const handleEventClick = (event: any) => {
     setSelectedEvent(event as ReservationEvent);
     setIsDialogOpen(true);
     setIsStatusModified(false);
   };
+
+
 
   const parseStringToDate = (dateString: string): Date => {
     return parse(dateString, "dd/MM/yyyy HH:mm", new Date());
@@ -71,6 +86,7 @@ const ManageReservationsPage: React.FC = () => {
   const fetchReservations = async (
     params: FetchReservationsParams
   ): Promise<Reservation[]> => {
+    setIsLoading(true);
     checkTokenExpiredAndRefresh();
     try {
       const response = await axiosWithToken.get<Reservation[]>(
@@ -86,17 +102,20 @@ const ManageReservationsPage: React.FC = () => {
     } catch (error) {
       console.error("Error fetching reservations:", error);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleRangeChange = (range: any, view: any) => {
     if (range.start !== undefined) {
       view = Views.MONTH;
-    } else if (range.length === 7){
+    } else if (range.length === 7) {
       view = Views.WEEK;
     } else {
       view = Views.DAY;
     }
+    setView(view);
     let startDate;
     let endDate;
     if (view === Views.WEEK) {
@@ -128,14 +147,24 @@ const ManageReservationsPage: React.FC = () => {
 
   useEffect(() => {
     checkTokenExpiredAndRefresh();
+    let startDate = moment().startOf('month').format("DD/MM/YYYY").toString();
+    let endDate = moment().endOf('month').format("DD/MM/YYYY").toString();
+    if (!isTabletOrMobile) {
+      startDate = moment().startOf(Views.WEEK).format("DD/MM/YYYY").toString();
+      endDate = moment().endOf(Views.WEEK).format("DD/MM/YYYY").toString();
+    }
     const fetchData = async () => {
       try {
         const data = await fetchReservations({
-          startDate: moment().startOf(Views.WEEK).format("DD/MM/YYYY"),
-          endDate: moment().endOf(Views.WEEK).format("DD/MM/YYYY"),
+          startDate: startDate,
+          endDate: endDate,
         });
         const processedEvents = await convertToProcessedEvents(data);
         setEvents(processedEvents);
+        if (isTabletOrMobile) {
+          // setFilteredEvents(processedEvents);
+          dateCalendarHandleDateChange(moment(), processedEvents);
+        }
       } catch (error) {
         console.error("Failed to fetch reservations", error);
       }
@@ -205,7 +234,7 @@ const ManageReservationsPage: React.FC = () => {
     },
   };
   const updateEventData = (response: {
-    data: { id: string; [key: string]: any };
+    data: Reservation;
   }) => {
     const updatedEvents = (events as ReservationEvent[]).map((event) => {
       if (event.data.id.toString() === response.data.id.toString()) {
@@ -229,6 +258,72 @@ const ManageReservationsPage: React.FC = () => {
     // Update the corresponding event in the events array
     updateEventData(response);
   };
+
+  const handleMonthChange = (date: moment.Moment) => {
+
+    const startDate = date.startOf('month').format("DD/MM/YYYY").toString();
+    const endDate = date.endOf('month').format("DD/MM/YYYY").toString();
+
+    const requestParams: FetchReservationsParams = {
+      startDate: startDate,
+      endDate: endDate,
+    };
+    fetchReservations(requestParams);
+  };
+
+  function EventsDay(props: PickersDayProps<moment.Moment> & { highlightedDays?: number[] }) {
+    const { highlightedDays = [], day, outsideCurrentMonth, ...other } = props;
+
+    const eventsOfTheDay = events.filter(event => moment(event.start).isSame(day, 'day'));
+    const isSelected =
+      !props.outsideCurrentMonth;
+
+    return (
+      <Badge
+        key={props.day.toString()}
+        overlap="circular"
+        color="success"
+        badgeContent={isSelected ? eventsOfTheDay.length : undefined}
+      >
+        <PickersDay {...other} outsideCurrentMonth={outsideCurrentMonth} day={day} />
+      </Badge>
+    );
+  }
+
+  const dateCalendarHandleDateChange = (date: moment.Moment | null, initialEvents?: ReservationEvent[]) => {
+    setSelectedDate(date);
+    if (date) {
+      let filtered
+      if (events.length === 0 && initialEvents) {
+        filtered = initialEvents
+          .filter(event => moment(event.start).isSame(date, 'day'))
+          .sort((a, b) => moment(a.start).diff(moment(b.start)));
+
+      } else {
+        filtered = events
+        .filter(event => moment(event.start).isSame(date, 'day'))
+        .sort((a, b) => moment(a.start).diff(moment(b.start)));
+      }
+
+      setFilteredEvents(filtered);
+    } else {
+      setFilteredEvents([]);
+    }
+  };
+
+  const getStatusBackgroundColorForAvata = (status: string) => {
+    switch (status) {
+      case 'CONFIRMED':
+        return 'springgreen';
+      case 'PENDING':
+        return 'darkorange';
+      case 'CANCELLED':
+        return 'crimson';
+      default:
+        return 'default';
+    }
+  };
+
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -264,57 +359,114 @@ const ManageReservationsPage: React.FC = () => {
             </select>
           </div>
         </div>
-        <Calendar
-          defaultDate={new Date()}
-          events={events}
-          defaultView={Views.WEEK}
-          showMultiDayTimes
-          step={30}
-          views={[Views.WEEK, Views.MONTH, Views.DAY]}
-          localizer={mLocalizer}
-          onRangeChange={handleRangeChange}
-          onNavigate={onNavigate}
-          date={currentDate}
-          components={components}
-          // onSelectEvent={handleEventClick}
-          min={
-            new Date(
-              today.getFullYear() - 10,
-              today.getMonth(),
-              today.getDate(),
-              5
-            )
-          } // Start time at 8 AM
-          max={
-            new Date(
-              today.getFullYear() + 10,
-              today.getMonth(),
-              today.getDate(),
-              21
-            )
-          } // End time at 10 PM
-          formats={{
-            timeGutterFormat: "HH:mm",
-            eventTimeRangeFormat: ({ start, end }, culture) =>
-              `${mLocalizer.format(
-                start,
-                "HH:mm",
-                culture
-              )} - ${mLocalizer.format(end, "HH:mm", culture)}`,
-            agendaTimeRangeFormat: ({ start, end }, culture) =>
-              `${mLocalizer.format(
-                start,
-                "HH:mm",
-                culture
-              )} - ${mLocalizer.format(end, "HH:mm", culture)}`,
-          }}
-          onSelectEvent={handleEventClick}
-        />
-        <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        {isTabletOrMobile ? (
+          <Box sx={{ width: '100%' }}>
+            <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={moment.locale.toString()}>
+              <DateCalendar
+                value={selectedDate}
+                loading={isLoading}
+                onMonthChange={handleMonthChange}
+                // @ts-ignore
+                onChange={dateCalendarHandleDateChange}
+                renderLoading={() => <DayCalendarSkeleton />}
+                slots={{
+                  day: EventsDay,
+                }}
+              />
+            </LocalizationProvider>
+            <Divider sx={{ height: '3px', backgroundColor: 'gray' }} />
+            {filteredEvents.length > 0 && (
+              <Box sx={{ maxHeight: 'calc(100vh - 400px)', overflowY: 'auto' }}>
+                <List>
+                  {filteredEvents.map((event, index) => (
+                    <React.Fragment key={event.event_id}>
+                    <ButtonBase
+                      sx={{
+                        width: '100%',
+                        textAlign: 'left',
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                        },
+                      }}
+                      onClick={() => handleEventClick(event)}
+                    >
+                      <ListItem >
+                        <ListItemAvatar>
+                          <Avatar sx={{ bgcolor: getStatusBackgroundColorForAvata(event.data.status), width: 20, height: 20}} />
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                              <Typography variant="body1">{event.title}</Typography>
+                              <Typography variant="body2" color="textSecondary">
+                                {event.data.bookingTime.split(' ')[1] + ' - ' + event.data.endTime.split(' ')[1]}
+                              </Typography>
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                    </ButtonBase>
+                    {index < filteredEvents.length - 1 && <Divider />}
+                  </React.Fragment>
+                  ))}
+                </List>
+              </Box>
+            )}
+          </Box>
+        ) : (
+          <Calendar
+            defaultDate={new Date()}
+            events={events}
+            defaultView={Views.WEEK}
+            showMultiDayTimes
+            step={30}
+            views={[Views.WEEK, Views.MONTH, Views.DAY]}
+            localizer={mLocalizer}
+            onRangeChange={handleRangeChange}
+            onNavigate={onNavigate}
+            date={currentDate}
+            className={view === Views.MONTH ? 'month-view' : ''}
+            components={components}
+            min={
+              new Date(
+                today.getFullYear() - 10,
+                today.getMonth(),
+                today.getDate(),
+                5
+              )
+            } // Start time at 5 AM
+            max={
+              new Date(
+                today.getFullYear() + 10,
+                today.getMonth(),
+                today.getDate(),
+                21
+              )
+            } // End time at 9 PM
+            formats={{
+              timeGutterFormat: "HH:mm",
+              eventTimeRangeFormat: ({ start, end }, culture) =>
+                `${mLocalizer.format(
+                  start,
+                  "HH:mm",
+                  culture
+                )} - ${mLocalizer.format(end, "HH:mm", culture)}`,
+              agendaTimeRangeFormat: ({ start, end }, culture) =>
+                `${mLocalizer.format(
+                  start,
+                  "HH:mm",
+                  culture
+                )} - ${mLocalizer.format(end, "HH:mm", culture)}`,
+            }}
+            onSelectEvent={handleEventClick}
+          />
+        )}
+        <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen} >
           <Dialog.Overlay className="overlay-dialog data-[state=open]:animate-overlayShow" />
           <Dialog.Content
             className="data-[state=open]:animate-contentShow content-dialog z-10"
             aria-describedby={undefined}
+            style={{ maxHeight: '80vh', overflowY: 'auto' }}
           >
             <Dialog.Title className="text-slate-700 m-0 text-[17px] font-medium mb-5">
               Booking Details
