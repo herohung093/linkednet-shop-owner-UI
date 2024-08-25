@@ -330,7 +330,7 @@ const ManageReservationsPage: React.FC = () => {
       <MenubarDemo />
       <div className="mx-4 calendar-container">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-2">
-          <div className="status-container flex flex-wrap justify-between mb-2 sm:mb-0">
+          {!isTabletOrMobile && <div className="status-container flex flex-wrap justify-between mb-2 sm:mb-0">
             <div className="p-1 status-item confirmed text-xs sm:text-base">
               Confirmed
             </div>
@@ -340,7 +340,7 @@ const ManageReservationsPage: React.FC = () => {
             <div className="p-1 status-item cancelled text-xs sm:text-base">
               Cancelled
             </div>
-          </div>
+          </div>}
           {!isTabletOrMobile && <div className="flex items-center">
             <Label.Root className="mr-2" htmlFor="timezone">
               Timezone:
@@ -374,6 +374,17 @@ const ManageReservationsPage: React.FC = () => {
                 }}
               />
             </LocalizationProvider>
+            {isTabletOrMobile && <div className="status-container flex flex-wrap justify-between mb-2 sm:mb-0">
+              <div className="p-1 status-item confirmed text-xs sm:text-base">
+                Confirmed
+              </div>
+              <div className="p-1 status-item pending text-xs sm:text-base">
+                Pending
+              </div>
+              <div className="p-1 status-item cancelled text-xs sm:text-base">
+                Cancelled
+              </div>
+            </div>}
             <Divider sx={{ height: '3px', backgroundColor: 'gray' }} />
             {filteredEvents.length > 0 && (
               <Box sx={{ maxHeight: 'calc(100vh - 400px)', overflowY: 'auto' }}>
@@ -390,7 +401,7 @@ const ManageReservationsPage: React.FC = () => {
                         }}
                         onClick={() => handleEventClick(event)}
                       >
-                        <ListItem sx={{padding: '0px'}}>
+                        <ListItem sx={{ padding: '0px' }}>
                           <ListItemAvatar>
                             <Avatar sx={{ bgcolor: getStatusBackgroundColorForAvata(event.data.status), width: 20, height: 20 }} />
                           </ListItemAvatar>
