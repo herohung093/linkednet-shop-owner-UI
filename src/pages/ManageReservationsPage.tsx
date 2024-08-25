@@ -244,6 +244,9 @@ const ManageReservationsPage: React.FC = () => {
     });
 
     setEvents(updatedEvents);
+    if(isTabletOrMobile) {
+      setFilteredEvents(updatedEvents.filter(event => moment(event.start).isSame(selectedDate, 'day')));
+    }
   };
 
   const updateReservationEvent = async (selectedEvent: ReservationEvent) => {
