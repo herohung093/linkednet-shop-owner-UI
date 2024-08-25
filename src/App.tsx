@@ -18,6 +18,8 @@ import EmailConfirmationPage from "./pages/EmailConfirmationPage.tsx";
 import ResetPasswordVerificationPage from "./pages/ResetPasswordVerificationPage.tsx";
 import PasswordResetPage from "./pages/PasswordResetPage.tsx";
 import ManageReservationsPage from "./pages/ManageReservationsPage.tsx";
+import CreateStorePage from "./pages/CreateStorePage.tsx";
+
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -43,6 +45,10 @@ const router = createBrowserRouter(
         <Route
           path="services"
           element={<ServiceTypePage></ServiceTypePage>}
+        ></Route>
+        <Route
+          path="create-store"
+          element={<CreateStorePage></CreateStorePage>}
         ></Route>
       
       </Route>

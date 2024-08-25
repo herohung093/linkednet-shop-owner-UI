@@ -3,7 +3,6 @@ import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { axiosInstance, axiosWithToken } from "../utils/axios";
-
 import CustomPageLoading from "./CustomPageLoading";
 
 type BusinessHour = {
@@ -76,11 +75,36 @@ const schema = yup.object().shape({
 });
 
 interface StoreInfoProps {
-  storeUuid: string;
+  submitType?: string;
+  storeUuid?: string;
   handleUpdate: () => void;
 }
 
-const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
+const StoreInfo: React.FC<StoreInfoProps> = ({
+  storeUuid,
+  handleUpdate,
+  submitType,
+}) => {
+  const defaultStoreConfig: StoreInfo = {
+    storeName: "",
+    shortStoreName: "",
+    zoneId: "Australia/Sydney",
+    storeAddress: "",
+    storePhoneNumber: "",
+    storeEmail: "",
+    frontEndUrl: "",
+    enableReservationConfirmation: false,
+    businessHoursList: [
+      { dayOfWeek: "Monday", openingTime: "09:00", closingTime: "17:00" },
+      { dayOfWeek: "Tuesday", openingTime: "09:00", closingTime: "17:00" },
+      { dayOfWeek: "Wednesday", openingTime: "09:00", closingTime: "17:00" },
+      { dayOfWeek: "Thursday", openingTime: "09:00", closingTime: "17:00" },
+      { dayOfWeek: "Friday", openingTime: "09:00", closingTime: "17:00" },
+      { dayOfWeek: "Saturday", openingTime: "09:00", closingTime: "17:00" },
+      { dayOfWeek: "Sunday", openingTime: "09:00", closingTime: "17:00" },
+    ],
+  };
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const {
@@ -92,35 +116,32 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
     formState: { errors, isValid },
   } = useForm<StoreInfo>({
     resolver: yupResolver(schema),
+    mode: "onChange",
   });
+
   const daysOfWeekOrder = [
-    "MONDAY",
-    "TUESDAY",
-    "WEDNESDAY",
-    "THURSDAY",
-    "FRIDAY",
-    "SATURDAY",
-    "SUNDAY",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
   ];
-  
+
   const fetchStoreInfo = useCallback(async () => {
     try {
       const response = await axiosInstance.get<StoreInfo>(
         `/storeConfig/${storeUuid}`
       );
       const sortedBusinessHoursList = response.data.businessHoursList.sort(
-        (a, b) => {
-          return (
-            daysOfWeekOrder.indexOf(a.dayOfWeek) -
-            daysOfWeekOrder.indexOf(b.dayOfWeek)
-          );
-        }
+        (a, b) => daysOfWeekOrder.indexOf(a.dayOfWeek) - daysOfWeekOrder.indexOf(b.dayOfWeek)
       );
-  
-      // Reset the form with sorted business hours
-      reset({ ...response.data, businessHoursList: sortedBusinessHoursList });
-      console.log({ ...response.data, businessHoursList: sortedBusinessHoursList });
-      
+
+      reset({
+        ...response.data,
+        businessHoursList: sortedBusinessHoursList,
+      });
     } catch (error) {
       console.log(error);
     } finally {
@@ -129,14 +150,22 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
   }, [storeUuid, reset]);
 
   useEffect(() => {
-    fetchStoreInfo();
-  }, [fetchStoreInfo, storeUuid]);
+    if (storeUuid) {
+      fetchStoreInfo();
+    } else {
+      reset(defaultStoreConfig);
+      setLoading(false)
+    }
+  }, [fetchStoreInfo, storeUuid, reset]);
 
   const onSubmit = async (data: StoreInfo) => {
     setSubmitting(true);
     try {
-      const response = await axiosWithToken.put("/storeConfig/", data);
-      console.log(response.data);
+      if (submitType === "update") {
+        await axiosWithToken.put("/storeConfig/", data);
+      } else {
+        await axiosWithToken.post("/storeConfig/", data);
+      }
       handleUpdate();
     } catch (error) {
       console.log(error);
@@ -150,9 +179,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
     field: "openingTime" | "closingTime",
     value: string
   ) => {
-    const updatedBusinessHoursList = (
-      watch("businessHoursList") as BusinessHour[]
-    ).map((hour) =>
+    const updatedBusinessHoursList = (watch("businessHoursList") as BusinessHour[]).map((hour) =>
       hour.dayOfWeek === day ? { ...hour, [field]: value } : hour
     );
     setValue("businessHoursList", updatedBusinessHoursList);
@@ -271,8 +298,6 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
             <input
               type="tel"
               {...field}
-              pattern="\d*"
-              maxLength={10}
               className={`border p-2 w-full rounded-md ${
                 errors.storePhoneNumber ? "border-red-500" : "border-gray-300"
               }`}
@@ -284,9 +309,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
         )}
       </div>
       <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-2">
-          Store Email
-        </label>
+        <label className="block text-gray-700 font-bold mb-2">Store Email</label>
         <Controller
           name="storeEmail"
           control={control}
@@ -305,9 +328,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
         )}
       </div>
       <div className="mb-4">
-        <label className="block text-gray-700 font-bold mb-2">
-          Front End URL
-        </label>
+        <label className="block text-gray-700 font-bold mb-2">Front End URL</label>
         <Controller
           name="frontEndUrl"
           control={control}
@@ -327,7 +348,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
           <p className="text-red-500">{errors.frontEndUrl.message}</p>
         )}
       </div>
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <label className="block text-gray-700 font-bold mb-2">
           Enable Reservation Confirmation
         </label>
@@ -337,22 +358,19 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
           render={({ field }) => (
             <input
               type="checkbox"
-              checked={field.value} 
-              onChange={(e) => field.onChange(e.target.checked)} 
+              {...field}
               className="border p-2 rounded-md border-gray-300"
             />
           )}
         />
-      </div>
+      </div> */}
       <div className="mb-4">
         <h2 className="text-lg font-bold">Business Hours</h2>
         {watch("businessHoursList").map((hour, index) => (
           <div key={index} className="mb-4">
-            <div className="flex justify-between items-center">
-              <label className="block text-gray-700 font-bold">
-                {hour.dayOfWeek}
-              </label>
-              <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row justify-between items-center">
+              <label className="block text-gray-700 font-bold">{hour.dayOfWeek}</label>
+              <div className="flex space-x-8 sm:space-x-2 mt-3 sm:mt-0">
                 <input
                   type="time"
                   value={hour.openingTime}
@@ -391,12 +409,12 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, handleUpdate }) => {
       <div className="text-center">
         <button
           type="submit"
-          className={`bg-blue-500 text-white py-2 px-4 rounded-md ${
+          className={`bg-blue-500 text-white py-2 px-4 w-[100px] rounded-md ${
             submitting ? "opacity-50 cursor-not-allowed" : ""
           }`}
           disabled={!isValid || submitting}
         >
-          {submitting ? "Saving..." : "Save"}
+          {submitting ? `${submitType ?"Creating" :"Updating..."}` : `${submitType ?"Create" :"Update"}`}
         </button>
       </div>
     </form>

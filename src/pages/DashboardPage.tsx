@@ -5,6 +5,7 @@ import StoreInfo from "../components/StoreInfo";
 import useAuthCheck from "../hooks/useAuthCheck";
 import { axiosWithToken } from "../utils/axios";
 import { setStoresList } from "../redux toolkit/storesListSlice";
+import { useNavigate } from "react-router";
 
 const DashboardPage: React.FC = () => {
   useAuthCheck();
@@ -58,11 +59,11 @@ const DashboardPage: React.FC = () => {
   const handleUpdate = () => {
     setUpdateTrigger((prev) => !prev);
   };
-
+const navigate =useNavigate()
   return (
     <div className="min-h-screen xl:w-[90%] 2xl:w-[80%] mx-auto">
-      <div className="flex justify-end items-center mb-4">      
-        <button className="btn-primary ml-4 px-4 py-2">Create Store</button>
+      <div className="flex justify-center md:justify-end items-center mb-4">      
+        <button onClick={()=>navigate('/create-store')}  className="btn-primary ml-4 px-4 py-2 ">Create Store</button>
       </div>
       {storeConfig.length > 0 ? (
         <>
