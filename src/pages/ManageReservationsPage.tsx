@@ -22,7 +22,7 @@ import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
 import { useMediaQuery } from 'react-responsive'
-import { Typography, Box, List, ListItem, ListItemText, Divider, Avatar, ListItemAvatar, ButtonBase } from '@mui/material';
+import { Typography, Box, List, ListItem, ListItemText, Divider, Avatar, ListItemAvatar, ListItemButton } from '@mui/material';
 import Badge from '@mui/material/Badge';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -162,7 +162,7 @@ const ManageReservationsPage: React.FC = () => {
         const processedEvents = await convertToProcessedEvents(data);
         setEvents(processedEvents);
         if (isTabletOrMobile) {
-          // setFilteredEvents(processedEvents);
+          // load event for current day in mobile view
           dateCalendarHandleDateChange(moment(), processedEvents);
         }
       } catch (error) {
@@ -244,6 +244,9 @@ const ManageReservationsPage: React.FC = () => {
     });
 
     setEvents(updatedEvents);
+    if(isTabletOrMobile) {
+      setFilteredEvents(updatedEvents.filter(event => moment(event.start).isSame(selectedDate, 'day')));
+    }
   };
 
   const updateReservationEvent = async (selectedEvent: ReservationEvent) => {
@@ -301,8 +304,8 @@ const ManageReservationsPage: React.FC = () => {
 
       } else {
         filtered = events
-        .filter(event => moment(event.start).isSame(date, 'day'))
-        .sort((a, b) => moment(a.start).diff(moment(b.start)));
+          .filter(event => moment(event.start).isSame(date, 'day'))
+          .sort((a, b) => moment(a.start).diff(moment(b.start)));
       }
 
       setFilteredEvents(filtered);
@@ -330,7 +333,7 @@ const ManageReservationsPage: React.FC = () => {
       <MenubarDemo />
       <div className="mx-4 calendar-container">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-2">
-          <div className="status-container flex flex-wrap justify-between mb-2 sm:mb-0">
+          {!isTabletOrMobile && <div className="status-container flex flex-wrap justify-between mb-2 sm:mb-0">
             <div className="p-1 status-item confirmed text-xs sm:text-base">
               Confirmed
             </div>
@@ -340,8 +343,8 @@ const ManageReservationsPage: React.FC = () => {
             <div className="p-1 status-item cancelled text-xs sm:text-base">
               Cancelled
             </div>
-          </div>
-          <div className="flex items-center">
+          </div>}
+          {!isTabletOrMobile && <div className="flex items-center">
             <Label.Root className="mr-2" htmlFor="timezone">
               Timezone:
             </Label.Root>
@@ -357,7 +360,7 @@ const ManageReservationsPage: React.FC = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </div>}
         </div>
         {isTabletOrMobile ? (
           <Box sx={{ width: '100%' }}>
@@ -374,40 +377,59 @@ const ManageReservationsPage: React.FC = () => {
                 }}
               />
             </LocalizationProvider>
+            {isTabletOrMobile && <div className="status-container flex flex-wrap justify-between mb-2 sm:mb-0">
+              <div className="p-1 status-item confirmed text-xs sm:text-base">
+                Confirmed
+              </div>
+              <div className="p-1 status-item pending text-xs sm:text-base">
+                Pending
+              </div>
+              <div className="p-1 status-item cancelled text-xs sm:text-base">
+                Cancelled
+              </div>
+            </div>}
             <Divider sx={{ height: '3px', backgroundColor: 'gray' }} />
             {filteredEvents.length > 0 && (
               <Box sx={{ maxHeight: 'calc(100vh - 400px)', overflowY: 'auto' }}>
                 <List>
                   {filteredEvents.map((event, index) => (
                     <React.Fragment key={event.event_id}>
-                    <ButtonBase
-                      sx={{
-                        width: '100%',
-                        textAlign: 'left',
-                        '&:hover': {
-                          backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                        },
-                      }}
-                      onClick={() => handleEventClick(event)}
-                    >
-                      <ListItem >
-                        <ListItemAvatar>
-                          <Avatar sx={{ bgcolor: getStatusBackgroundColorForAvata(event.data.status), width: 20, height: 20}} />
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                              <Typography variant="body1">{event.title}</Typography>
-                              <Typography variant="body2" color="textSecondary">
-                                {event.data.bookingTime.split(' ')[1] + ' - ' + event.data.endTime.split(' ')[1]}
-                              </Typography>
-                            </Box>
-                          }
-                        />
-                      </ListItem>
-                    </ButtonBase>
-                    {index < filteredEvents.length - 1 && <Divider />}
-                  </React.Fragment>
+                      <ListItemButton
+                        sx={{
+                          width: '100%',
+                          textAlign: 'left',
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                          },
+                        }}
+                        onClick={() => handleEventClick(event)}
+                      >
+                        <ListItem sx={{ padding: '0px' }}>
+                          <ListItemAvatar>
+                            <Avatar sx={{ bgcolor: getStatusBackgroundColorForAvata(event.data.status), width: 20, height: 20 }} />
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                <Typography variant="body1">{event.title}</Typography>
+                                <Typography variant="body2" color="textSecondary">
+                                  {event.data.bookingTime.split(' ')[1] + ' - ' + event.data.endTime.split(' ')[1] + ' ($' + event.data.totalPrice + ')'}
+                                </Typography>
+                              </Box>
+                            }
+                            secondary={
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                <Typography variant="body1">Cust: {event.data.customer.firstName}</Typography>
+                                <Typography variant="body2" color="textSecondary">
+                                  {event.data.customer.phone}
+                                </Typography>
+                              </Box>
+                            }
+                          />
+                        </ListItem>
+                      </ListItemButton>
+                      {index < filteredEvents.length - 1 && <Divider />}
+                    </React.Fragment>
                   ))}
                 </List>
               </Box>
