@@ -22,7 +22,7 @@ import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
 import { useMediaQuery } from 'react-responsive'
-import { Typography, Box, List, ListItem, ListItemText, Divider, Avatar, ListItemAvatar, ListItemButton } from '@mui/material';
+import { Typography, Box, List, ListItem, ListItemText, Divider, Avatar, ListItemAvatar, ListItemButton, Paper } from '@mui/material';
 import Badge from '@mui/material/Badge';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -364,6 +364,7 @@ const ManageReservationsPage: React.FC = () => {
         </div>
         {isTabletOrMobile ? (
           <Box sx={{ width: '100%' }}>
+            <Paper elevation={3} sx={{ padding: '10px', borderRadius: '10px', marginBottom: '10px', marginLeft: '10px', marginRight: '10px' }}>
             <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={moment.locale.toString()}>
               <DateCalendar
                 value={selectedDate}
@@ -377,18 +378,8 @@ const ManageReservationsPage: React.FC = () => {
                 }}
               />
             </LocalizationProvider>
-            {isTabletOrMobile && <div className="status-container flex flex-wrap justify-between mb-2 sm:mb-0">
-              <div className="p-1 status-item confirmed text-xs sm:text-base">
-                Confirmed
-              </div>
-              <div className="p-1 status-item pending text-xs sm:text-base">
-                Pending
-              </div>
-              <div className="p-1 status-item cancelled text-xs sm:text-base">
-                Cancelled
-              </div>
-            </div>}
-            <Divider sx={{ height: '3px', backgroundColor: 'gray' }} />
+            </Paper>
+            {/* <Divider sx={{ height: '3px', backgroundColor: 'gray' }} /> */}
             {filteredEvents.length > 0 && (
               <Box sx={{ maxHeight: 'calc(100vh - 400px)', overflowY: 'auto' }}>
                 <List>
@@ -405,6 +396,7 @@ const ManageReservationsPage: React.FC = () => {
                         onClick={() => handleEventClick(event)}
                       >
                         <ListItem sx={{ padding: '0px' }}>
+                        <Paper elevation={3} sx={{ padding: '10px', borderRadius: '10px', width: '100%'}}>
                           <ListItemAvatar>
                             <Avatar sx={{ bgcolor: getStatusBackgroundColorForAvata(event.data.status), width: 20, height: 20 }} />
                           </ListItemAvatar>
@@ -426,9 +418,9 @@ const ManageReservationsPage: React.FC = () => {
                               </Box>
                             }
                           />
+                          </Paper>
                         </ListItem>
                       </ListItemButton>
-                      {index < filteredEvents.length - 1 && <Divider />}
                     </React.Fragment>
                   ))}
                 </List>
