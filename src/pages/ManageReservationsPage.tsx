@@ -1,15 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import MenubarDemo from "../components/Menubar";
 import { axiosWithToken } from "../utils/axios";
-import moment from "moment-timezone";
-import "moment-timezone";
-import { Calendar, Views, momentLocalizer } from "react-big-calendar";
 import { parse } from "date-fns";
-import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import CalendarEvent from "../components/CalendarEvent";
-import * as Label from "@radix-ui/react-label";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import * as Select from "@radix-ui/react-select";
@@ -22,50 +15,28 @@ import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
 import { useMediaQuery } from 'react-responsive'
-import { Typography, Box, List, ListItem, ListItemText, Divider, Avatar, ListItemAvatar, ListItemButton, Paper } from '@mui/material';
+import { Typography, Box, List, ListItem, ListItemText, Avatar, ListItemAvatar, ListItemButton, Paper, CardContent } from '@mui/material';
 import Badge from '@mui/material/Badge';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { PickersDay, PickersDayProps } from '@mui/x-date-pickers/PickersDay';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { DayCalendarSkeleton } from '@mui/x-date-pickers/DayCalendarSkeleton';
+import moment from "moment";
 
 interface FetchReservationsParams {
   startDate: string; //dd/MM/yyyy
   endDate: string; //dd/MM/yyyy
 }
 
-const australianTimezones = [
-  "Australia/Sydney",
-  "Australia/Melbourne",
-  "Australia/Brisbane",
-  "Australia/Perth",
-  "Australia/Adelaide",
-  "Australia/Hobart",
-  "Australia/Darwin",
-];
-
-const today = new Date();
-
-const mLocalizer = momentLocalizer(moment);
-moment.updateLocale("en", {
-  week: {
-    dow: 1, // Monday is the first day of the week
-  },
-});
-moment.tz.setDefault(moment.tz.guess());
-
 const ManageReservationsPage: React.FC = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<ProcessedEvent[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<ProcessedEvent[]>([]);
-  const [selectedTimezone, setSelectedTimezone] = useState(moment.tz.guess());
   const [selectedEvent, setSelectedEvent] = useState<ProcessedEvent | null>(
     null
   );
   const [isStatusModified, setIsStatusModified] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [view, setView] = useState<String>(Views.WEEK);
   const navigate = useNavigate();
   const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' })
   const [selectedDate, setSelectedDate] = useState<moment.Moment | null>(moment());
@@ -107,40 +78,6 @@ const ManageReservationsPage: React.FC = () => {
     }
   };
 
-  const handleRangeChange = (range: any, view: any) => {
-    if (range.start !== undefined) {
-      view = Views.MONTH;
-    } else if (range.length === 7) {
-      view = Views.WEEK;
-    } else {
-      view = Views.DAY;
-    }
-    setView(view);
-    let startDate;
-    let endDate;
-    if (view === Views.WEEK) {
-      // Calculate the start of the week (Monday) and end of the week (Sunday)
-      startDate = moment(range[1]).startOf(Views.WEEK).toDate(); // Monday
-      endDate = moment(range[1]).endOf(Views.WEEK).toDate(); // Sunday
-    } else if (view === Views.DAY) {
-      startDate = moment(range[0]);
-      endDate = moment(range[range.length - 1]);
-    } else {
-      startDate = moment(range.start);
-      endDate = moment(range.end);
-    }
-
-    if (range.length > 0) {
-      setCurrentDate(range[0]);
-    }
-
-    const requestParams: FetchReservationsParams = {
-      startDate: moment(startDate).format("DD/MM/YYYY"),
-      endDate: moment(endDate).format("DD/MM/YYYY"),
-    };
-    fetchReservations(requestParams);
-  };
-
   const selectedStoreId = useSelector(
     (state: RootState) => state.selectedStore.storeUuid
   );
@@ -149,10 +86,6 @@ const ManageReservationsPage: React.FC = () => {
     checkTokenExpiredAndRefresh();
     let startDate = moment().startOf('month').format("DD/MM/YYYY").toString();
     let endDate = moment().endOf('month').format("DD/MM/YYYY").toString();
-    if (!isTabletOrMobile) {
-      startDate = moment().startOf(Views.WEEK).format("DD/MM/YYYY").toString();
-      endDate = moment().endOf(Views.WEEK).format("DD/MM/YYYY").toString();
-    }
     const fetchData = async () => {
       try {
         const data = await fetchReservations({
@@ -161,10 +94,8 @@ const ManageReservationsPage: React.FC = () => {
         });
         const processedEvents = await convertToProcessedEvents(data);
         setEvents(processedEvents);
-        if (isTabletOrMobile) {
-          // load event for current day in mobile view
-          dateCalendarHandleDateChange(moment(), processedEvents);
-        }
+        // load event for initial date
+        dateCalendarHandleDateChange(moment(), processedEvents);
       } catch (error) {
         console.error("Failed to fetch reservations", error);
       }
@@ -198,17 +129,6 @@ const ManageReservationsPage: React.FC = () => {
     }));
   };
 
-  const onNavigate = useCallback(
-    (date: Date) => setCurrentDate(date),
-    [setCurrentDate]
-  );
-  const handleTimezoneChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    setSelectedTimezone(event.target.value);
-    moment.tz.setDefault(event.target.value);
-  };
-
   const handleStatusChange = (e: any) => {
     if (selectedEvent) {
       setSelectedEvent({
@@ -227,12 +147,6 @@ const ManageReservationsPage: React.FC = () => {
     updateReservationEvent(selectedEvent as ReservationEvent);
   };
 
-  const components = {
-    event: ({ event }: { event: any }) => {
-      const data = event?.data;
-      return <CalendarEvent reservation={data} />;
-    },
-  };
   const updateEventData = (response: {
     data: Reservation;
   }) => {
@@ -244,9 +158,7 @@ const ManageReservationsPage: React.FC = () => {
     });
 
     setEvents(updatedEvents);
-    if(isTabletOrMobile) {
-      setFilteredEvents(updatedEvents.filter(event => moment(event.start).isSame(selectedDate, 'day')));
-    }
+    setFilteredEvents(updatedEvents.filter(event => moment(event.start).isSame(selectedDate, 'day')));
   };
 
   const updateReservationEvent = async (selectedEvent: ReservationEvent) => {
@@ -297,16 +209,9 @@ const ManageReservationsPage: React.FC = () => {
     setSelectedDate(date);
     if (date) {
       let filtered
-      if (events.length === 0 && initialEvents) {
-        filtered = initialEvents
-          .filter(event => moment(event.start).isSame(date, 'day'))
-          .sort((a, b) => moment(a.start).diff(moment(b.start)));
-
-      } else {
-        filtered = events
-          .filter(event => moment(event.start).isSame(date, 'day'))
-          .sort((a, b) => moment(a.start).diff(moment(b.start)));
-      }
+      filtered = events
+        .filter(event => moment(event.start).isSame(date, 'day'))
+        .sort((a, b) => moment(a.start).diff(moment(b.start)));
 
       setFilteredEvents(filtered);
     } else {
@@ -332,52 +237,22 @@ const ManageReservationsPage: React.FC = () => {
     <div className="min-h-screen flex flex-col">
       <MenubarDemo />
       <div className="mx-4 calendar-container">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-2">
-          {!isTabletOrMobile && <div className="status-container flex flex-wrap justify-between mb-2 sm:mb-0">
-            <div className="p-1 status-item confirmed text-xs sm:text-base">
-              Confirmed
-            </div>
-            <div className="p-1 status-item pending text-xs sm:text-base">
-              Pending
-            </div>
-            <div className="p-1 status-item cancelled text-xs sm:text-base">
-              Cancelled
-            </div>
-          </div>}
-          {!isTabletOrMobile && <div className="flex items-center">
-            <Label.Root className="mr-2" htmlFor="timezone">
-              Timezone:
-            </Label.Root>
-            <select
-              id="timezone"
-              value={selectedTimezone}
-              onChange={handleTimezoneChange}
-              className="border border-gray-300 rounded p-2"
-            >
-              {australianTimezones.map((tz) => (
-                <option key={tz} value={tz}>
-                  {tz}
-                </option>
-              ))}
-            </select>
-          </div>}
-        </div>
         {isTabletOrMobile ? (
           <Box sx={{ width: '100%' }}>
             <Paper elevation={3} sx={{ padding: '10px', borderRadius: '10px', marginBottom: '10px', marginLeft: '10px', marginRight: '10px' }}>
-            <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={moment.locale.toString()}>
-              <DateCalendar
-                value={selectedDate}
-                loading={isLoading}
-                onMonthChange={handleMonthChange}
-                // @ts-ignore
-                onChange={dateCalendarHandleDateChange}
-                renderLoading={() => <DayCalendarSkeleton />}
-                slots={{
-                  day: EventsDay,
-                }}
-              />
-            </LocalizationProvider>
+              <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={moment.locale.toString()}>
+                <DateCalendar
+                  value={selectedDate}
+                  loading={isLoading}
+                  onMonthChange={handleMonthChange}
+                  // @ts-ignore
+                  onChange={dateCalendarHandleDateChange}
+                  renderLoading={() => <DayCalendarSkeleton />}
+                  slots={{
+                    day: EventsDay,
+                  }}
+                />
+              </LocalizationProvider>
             </Paper>
             {/* <Divider sx={{ height: '3px', backgroundColor: 'gray' }} /> */}
             {filteredEvents.length > 0 && (
@@ -396,28 +271,28 @@ const ManageReservationsPage: React.FC = () => {
                         onClick={() => handleEventClick(event)}
                       >
                         <ListItem sx={{ padding: '0px' }}>
-                        <Paper elevation={3} sx={{ padding: '10px', borderRadius: '10px', width: '100%'}}>
-                          <ListItemAvatar>
-                            <Avatar sx={{ bgcolor: getStatusBackgroundColorForAvata(event.data.status), width: 20, height: 20 }} />
-                          </ListItemAvatar>
-                          <ListItemText
-                            primary={
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                <Typography variant="body1">{event.title}</Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                  {event.data.bookingTime.split(' ')[1] + ' - ' + event.data.endTime.split(' ')[1] + ' ($' + event.data.totalPrice + ')'}
-                                </Typography>
-                              </Box>
-                            }
-                            secondary={
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                <Typography variant="body1">Cust: {event.data.customer.firstName}</Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                  {event.data.customer.phone}
-                                </Typography>
-                              </Box>
-                            }
-                          />
+                          <Paper elevation={3} sx={{ padding: '10px', borderRadius: '10px', width: '100%' }}>
+                            <ListItemAvatar>
+                              <Avatar sx={{ bgcolor: getStatusBackgroundColorForAvata(event.data.status), width: 20, height: 20 }} />
+                            </ListItemAvatar>
+                            <ListItemText
+                              primary={
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                  <Typography variant="body1">{event.title}</Typography>
+                                  <Typography variant="body2" color="textSecondary">
+                                    {event.data.bookingTime.split(' ')[1] + ' - ' + event.data.endTime.split(' ')[1] + ' ($' + event.data.totalPrice + ')'}
+                                  </Typography>
+                                </Box>
+                              }
+                              secondary={
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                  <Typography variant="body1">Cust: {event.data.customer.firstName}</Typography>
+                                  <Typography variant="body2" color="textSecondary">
+                                    {event.data.customer.phone}
+                                  </Typography>
+                                </Box>
+                              }
+                            />
                           </Paper>
                         </ListItem>
                       </ListItemButton>
@@ -428,52 +303,85 @@ const ManageReservationsPage: React.FC = () => {
             )}
           </Box>
         ) : (
-          <Calendar
-            defaultDate={new Date()}
-            events={events}
-            defaultView={Views.WEEK}
-            showMultiDayTimes
-            step={30}
-            views={[Views.WEEK, Views.MONTH, Views.DAY]}
-            localizer={mLocalizer}
-            onRangeChange={handleRangeChange}
-            onNavigate={onNavigate}
-            date={currentDate}
-            className={view === Views.MONTH ? 'month-view' : ''}
-            components={components}
-            min={
-              new Date(
-                today.getFullYear() - 10,
-                today.getMonth(),
-                today.getDate(),
-                5
-              )
-            } // Start time at 5 AM
-            max={
-              new Date(
-                today.getFullYear() + 10,
-                today.getMonth(),
-                today.getDate(),
-                21
-              )
-            } // End time at 9 PM
-            formats={{
-              timeGutterFormat: "HH:mm",
-              eventTimeRangeFormat: ({ start, end }, culture) =>
-                `${mLocalizer.format(
-                  start,
-                  "HH:mm",
-                  culture
-                )} - ${mLocalizer.format(end, "HH:mm", culture)}`,
-              agendaTimeRangeFormat: ({ start, end }, culture) =>
-                `${mLocalizer.format(
-                  start,
-                  "HH:mm",
-                  culture
-                )} - ${mLocalizer.format(end, "HH:mm", culture)}`,
-            }}
-            onSelectEvent={handleEventClick}
-          />
+          <div>
+            <Box sx={{ display: 'flex', flexDirection: 'row', paddingLeft: '1rem' }}>
+              <Typography variant="h4" sx={{ textAlign: 'center', margin: '1rem 0' }}>
+                Manage Bookings
+              </Typography>
+            </Box>
+            <Box pt={1} sx={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'flex-start', gap: '2rem' }}>
+              {/* Select Date */}
+              <Box order={1} sx={{ paddingLeft: '1rem' }}>
+                <Paper elevation={3} sx={{ borderRadius: '20px' }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Select Date
+                    </Typography>
+                    <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={moment.locale.toString()}>
+                      <DateCalendar
+                        value={selectedDate}
+                        loading={isLoading}
+                        onMonthChange={handleMonthChange}
+                        // @ts-ignore
+                        onChange={dateCalendarHandleDateChange}
+                        renderLoading={() => <DayCalendarSkeleton />}
+                        slots={{
+                          day: EventsDay,
+                        }}
+                      />
+                    </LocalizationProvider>
+                  </CardContent>
+                </Paper>
+              </Box>
+
+              <Box order={2} flexGrow={2} sx={{ maxWidth: '30%' }}>
+                <Paper elevation={3} sx={{ height: '80vh', maxHeight: 'calc(100vh - 400px)', overflowY: 'auto', borderRadius: '20px' }}>
+                  <List>
+                    {filteredEvents.map((event, index) => (
+                      <React.Fragment key={event.event_id}>
+                        <ListItemButton
+                          sx={{
+                            width: '100%',
+                            textAlign: 'left',
+                            '&:hover': {
+                              backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                            },
+                          }}
+                          onClick={() => handleEventClick(event)}
+                        >
+                          <ListItem sx={{ padding: '0px' }}>
+                            <Paper elevation={3} sx={{ padding: '10px', borderRadius: '10px', width: '100%' }}>
+                              <ListItemAvatar>
+                                <Avatar sx={{ bgcolor: getStatusBackgroundColorForAvata(event.data.status), width: 20, height: 20 }} />
+                              </ListItemAvatar>
+                              <ListItemText
+                                primary={
+                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                    <Typography variant="body1">{event.title}</Typography>
+                                    <Typography variant="body2" color="textSecondary">
+                                      {event.data.bookingTime.split(' ')[1] + ' - ' + event.data.endTime.split(' ')[1] + ' ($' + event.data.totalPrice + ')'}
+                                    </Typography>
+                                  </Box>
+                                }
+                                secondary={
+                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                    <Typography variant="body1">Cust: {event.data.customer.firstName}</Typography>
+                                    <Typography variant="body2" color="textSecondary">
+                                      {`${event.data.customer.phone.slice(0, 4)} ${event.data.customer.phone.slice(4, 7)} ${event.data.customer.phone.slice(7, 10)}`}
+                                    </Typography>
+                                  </Box>
+                                }
+                              />
+                            </Paper>
+                          </ListItem>
+                        </ListItemButton>
+                      </React.Fragment>
+                    ))}
+                  </List>
+                </Paper>
+              </Box>
+            </Box>
+          </div>
         )}
         <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen} >
           <Dialog.Overlay className="overlay-dialog data-[state=open]:animate-overlayShow" />
@@ -594,7 +502,7 @@ const ManageReservationsPage: React.FC = () => {
                           Phone
                         </label>
                         <label className="Input non-editable-label">
-                          {selectedEvent.data.customer.phone}
+                          {`${selectedEvent.data.customer.phone.slice(0, 4)} ${selectedEvent.data.customer.phone.slice(4, 7)} ${selectedEvent.data.customer.phone.slice(7, 10)}`}
                         </label>
                       </fieldset>
                     )}
