@@ -209,9 +209,15 @@ const ManageReservationsPage: React.FC = () => {
     setSelectedDate(date);
     if (date) {
       let filtered
-      filtered = events
-        .filter(event => moment(event.start).isSame(date, 'day'))
-        .sort((a, b) => moment(a.start).diff(moment(b.start)));
+      if (initialEvents && initialEvents.length > 0) {
+        filtered = initialEvents
+          .filter(event => moment(event.start).isSame(date, 'day'))
+          .sort((a, b) => moment(a.start).diff(moment(b.start)));
+      } else {
+        filtered = events
+          .filter(event => moment(event.start).isSame(date, 'day'))
+          .sort((a, b) => moment(a.start).diff(moment(b.start)));
+      }
 
       setFilteredEvents(filtered);
     } else {
@@ -246,7 +252,7 @@ const ManageReservationsPage: React.FC = () => {
                   loading={isLoading}
                   onMonthChange={handleMonthChange}
                   // @ts-ignore
-                  onChange={dateCalendarHandleDateChange}
+                  onChange={(newValue) => dateCalendarHandleDateChange(newValue)}
                   renderLoading={() => <DayCalendarSkeleton />}
                   slots={{
                     day: EventsDay,
@@ -258,7 +264,7 @@ const ManageReservationsPage: React.FC = () => {
             {filteredEvents.length > 0 && (
               <Box sx={{ maxHeight: 'calc(100vh - 400px)', overflowY: 'auto' }}>
                 <List>
-                  {filteredEvents.map((event, index) => (
+                  {filteredEvents.map((event) => (
                     <React.Fragment key={event.event_id}>
                       <ListItemButton
                         sx={{
@@ -323,7 +329,7 @@ const ManageReservationsPage: React.FC = () => {
                         loading={isLoading}
                         onMonthChange={handleMonthChange}
                         // @ts-ignore
-                        onChange={dateCalendarHandleDateChange}
+                        onChange={(newValue) => dateCalendarHandleDateChange(newValue)}
                         renderLoading={() => <DayCalendarSkeleton />}
                         slots={{
                           day: EventsDay,
@@ -337,7 +343,7 @@ const ManageReservationsPage: React.FC = () => {
               <Box order={2} flexGrow={2} sx={{ maxWidth: '30%' }}>
                 <Paper elevation={3} sx={{ height: '80vh', maxHeight: 'calc(100vh - 400px)', overflowY: 'auto', borderRadius: '20px' }}>
                   <List>
-                    {filteredEvents.map((event, index) => (
+                    {filteredEvents.map((event) => (
                       <React.Fragment key={event.event_id}>
                         <ListItemButton
                           sx={{
