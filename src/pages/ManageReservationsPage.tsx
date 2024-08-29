@@ -38,7 +38,7 @@ const ManageReservationsPage: React.FC = () => {
   const [isStatusModified, setIsStatusModified] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
-  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' })
+  const isMobile = useMediaQuery({ query: '(max-width: 767px)' })
   const [selectedDate, setSelectedDate] = useState<moment.Moment | null>(moment());
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -242,8 +242,8 @@ const ManageReservationsPage: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <MenubarDemo />
-      <div className="mx-4 calendar-container">
-        {isTabletOrMobile ? (
+      <div className="mx-4 ">
+        {isMobile ? (
           <Box sx={{ width: '100%' }}>
             <Paper elevation={3} sx={{ padding: '10px', borderRadius: '10px', marginBottom: '10px', marginLeft: '10px', marginRight: '10px' }}>
               <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={moment.locale.toString()}>
@@ -262,7 +262,7 @@ const ManageReservationsPage: React.FC = () => {
             </Paper>
             {/* <Divider sx={{ height: '3px', backgroundColor: 'gray' }} /> */}
             {filteredEvents.length > 0 && (
-              <Box sx={{ maxHeight: 'calc(100vh - 400px)', overflowY: 'auto' }}>
+              <Box sx={{ maxHeight: 'calc(100vh - 500px)', overflowY: 'auto' }}>
                 <List>
                   {filteredEvents.map((event) => (
                     <React.Fragment key={event.event_id}>
@@ -315,9 +315,9 @@ const ManageReservationsPage: React.FC = () => {
                 Manage Bookings
               </Typography>
             </Box>
-            <Box pt={1} sx={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'flex-start', gap: '2rem' }}>
+            <Box pt={1} sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', gap: '1rem' }}>
               {/* Select Date */}
-              <Box order={1} sx={{ paddingLeft: '1rem' }}>
+              <Box order={1} flexGrow={1} sx={{ paddingLeft: '1rem', maxWidth: { lg: '30%' } }}>
                 <Paper elevation={3} sx={{ borderRadius: '20px' }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
@@ -340,8 +340,8 @@ const ManageReservationsPage: React.FC = () => {
                 </Paper>
               </Box>
 
-              <Box order={2} flexGrow={2} sx={{ maxWidth: '30%' }}>
-                <Paper elevation={3} sx={{ height: '80vh', maxHeight: 'calc(100vh - 400px)', overflowY: 'auto', borderRadius: '20px' }}>
+              <Box order={2} flexGrow={5} sx={{ maxWidth: { lg: '30%' } }}>
+                <Paper elevation={3} sx={{ height: '80vh', maxHeight: 'calc(100vh - 350px)', overflowY: 'auto', borderRadius: '20px' }}>
                   <List>
                     {filteredEvents.map((event) => (
                       <React.Fragment key={event.event_id}>
