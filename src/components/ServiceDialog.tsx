@@ -91,7 +91,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
     };
     console.log(payload);
 
-    if (sessionStorage.getItem("authToken")) {
+    if (localStorage.getItem("authToken")) {
       const token = getToken();
 
       if (isTokenExpired(token)) {

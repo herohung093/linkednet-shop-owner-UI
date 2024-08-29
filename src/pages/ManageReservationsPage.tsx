@@ -106,7 +106,7 @@ const ManageReservationsPage: React.FC = () => {
   }, [selectedStoreId]);
 
   const checkTokenExpiredAndRefresh = async () => {
-    if (sessionStorage.getItem("authToken")) {
+    if (localStorage.getItem("authToken")) {
       const token = getToken();
 
       if (isTokenExpired(token)) {

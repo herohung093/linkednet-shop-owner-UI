@@ -3,6 +3,9 @@ import { useNavigate } from "react-router";
 const SessionExpired: React.FC = () => {
   const navigate = useNavigate();
   const handleLoginRedirect = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("storeUuid");
     navigate("/");
   };
   return (

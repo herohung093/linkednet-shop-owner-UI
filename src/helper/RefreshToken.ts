@@ -8,7 +8,7 @@ interface RefreshTokenResponse {
 export const refreshToken = async (
   navigate: (path: string) => void
 ): Promise<RefreshTokenResponse> => {
-  const refreshToken = sessionStorage.getItem("refreshToken");
+  const refreshToken = localStorage.getItem("refreshToken");
   try {
     const response = await axiosInstance.post("/auth/refresh-token", {
       refreshToken,
@@ -16,11 +16,8 @@ export const refreshToken = async (
     console.log(response.data);
     
     const { token, refreshToken: newRefreshToken } = response.data;
-    sessionStorage.setItem("authToken", token);
-    sessionStorage.setItem("refreshToken", newRefreshToken);
-    console.log("Token refreshed");
-    console.log("token",token);
-    
+    localStorage.setItem("authToken", token);
+    localStorage.setItem("refreshToken", newRefreshToken);
     
     return { token, refreshToken: newRefreshToken };
   } catch (error) {

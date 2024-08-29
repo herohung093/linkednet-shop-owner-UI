@@ -66,7 +66,7 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
       active: true,
     };
 
-    if (sessionStorage.getItem("authToken")) {
+    if (localStorage.getItem("authToken")) {
       const token = getToken();
 
       if (isTokenExpired(token)) {

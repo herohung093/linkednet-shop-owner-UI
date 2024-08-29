@@ -27,7 +27,7 @@ const NotificationIcon: React.FC = () => {
 	const navigate = useNavigate();
 
 	const checkTokenExpiredAndRefresh = async () => {
-		if (sessionStorage.getItem("authToken")) {
+		if (localStorage.getItem("authToken")) {
 			const token = getToken();
 
 			if (isTokenExpired(token)) {

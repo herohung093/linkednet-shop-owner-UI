@@ -12,8 +12,8 @@ const ResetPasswordVerificationPage: React.FC = () => {
 			const response = await axiosInstance.get("/auth/user/verify-reset-password-token", {
 				params: { token: verificationCode },
 			});
-			sessionStorage.setItem("authToken", response.data.token);
-			sessionStorage.setItem("refreshToken", response.data.refreshToken);
+			localStorage.setItem("authToken", response.data.token);
+			localStorage.setItem("refreshToken", response.data.refreshToken);
 			navigate("/password-reset", { replace: true });
 		} catch (error) {
 			console.error("Error:", error);

@@ -9,7 +9,7 @@ import { refreshToken } from '../helper/RefreshToken';
 const useAuthCheck = () => {
   const navigate = useNavigate();
   useEffect(() => {
-    if (sessionStorage.getItem('authToken')) {
+    if (localStorage.getItem('authToken')) {
       const token = getToken();
       if (isTokenExpired(token)) {
         console.log('Token expired');

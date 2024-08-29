@@ -6,8 +6,8 @@ const Account = () => {
   const navigate = useNavigate()
   const logoutHandler = () => {
     navigate("/");
-    sessionStorage.removeItem("authToken");
-    sessionStorage.removeItem("refreshToken");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("storeUuid");
   };
 

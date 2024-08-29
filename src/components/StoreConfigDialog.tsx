@@ -104,7 +104,7 @@ const StoreConfigDialog: React.FC<StoreConfigDialogProps> = ({
   const onSubmitHandler = async (values: StoreConfigFormData) => {
     const payload = { ...values };
 
-    if (sessionStorage.getItem("authToken")) {
+    if (localStorage.getItem("authToken")) {
       const token = getToken();
 
       if (isTokenExpired(token)) {

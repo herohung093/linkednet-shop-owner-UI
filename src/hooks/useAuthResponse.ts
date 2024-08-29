@@ -6,8 +6,8 @@ const useAuthResonse = () => {
   const navigate = useNavigate();
 
   const authenticateAndRedirect = (token: string, refreshToken: string) => {
-    sessionStorage.setItem("authToken", token);
-    sessionStorage.setItem("refreshToken", refreshToken);
+    localStorage.setItem("authToken", token);
+        localStorage.setItem("refreshToken", refreshToken);
     navigate("/dashboard");
   };
 

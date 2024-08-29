@@ -53,7 +53,7 @@ const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
       type: formData?.typeName,
       levelType: formData?.levelType,
     };
-    if (sessionStorage.getItem("authToken")) {
+    if (localStorage.getItem("authToken")) {
       const token = getToken();
 
       if (isTokenExpired(token)) {

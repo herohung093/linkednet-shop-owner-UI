@@ -23,8 +23,8 @@ const LoginPage: React.FC = () => {
   const handleAuthResponse = useAuthResonse();
 
   useEffect(() => {
-    const authToken = sessionStorage.getItem("authToken");
-    const refreshToken = sessionStorage.getItem("refreshToken");
+    const authToken = localStorage.getItem("authToken");
+    const refreshToken = localStorage.getItem("refreshToken");
 
     if (authToken && !isTokenExpired(authToken)) {
       navigate("/dashboard");

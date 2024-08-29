@@ -81,7 +81,7 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
     };
     console.log(payloadEdit);
 
-    if (sessionStorage.getItem("authToken")) {
+    if (localStorage.getItem("authToken")) {
       const token = getToken();
 
       if (isTokenExpired(token)) {
