@@ -92,7 +92,7 @@ const MenubarDemo = () => {
   };
 
   return (
-    <div className="mb-[10px] relative z-10">
+    <div className="mb-[100px] md:mb-0 lg:mb-0 relative z-10">
       <div className="flex justify-between items-center font-bold text-lg">
         <div
           className={`absolute top-[80px] px-4 left-0 right-0 bg-white shadow-md rounded-md md:hidden ${
