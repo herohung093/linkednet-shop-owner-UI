@@ -3,13 +3,14 @@ import ForgotPasswordDialog from "../components/ForgotPasswordDialog";
 import { useNavigate } from "react-router-dom";
 import CustomGoogleLoginButton from "../components/CustomGoogleLoginButton";
 import useAuthResonse from "../hooks/useAuthResponse";
-import { Spinner } from "@radix-ui/themes";
 
 import { useDispatch } from "react-redux";
 import { setStoresList } from "../redux toolkit/storesListSlice";
 import { axiosInstance } from "../utils/axios";
 import isTokenExpired from "../helper/CheckTokenExpired";
 import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
+import LoadingButton from '@mui/lab/LoadingButton';
+import { CircularProgress } from "@mui/material";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>("");
@@ -133,18 +134,22 @@ const LoginPage: React.FC = () => {
             <div className={`mb-4 text-red-700 ${!error && "hidden"} `}>
               {errorMessage}
             </div>
-            <button
+            <LoadingButton
               type="submit"
-              className="w-full flex justify-center items-center h-[40px] bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-6"
-            >
-              {loading ? (
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-                  <Spinner />
-                </div>
-              ) : (
-                "Login"
-              )}
-            </button>
+              variant="contained" // Use 'contained' to have a solid background color
+              className="w-full flex justify-center items-center h-[40px] focus:outline-none focus:shadow-outline"
+              loading={loading}
+              loadingIndicator={<CircularProgress style={{ color: 'white' }} size={24} />}
+              sx={{
+                marginBottom: '1rem',
+                backgroundColor: 'black',
+                color: 'white',
+                textTransform: 'none', // Keep the text casing as it is
+                '&:hover': {
+                  backgroundColor: 'black', // Keep the same background color on hover
+                },
+              }}
+            >Login</LoadingButton>
             <div className="w-full">
               <CustomGoogleLoginButton
                 updateLoading={setLoading}
