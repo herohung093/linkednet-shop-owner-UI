@@ -257,6 +257,7 @@ const ManageReservationsPage: React.FC = () => {
                   slots={{
                     day: EventsDay,
                   }}
+                  sx={{maxWidth: '290px'}}
                 />
               </LocalizationProvider>
             </Paper>
