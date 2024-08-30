@@ -7,7 +7,7 @@ import { axiosWithToken } from "../utils/axios";
 import { setStoresList } from "../redux toolkit/storesListSlice";
 import { useNavigate } from "react-router";
 
-const DashboardPage: React.FC = () => {
+const StoreSettingPage: React.FC = () => {
   useAuthCheck();
   const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
   const [selectedStore, setSelectedStore] = useState<number | string>("");
@@ -81,4 +81,4 @@ const navigate =useNavigate()
   );
 };
 
-export default DashboardPage;
+export default StoreSettingPage;

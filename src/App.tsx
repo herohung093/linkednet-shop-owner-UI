@@ -1,6 +1,6 @@
 import "./App.css";
 import Main from "./layout/Main.tsx";
-import DashboardPage from "./pages/DashboardPage.tsx";
+import StoreSettingPage from "./pages/StoreSettingPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import {
   createBrowserRouter,
@@ -26,8 +26,8 @@ const router = createBrowserRouter([
     element: <Main />, // Use Main layout
     children: [
       {
-        path: "dashboard",
-        element: <DashboardPage />,
+        path: "store-settings",
+        element: <StoreSettingPage />,
       },
       {
         path: "services",

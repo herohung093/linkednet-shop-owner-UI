@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 const CreateStorePage: React.FC = () => {
   const navigate = useNavigate();
   const handleUpdate = () => {
-    navigate("/dashboard");
+    navigate("/store-settings");
   };
   return (
     <>

@@ -34,7 +34,7 @@ const MenubarDemo = () => {
   };
 
   const menuItems: MenuItemProps[] = [
-    { label: "Dashboard", path: "/dashboard" },
+    { label: "Store Settings", path: "/store-settings" },
     { label: "Staffs", path: "/staffs" },
     { label: "Services", path: "/services" },
     { label: "Manage Bookings", path: "/manage-bookings" },

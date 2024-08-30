@@ -12,7 +12,7 @@ const useAuthHomePageRedirect = () => {
     if (!token || isTokenExpired(token)) {
       navigate("/login");
     } else {
-      navigate("/dashboard");
+      navigate("/store-settings");
     }
   }, [navigate]);
 };
