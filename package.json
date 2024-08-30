@@ -34,6 +34,7 @@
     "@stomp/stompjs": "^7.0.0",
     "@types/sockjs-client": "^1.5.4",
     "axios": "^1.7.2",
+    "firebase": "^10.13.1",
     "framer-motion": "^11.3.19",
     "i": "^0.3.7",
     "jwt-decode": "^4.0.0",
