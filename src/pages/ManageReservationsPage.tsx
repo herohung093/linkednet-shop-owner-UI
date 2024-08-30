@@ -239,9 +239,8 @@ const ManageReservationsPage: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen flex flex-col">
-      
-      <div className="mx-4 ">
+    <div >
+      <div className="mx-2 ">
         {isMobile ? (
           <Box sx={{ width: '100%' }}>
             <Paper elevation={3} sx={{ padding: '10px', borderRadius: '10px', marginBottom: '10px', marginLeft: '10px', marginRight: '10px' }}>
@@ -262,7 +261,7 @@ const ManageReservationsPage: React.FC = () => {
             </Paper>
             {/* <Divider sx={{ height: '3px', backgroundColor: 'gray' }} /> */}
             {filteredEvents.length > 0 && (
-              <Box sx={{ maxHeight: 'calc(100vh - 500px)', overflowY: 'auto' }}>
+              <Box sx={{ maxHeight: 'calc(100vh - 400px)', overflowY: 'auto' }}>
                 <List>
                   {filteredEvents.map((event) => (
                     <React.Fragment key={event.event_id}>
