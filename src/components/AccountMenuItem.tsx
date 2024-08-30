@@ -152,7 +152,10 @@ const AccountMenuItem = () => {
           />
         </Box>
         <Divider />
-        <MenuItem onClick={handleCloseProfileMenu}><AccountCircle sx={{ marginRight: '1rem' }} /> Change password</MenuItem>
+        <MenuItem onClick={() => {
+          setProfileIconRef(null);
+          navigate("/password-reset");
+        }}><AccountCircle sx={{ marginRight: '1rem' }} /> Change password</MenuItem>
         <MenuItem onClick={logoutHandler}><LogoutIcon sx={{ marginRight: '1rem' }} /> Logout</MenuItem>
       </Menu>
     </div>
