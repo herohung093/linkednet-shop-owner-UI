@@ -294,7 +294,7 @@ const ManageReservationsPage: React.FC = () => {
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                                   <Typography variant="body1">Cust: {event.data.customer.firstName}</Typography>
                                   <Typography variant="body2" color="textSecondary">
-                                    {event.data.customer.phone}
+                                  {`${event.data.customer.phone.slice(0, 4)} ${event.data.customer.phone.slice(4, 7)} ${event.data.customer.phone.slice(7, 10)}`}
                                   </Typography>
                                 </Box>
                               }
