@@ -1,11 +1,13 @@
 import MenubarDemo from "../components/Menubar";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 const Main = () => {
+  const location = useLocation();
+  const hideMenubarPaths = ["/login", "/session-expired"];
   return (
     <>
-      <MenubarDemo />
-      <Outlet></Outlet>
+      {!hideMenubarPaths.includes(location.pathname) && <MenubarDemo />}
+      <Outlet />
     </>
   );
 };

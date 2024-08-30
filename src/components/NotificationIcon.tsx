@@ -11,17 +11,27 @@ import SockJS from 'sockjs-client/dist/sockjs';
 import isTokenExpired from '../helper/CheckTokenExpired';
 import { refreshToken } from '../helper/RefreshToken';
 import { useNavigate } from "react-router";
+import { Button, Divider, MenuItem, Typography, IconButton } from '@mui/material';
+import Menu from '@mui/material/Menu';
 
 const NotificationIcon: React.FC = () => {
 	const [notificationCount, setNotificationCount] = useState(0);
 	const [showNotifications, setShowNotifications] = useState(false);
 	const [notifications, setNotifications] = useState<Notification[]>([]);
-	const dropdownRef = useRef<HTMLDivElement>(null);
-	const notificationIconRef = useRef<HTMLDivElement>(null);
 	const originalTitle = useRef(document.title);
 	const [notificationPage, setNotificationPage] = useState(1);
 	const [loadingNotifications, setLoadingNotifications] = useState(false);
 	const stompClient = useRef<Client | null>(null);
+
+	const notificationIconRef = useRef(null);
+
+	const handleClose = () => {
+		setShowNotifications(false);
+		markNotificationsAsSeen();
+		// Reset the notification page to 0 when the dropdown is closed
+		setNotificationPage(1);
+	};
+
 	// Interval to toggle the title when a new notification is received
 	const titleInterval = useRef<NodeJS.Timeout | null>(null);
 	const navigate = useNavigate();
@@ -85,6 +95,7 @@ const NotificationIcon: React.FC = () => {
 				setNotifications(latestNotifications);
 			} catch (error) {
 				console.error('Failed to fetch recent notifications:', error);
+				navigate("/session-expired");
 			}
 		};
 
@@ -98,14 +109,25 @@ const NotificationIcon: React.FC = () => {
 			}
 			return !prevState;
 		});
-
-		// clear the new notification interval when the dropdown is opened
-		if (titleInterval.current) {
-			clearInterval(titleInterval.current);
-			document.title = originalTitle.current;
-			titleInterval.current = null;
-		}
 	};
+
+	useEffect(() => {
+		const handleVisibilityChange = () => {
+			if (!document.hidden) {
+				// Clear the interval when the tab becomes visible
+				if (titleInterval.current) {
+					clearInterval(titleInterval.current);
+					titleInterval.current = null;
+				}
+			}
+		};
+
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+
+		return () => {
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+		};
+	}, []);
 
 	async function markNotificationsAsSeen() {
 		const unseenNotifications = notifications.filter(notification => !notification.seen);
@@ -143,27 +165,6 @@ const NotificationIcon: React.FC = () => {
 			}
 		}
 	}
-
-	const handleClickOutside = (event: MouseEvent) => {
-		if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) && notificationIconRef.current && !notificationIconRef.current.contains(event.target as Node)) {
-			markNotificationsAsSeen();
-			setShowNotifications(false);
-			// Reset the notification page to 0 when the dropdown is closed
-			setNotificationPage(1);
-		}
-	};
-
-	useEffect(() => {
-		if (showNotifications) {
-			document.addEventListener('mousedown', handleClickOutside);
-		} else {
-			document.removeEventListener('mousedown', handleClickOutside);
-		}
-
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside);
-		};
-	}, [showNotifications]);
 
 	useEffect(() => {
 		const token = getToken();
@@ -231,65 +232,86 @@ const NotificationIcon: React.FC = () => {
 	};
 
 	return (
-		<div className="notification-container">
-			<Badge badgeContent={notificationCount} color="primary" onClick={toggleNotifications} ref={notificationIconRef}>
-				<NotificationsIcon />
-			</Badge>
-			{showNotifications && (
-				<div className="notifications-dropdown rounded-md" ref={dropdownRef}>
-					{notifications.length > 0 ? (
-						<>
-							{notifications.map((notification, index) => (
-								<div key={index} className="notification-item" style={{ display: 'flex', alignItems: 'center' }}>
-									<div style={{ flex: 1 }}>
-										{notification.type === 'BOOKING_CREATED' && (
-											<div style={{ fontSize: '15px', fontWeight: 'bold'}}>
-												New booking
-											</div>
-										)}
-										{notification.type === 'BOOKING_CANCELLATION' && (
-											<div style={{ fontSize: '15px', fontWeight: 'bold'}}>
-												Booking cancel
-											</div>
-										)}
-										{notification.type === 'BOOKING_CONFIRMATION' && (
-											<div style={{ fontSize: '15px', fontWeight: 'bold'}}>
-												Booking confimed
-											</div>
-										)}
-										<div style={{ fontSize: '14px', color: '#333', padding: '5px 0' }}>
-											{notification.message}
-										</div>
-									</div>
-									<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: '10px' }}>
-										{notification.seen && (<CheckCircle style={{ color: '#1976d2' }} />)}
-										<div style={{ color: '#1976d2', fontSize: '15px', marginTop: '5px' }}>
-											{formatTimeElapsed(notification.timestamp)}
-										</div>
-									</div>
-								</div>
-							))}
-							<button
-								onClick={loadMoreNotifications}
-								disabled={loadingNotifications}
-								style={{
-									width: '100%',
-									textAlign: 'center',
-									backgroundColor: '#1976d2',
-									color: 'white',
-									padding: '10px',
-									border: 'none',
-									cursor: 'pointer',
-								}}
-							>
-								{loadingNotifications ? <CircularProgress size={24} style={{ color: 'white' }} /> : 'Load more'}
-							</button>
-						</>
-					) : (
-						<div className="notification-item">No new notifications</div>
-					)}
-				</div>
-			)}
+		<div>
+
+			<IconButton
+				size="small"
+				aria-label="account of current user"
+				aria-controls="menu-appbar"
+				aria-haspopup="true"
+				color="inherit"
+				onClick={toggleNotifications}
+				sx={{
+					boxShadow: '0 0 5px rgba(0, 0, 0, 0.1)',
+					borderRadius: '50%',
+					backgroundColor: 'white',
+					border: '1px solid #E5E7EB'
+				}}
+			>
+				<Badge badgeContent={notificationCount} color="primary" >
+					<NotificationsIcon sx={{ color: 'black' }} ref={notificationIconRef} />
+				</Badge>
+			</IconButton>
+			<Menu
+				anchorEl={notificationIconRef.current}
+				open={showNotifications}
+				onClose={handleClose}
+				PaperProps={{
+					style: {
+						maxHeight: '400px',
+						width: '300px',
+					},
+				}}
+			>
+				{notifications.length > 0 ? (
+					notifications.flatMap((notification, index) => [
+						<MenuItem key={index} style={{ display: 'flex', alignItems: 'center' }}>
+							<div style={{ flex: 1 }}>
+								{notification.type === 'BOOKING_CREATED' && (
+									<Typography variant="subtitle1" fontWeight="bold">
+										New booking
+									</Typography>
+								)}
+								{notification.type === 'BOOKING_CANCELLATION' && (
+									<Typography variant="subtitle1" fontWeight="bold">
+										Booking cancel
+									</Typography>
+								)}
+								{notification.type === 'BOOKING_CONFIRMATION' && (
+									<Typography variant="subtitle1" fontWeight="bold">
+										Booking confirmed
+									</Typography>
+								)}
+								<Typography variant="body2" color="textSecondary" style={{ padding: '5px 0', whiteSpace: 'pre-line' }}>
+									{notification.message}
+								</Typography>
+							</div>
+							<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: '10px' }}>
+								{notification.seen && <CheckCircle style={{ color: '#1976d2' }} />}
+								<Typography variant="body2" color="primary" style={{ marginTop: '5px' }}>
+									{formatTimeElapsed(notification.timestamp)}
+								</Typography>
+							</div>
+						</MenuItem>,
+						index < notifications.length - 1 && <Divider key={`divider-${index}`} />,
+					])
+				) : (
+					<MenuItem>
+						<Typography variant="body2">No new notifications</Typography>
+					</MenuItem>
+				)}
+				<MenuItem>
+					<Button
+						onClick={loadMoreNotifications}
+						disabled={loadingNotifications}
+						fullWidth
+						variant="contained"
+						color="primary"
+					>
+						{loadingNotifications ? <CircularProgress size={24} style={{ color: 'white' }} /> : 'Load more'}
+					</Button>
+				</MenuItem>
+			</Menu>
 		</div>
 	);
 };

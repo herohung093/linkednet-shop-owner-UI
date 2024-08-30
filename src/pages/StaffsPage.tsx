@@ -103,7 +103,7 @@ const StaffsPage: React.FC = () => {
 
   return (
     <div className="xl:w-[90%] 2xl:w-[80%] mx-auto">
-      <div className="flex justify-center lg:justify-between items-center mb-4">
+      <div className="flex justify-center lg:justify-between items-center my-4">
         <div className="hidden lg:text-xl font-bold sm:mx-16 lg:flex items-end gap-x-2">
           Team members
           <div className="border-2 rounded-full flex justify-center items-end w-8 h-8 border-slate-950">

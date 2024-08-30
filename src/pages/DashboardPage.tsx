@@ -62,7 +62,7 @@ const DashboardPage: React.FC = () => {
 const navigate =useNavigate()
   return (
     <div className="min-h-screen xl:w-[90%] 2xl:w-[80%] mx-auto">
-      <div className="flex justify-center md:justify-end items-center mb-4">      
+      <div className="flex justify-center md:justify-end items-center my-4">      
         <button onClick={()=>navigate('/create-store')}  className="btn-primary ml-4 px-4 py-2 ">Create Store</button>
       </div>
       {storeConfig.length > 0 ? (

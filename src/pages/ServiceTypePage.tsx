@@ -39,7 +39,6 @@ const ServiceTypePage: React.FC = () => {
     setLoading(true);
     try {
       const response = await axiosWithToken.get<ServiceType[]>(`/serviceType/`);
-      console.log(response.data);
 
       setServiceType(response.data);
       setError(null);

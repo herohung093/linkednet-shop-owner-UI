@@ -1,15 +1,12 @@
-import { SelectChangeEvent } from "@mui/material";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useLocation } from "react-router";
-import useAuthCheck from "../hooks/useAuthCheck";
-import { useDispatch, useSelector } from "react-redux";
-import { axiosWithToken } from "../utils/axios";
-import { setStoresList } from "../redux toolkit/storesListSlice";
-import { RootState } from "../redux toolkit/store";
-import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
-import SelectStore from "./SelectStore";
+import { AppBar, Box, Drawer, IconButton, List, ListItem, ListItemButton, ListItemText, Slide, Toolbar, useScrollTrigger } from "@mui/material";
+import { useState } from "react";
+import { useNavigate } from "react-router";
 import NotificationIcon from "./NotificationIcon";
-import Account from "./Account";
+import AccountMenuItem from "./AccountMenuItem";
+import * as Menubar from '@radix-ui/react-menubar';
+import MenuIcon from '@mui/icons-material/Menu';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 
 interface MenuItemProps {
   label: string;
@@ -17,11 +14,20 @@ interface MenuItemProps {
   onClick?: () => void;
 }
 
+interface Props {
+  /**
+   * Injected by the documentation to work in an iframe.
+   * You won't need it on your project.
+   */
+  window?: () => Window;
+  children?: React.ReactElement<any>;
+}
+
 const MenubarDemo = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const currentPath = location.pathname;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -34,186 +40,93 @@ const MenubarDemo = () => {
     { label: "Manage Bookings", path: "/manage-bookings" },
   ];
 
-  useAuthCheck();
-  const localStorageStoreUuid = localStorage.getItem("storeUuid");
-  const [selectedStore, setSelectedStore] = useState<string | undefined>(
-    localStorageStoreUuid || undefined
+  function HideOnScroll(props: Props) {
+    const { children, window } = props;
+    // Note that you normally won't need to set the window ref as useScrollTrigger
+    // will default to window.
+    // This is only being set here because the demo is in an iframe.
+    const trigger = useScrollTrigger({
+      target: window ? window() : undefined,
+    });
+
+    return (
+      <Slide appear={false} direction="down" in={!trigger}>
+        {children ?? <div />}
+      </Slide>
+    );
+  }
+
+  const drawerMenuList = () => (
+    <Box
+      sx={{ width: 200, display: "flex", flexDirection: "column", justifyContent: "space-between", height: '95vh' }}
+      role="presentation"
+      onClick={toggleMenu}
+      onKeyDown={toggleMenu}
+    >
+        <List>
+          {menuItems.map((item, index) => (
+            <ListItem key={index} sx={{ paddingTop: '0px', paddingBottom: '0px' }}>
+              <ListItemButton onClick={() => navigate(item.path)}>
+                <ListItemText primary={item.label} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+    </Box>
   );
-
-  const dispatch = useDispatch();
-
-  const fetchAllStore = useCallback(async () => {
-    try {
-      const response = await axiosWithToken.get("/storeConfig/");
-      dispatch(setStoresList(response.data));
-    } catch (error) {
-      console.error("Error fetching store config:", error);
-    }
-  }, [dispatch]);
-
-  useEffect(() => {
-    fetchAllStore();
-  }, [fetchAllStore]);
-
-  const storeConfigRedux = useSelector(
-    (state: RootState) => state.storesList.storesList
-  );
-  const storeConfig = useMemo(() => {
-    if (storeConfigRedux) {
-      return storeConfigRedux.slice().sort((a, b) => a.id - b.id);
-    }
-    return [];
-  }, [storeConfigRedux]);
-
-  useEffect(() => {
-    if (storeConfig.length > 0) {
-      const firstStoreUuid = storeConfig[0].storeUuid;
-      if (!selectedStore) {
-        setSelectedStore(firstStoreUuid);
-        localStorage.setItem("storeUuid", firstStoreUuid);
-        dispatch(setSelectedStoreRedux(firstStoreUuid));
-      }
-    }
-  }, [storeConfig, selectedStore, dispatch]);
-
-  const handleStoreChange = (event: SelectChangeEvent<string | undefined>) => {
-    toggleMenu();
-    const storeUuid = event.target.value as string | undefined;
-    setSelectedStore(storeUuid);
-    if (storeUuid !== undefined) {
-      const selectedStore = storeConfig.find(
-        (store) => store.storeUuid === storeUuid
-      );
-      if (selectedStore) {
-        localStorage.setItem("storeUuid", selectedStore.storeUuid);
-        dispatch(setSelectedStoreRedux(selectedStore.storeUuid));
-      }
-    }
-  };
 
   return (
-    <div className="mb-[100px] md:mb-0 lg:mb-0 relative z-10">
-      <div className="flex justify-between items-center font-bold text-lg">
-        <div
-          className={`absolute top-[80px] px-4 left-0 right-0 bg-white shadow-md rounded-md md:hidden ${
-            isOpen ? "block" : "hidden"
-          }`}
-        >
-          <SelectStore
-            handleStoreChange={handleStoreChange}
-            selectedStore={selectedStore}
-            storeConfig={storeConfig}
-          />
-          {menuItems.map((menuItem, index) => (
-            <div key={index}>
-              <div
-                onClick={() => {
-                  if (menuItem.onClick) {
-                    menuItem.onClick();
-                  } else {
-                    navigate(menuItem.path);
-                  }
-                  setIsOpen(false);
-                }}
-                className={`cursor-pointer py-2 mt-4 md:mt-0 mb-4 px-3 outline-none select-none font-medium leading-none rounded text-slate-900 text-[15px] lg:text-base flex items-center justify-between gap-[4px] hover:underline ${
-                  currentPath === menuItem.path &&
-                  "underline underline-offset-4"
-                }`}
-              >
-                {menuItem.label}
-              </div>
-            </div>
-          ))}
-          <Account />
-        </div>
-        <div className="absolute right-0 top-1 flex justify-evenly md:hidden bg-white p-[3px] mt-5 w-[20%] mx-4 rounded-md border-2">
-          <div className={`cursor-pointer`} onClick={toggleMenu}>
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              {isOpen ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16m-7 6h7"
-                />
-              )}
-            </svg>
-          </div>
-        </div>
-        <div className="absolute top-1 flex justify-evenly md:hidden bg-white p-[3px] mt-5 w-[20%] mx-4 rounded-md border-2">
-          <NotificationIcon />
-        </div>
-        <div className="absolute right-0 top-1 flex justify-evenly md:hidden bg-white p-[3px] mt-5 w-[20%] mx-4 rounded-md border-2">
-          <div className={`cursor-pointer`} onClick={toggleMenu}>
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              {isOpen ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16m-7 6h7"
-                />
-              )}
-            </svg>
-          </div>
-        </div>
-      </div>
-      {/* Laptop and larger screens */}
-      <div className="h-[1px]"></div>
-      <div className="hidden md:flex bg-white mt-5 w-[90%] sm:w-[80%] lg:w-[60%] mx-auto justify-around border-b-2 py-2">
-        <SelectStore
-          handleStoreChange={handleStoreChange}
-          selectedStore={selectedStore}
-          storeConfig={storeConfig}
-        />
+    <div >
+      {isMobile && (
+        <Box sx={{ flexGrow: 1 }}>
+          <HideOnScroll>
+            <AppBar position="fixed" sx={{ background: 'white' }}>
+              <Toolbar variant="dense">
+                <Box sx={{ flexDirection: 'row', flexGrow: 1, justifyContent: 'space-between', display: { xs: 'flex', md: 'none' } }}>
+                  <Box>
+                    <IconButton onClick={toggleMenu} edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
+                      <MenuIcon sx={{ color: 'black' }} />
+                    </IconButton>
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: '0.5rem' }}>
+                    <NotificationIcon />
+                    <AccountMenuItem />
+                  </Box>
+                </Box>
+              </Toolbar>
+            </AppBar>
+          </HideOnScroll>
+          <Drawer anchor="left" open={isOpen} onClose={toggleMenu}>
+            {drawerMenuList()}
+          </Drawer>
+        </Box>
+      )}
 
-        {menuItems.map((menuItem, index) => (
-          <div key={index}>
-            <div
-              onClick={() => {
-                if (menuItem.onClick) {
-                  menuItem.onClick();
-                } else {
-                  navigate(menuItem.path);
-                }
-              }}
-              className={` cursor-pointer py-2 px-3  outline-none select-none font-medium leading-none rounded text-slate-900  lg:text-base flex items-center justify-between gap-[2px] hover:underline hover:underline-offset-4 ${
-                currentPath === menuItem.path && "underline underline-offset-4"
-              }`}
-            >
-              {menuItem.label}
-            </div>
-          </div>
-        ))}
-        <Account />
-        <div className="notification-icon ">
-          <NotificationIcon />
-        </div>
-      </div>
+      <>
+        {!isMobile && <AppBar position="fixed" sx={{ background: 'white' }}>
+          <Toolbar>
+            <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'flex', lg: 'flex' }, justifyContent: 'space-between' }}>
+              <Menubar.Root style={{ display: 'flex', gap: '1rem' }}>
+                {menuItems.map((menuItem) => (
+                  <Menubar.Menu key={menuItem.label}>
+                    <Menubar.Trigger
+                      onClick={() => navigate(menuItem.path)}
+                      className={`cursor-pointer py-2 px-3 outline-none select-none font-medium leading-none rounded text-slate-900 lg:text-base flex items-center justify-between gap-[2px] hover:underline hover:underline-offset-4 ${window.location.pathname === menuItem.path && "underline underline-offset-4"}`}
+                    >
+                      {menuItem.label}
+                    </Menubar.Trigger>
+                  </Menubar.Menu>
+                ))}
+              </Menubar.Root>
+              <Box sx={{ display: 'flex', gap: '0.5rem' }}>
+                <NotificationIcon />
+                <AccountMenuItem />
+              </Box>
+            </Box>
+          </Toolbar>
+        </AppBar>}
+        <Box sx={{ height: '64px' }} />
+      </>
     </div>
   );
 };

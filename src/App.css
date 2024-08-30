@@ -276,18 +276,6 @@
   color: #888;
 }
 
-.notification-icon {
-  position: relative;
-  cursor: pointer;
-  margin-left: 10px;
-  top: 10px;
-  right: 10px;
-}
-
-.notification-container {
-  position: relative;
-  display: inline-block;
-}
 
 .notifications-dropdown {
   position: absolute;

@@ -4,13 +4,13 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 interface SelectStoreProps {
   selectedStore: string | undefined;
   handleStoreChange: (event: SelectChangeEvent<string | undefined>) => void;
-  storeConfig: Array<{ storeUuid: string; storeName: string }>;
+  storeConfigs: Array<{ storeUuid: string; storeName: string }>;
 }
 
 const SelectStore: React.FC<SelectStoreProps> = ({
   selectedStore,
   handleStoreChange,
-  storeConfig,
+  storeConfigs,
 }) => {
   return (
     <FormControl
@@ -22,30 +22,13 @@ const SelectStore: React.FC<SelectStoreProps> = ({
       }}
     >
       <Select
-        sx={{
-          border: "none",
-          boxShadow: "none",
-          "& .MuiOutlinedInput-notchedOutline": { border: 0 },
-          "&:hover .MuiOutlinedInput-notchedOutline": { border: 0 },
-          "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: 0 },
-          fontWeight: "bold",
-          backgroundColor: "#1E293B", 
-          color: "white",
-          borderRadius: "5px", 
-          "& .MuiSvgIcon-root": {
-            color: "white", 
-          },
-        }}
         className="h-[38px]"
         labelId="store-select-label"
         value={selectedStore ?? ""}
         onChange={handleStoreChange}
         IconComponent={ExpandMoreIcon}
       >
-        <MuiMenuItem value={undefined} disabled>
-          Select store
-        </MuiMenuItem>
-        {storeConfig.map((store) => (
+        {storeConfigs.map((store) => (
           <MuiMenuItem key={store.storeUuid} value={store.storeUuid}>
             {store.storeName}
           </MuiMenuItem>

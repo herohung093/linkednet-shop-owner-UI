@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
-import MenubarDemo from "../components/Menubar";
 import { axiosWithToken } from "../utils/axios";
 import { parse } from "date-fns";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -241,7 +240,7 @@ const ManageReservationsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <MenubarDemo />
+      
       <div className="mx-4 ">
         {isMobile ? (
           <Box sx={{ width: '100%' }}>

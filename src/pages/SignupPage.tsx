@@ -140,7 +140,7 @@ const SignUpPage: React.FC = () => {
         <div className="flex flex-col items-center justify-between mt-4 ">
           <div className="mt-4">Or</div>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/login")}
             className="mt-4 w-full flex justify-center items-center h-[40px] bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           >
             Log In Now
