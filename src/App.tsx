@@ -4,6 +4,7 @@ import DashboardPage from "./pages/DashboardPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import {
   createBrowserRouter,
+  Navigate,
   RouterProvider,
 } from "react-router-dom";
 import StaffsPage from "./pages/StaffsPage.tsx";
@@ -17,6 +18,7 @@ import ResetPasswordVerificationPage from "./pages/ResetPasswordVerificationPage
 import PasswordResetPage from "./pages/PasswordResetPage.tsx";
 import ManageReservationsPage from "./pages/ManageReservationsPage.tsx";
 import CreateStorePage from "./pages/CreateStorePage.tsx";
+import NotFoundPage from "./pages/NotFoundPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -44,6 +46,14 @@ const router = createBrowserRouter([
         element: <StaffsPage />,
       },
       {
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "signup",
+        element: <SignUpPage />,
+      },
+      {
         path: "session-expired",
         element: <SessionExpired />,
       },
@@ -60,12 +70,12 @@ const router = createBrowserRouter([
         element: <PasswordResetPage />,
       },
       {
-        path: "signup",
-        element: <SignUpPage />,
+        path: "404",
+        element: <NotFoundPage />, // Add the NotFoundPage route
       },
       {
-        path: "login",
-        element: <LoginPage />,
+        path: '*',
+        element: <Navigate to="/404" replace />,
       },
     ],
   },
