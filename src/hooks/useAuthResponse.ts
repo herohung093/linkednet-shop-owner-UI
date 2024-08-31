@@ -8,7 +8,7 @@ const useAuthResonse = () => {
   const authenticateAndRedirect = (token: string, refreshToken: string) => {
     localStorage.setItem("authToken", token);
         localStorage.setItem("refreshToken", refreshToken);
-    navigate("/store-settings");
+    navigate("/dashboard");
   };
 
   return authenticateAndRedirect;

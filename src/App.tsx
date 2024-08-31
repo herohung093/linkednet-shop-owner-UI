@@ -19,12 +19,17 @@ import PasswordResetPage from "./pages/PasswordResetPage.tsx";
 import ManageReservationsPage from "./pages/ManageReservationsPage.tsx";
 import CreateStorePage from "./pages/CreateStorePage.tsx";
 import NotFoundPage from "./pages/NotFoundPage.tsx";
+import DashboardPage from "./pages/DashboardPage.tsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Main />, // Use Main layout
     children: [
+      {
+        path: "dashboard",
+        element: <DashboardPage />,
+      },
       {
         path: "store-settings",
         element: <StoreSettingPage />,

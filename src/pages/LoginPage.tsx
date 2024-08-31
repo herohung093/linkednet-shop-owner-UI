@@ -27,7 +27,7 @@ const LoginPage: React.FC = () => {
     const refreshToken = localStorage.getItem("refreshToken");
 
     if (authToken && !isTokenExpired(authToken)) {
-      navigate("/store-settings");
+      navigate("/dashboard");
     } else if (refreshToken && !isTokenExpired(refreshToken)) {
       refreshAuthToken(refreshToken);
     }
@@ -40,7 +40,7 @@ const LoginPage: React.FC = () => {
       });
       if (response.status === 200) {
         handleAuthResponse(response.data.token, response.data.refreshToken);
-        navigate("/store-settings");
+        navigate("/dashboard");
       } else {
         console.log("Failed to refresh token.");
       }
@@ -71,7 +71,7 @@ const LoginPage: React.FC = () => {
         setEmail("");
         setPassword("");
         dispatch(setStoresList(response?.data?.storeConfig));
-        navigate("/store-settings");
+        navigate("/dashboard");
       } else {
         throw new Error("Failed to submit booking.");
       }

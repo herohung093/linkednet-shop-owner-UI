@@ -42,9 +42,11 @@ const NotificationIcon: React.FC = () => {
 
 			if (isTokenExpired(token)) {
 				await refreshToken(navigate);
+			} else {
+				if (isTokenExpired(token)) {
+					navigate("/session-expired");
+				}
 			}
-		} else {
-			navigate("/session-expired");
 		}
 	};
 
