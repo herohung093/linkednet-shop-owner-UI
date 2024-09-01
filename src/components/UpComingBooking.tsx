@@ -3,11 +3,22 @@ import { Box, Typography, List, Skeleton } from "@mui/material";
 import BookingEventListItem from "./BookingEventListItem"; // Adjust the import path as necessary
 import { parse } from "date-fns";
 import { axiosWithToken } from "../utils/axios";
+import BookingEventDialog from "./BookingEventDialog";
+import { getToken } from "../helper/getToken";
+import isTokenExpired from "../helper/CheckTokenExpired";
+import { refreshToken } from "../helper/RefreshToken";
+import { useNavigate } from "react-router";
 
 const UpComingBooking: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<ProcessedEvent[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<ProcessedEvent | null>(
+    null
+  );
+  const [isStatusModified, setIsStatusModified] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -27,9 +38,52 @@ const UpComingBooking: React.FC = () => {
     fetchReservations();
   }, []);
 
-  const handleEventClick = (event: Reservation) => {
-    // Handle event click
-    console.log(event.customer);
+  const handleEventClick = (event: any) => {
+    setSelectedEvent(event as ReservationEvent);
+    setIsDialogOpen(true);
+    setIsStatusModified(false);
+  };
+
+  const handleStatusChange = (e: any) => {
+    if (selectedEvent) {
+      setSelectedEvent({
+        ...selectedEvent,
+        data: {
+          ...selectedEvent.data,
+          status: e,
+        },
+      });
+    }
+
+    setIsStatusModified(selectedEvent?.data.status !== e);
+  };
+
+  const handleSubmit = () => {
+    updateReservationEvent(selectedEvent as ReservationEvent);
+  };
+
+  const updateReservationEvent = async (selectedEvent: ReservationEvent) => {
+    checkTokenExpiredAndRefresh();
+    const url = `/reservation/`;
+    const response = await axiosWithToken.put(url, selectedEvent.data);
+
+    if (!response.data) {
+      throw new Error("Failed to update reservation event");
+    }
+
+    // Update the corresponding event in the events array
+    updateEventData(response);
+  };
+
+  const updateEventData = (response: { data: Reservation }) => {
+    const updatedEvents = (events as ReservationEvent[]).map((event) => {
+      if (event.data.id.toString() === response.data.id.toString()) {
+        return { ...event, data: response.data };
+      }
+      return event;
+    });
+
+    setEvents(updatedEvents);
   };
 
   const convertToProcessedEvents = (
@@ -61,41 +115,63 @@ const UpComingBooking: React.FC = () => {
     }
   };
 
+  const checkTokenExpiredAndRefresh = async () => {
+    if (localStorage.getItem("authToken")) {
+      const token = getToken();
+
+      if (isTokenExpired(token)) {
+        await refreshToken(navigate);
+      }
+    } else {
+      navigate("/session-expired");
+    }
+  };
+
   return (
-    <Box sx={{ maxHeight: "calc(100vh - 400px)", overflowY: "auto" }}>
-      {loading ? (
-        Array.from(new Array(5)).map((_, index) => (
-          <Box key={index} sx={{ padding: "10px" }}>
-            <Skeleton variant="rectangular" width="100%" height={60} />
-          </Box>
-        ))
-      ) : (
-        <List>
-          {events.map((reservation) => (
-            <React.Fragment key={reservation.event_id}>
-              <BookingEventListItem
-                event={reservation}
-                handleEventClick={handleEventClick}
-                getStatusBackgroundColorForAvata={
-                  getStatusBackgroundColorForAvata
-                }
-                displayDate={true}
-              />
-            </React.Fragment>
-          ))}
-        </List>
-      )}
-      {!loading && events.length === 0 && (
-        <Typography variant="h6" align="center" sx={{ marginTop: "20px" }}>
-          No upcoming bookings
-        </Typography>
-      )}
-      {error && (
-        <Typography variant="h6" align="center">
-          {error}
-        </Typography>
-      )}
-    </Box>
+    <>
+      <Box sx={{ maxHeight: "calc(100vh - 400px)", overflowY: "auto" }}>
+        {loading ? (
+          Array.from(new Array(5)).map((_, index) => (
+            <Box key={index} sx={{ padding: "10px" }}>
+              <Skeleton variant="rectangular" width="100%" height={60} />
+            </Box>
+          ))
+        ) : (
+          <List>
+            {events.map((reservation) => (
+              <React.Fragment key={reservation.event_id}>
+                <BookingEventListItem
+                  event={reservation}
+                  handleEventClick={handleEventClick}
+                  getStatusBackgroundColorForAvata={
+                    getStatusBackgroundColorForAvata
+                  }
+                  displayDate={true}
+                />
+              </React.Fragment>
+            ))}
+          </List>
+        )}
+        {!loading && events.length === 0 && (
+          <Typography variant="h6" align="center" sx={{ marginTop: "20px" }}>
+            No upcoming bookings
+          </Typography>
+        )}
+        {error && (
+          <Typography variant="h6" align="center">
+            {error}
+          </Typography>
+        )}
+      </Box>
+      <BookingEventDialog
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+        selectedEvent={selectedEvent}
+        handleStatusChange={handleStatusChange}
+        handleSubmit={handleSubmit}
+        isStatusModified={isStatusModified}
+      />
+    </>
   );
 };
 
