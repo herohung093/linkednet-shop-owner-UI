@@ -6,22 +6,23 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import * as Select from "@radix-ui/react-select";
 import { CheckIcon, ChevronDownIcon } from "@radix-ui/react-icons";
-import Chip from '@mui/material/Chip';
+import Chip from "@mui/material/Chip";
 import isTokenExpired from "../helper/CheckTokenExpired";
 import { refreshToken } from "../helper/RefreshToken";
 import { getToken } from "../helper/getToken";
 import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
-import { useMediaQuery } from 'react-responsive'
-import { Typography, Box, List, ListItem, ListItemText, Avatar, ListItemAvatar, ListItemButton, Paper, CardContent } from '@mui/material';
-import Badge from '@mui/material/Badge';
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { PickersDay, PickersDayProps } from '@mui/x-date-pickers/PickersDay';
-import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
-import { DayCalendarSkeleton } from '@mui/x-date-pickers/DayCalendarSkeleton';
+import { useMediaQuery } from "react-responsive";
+import { Typography, Box, List, Paper, CardContent } from "@mui/material";
+import Badge from "@mui/material/Badge";
+import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { PickersDay, PickersDayProps } from "@mui/x-date-pickers/PickersDay";
+import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
+import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
 import moment from "moment";
+import BookingEventListItem from "../components/BookingEventListItem";
 
 interface FetchReservationsParams {
   startDate: string; //dd/MM/yyyy
@@ -37,8 +38,10 @@ const ManageReservationsPage: React.FC = () => {
   const [isStatusModified, setIsStatusModified] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
-  const isMobile = useMediaQuery({ query: '(max-width: 767px)' })
-  const [selectedDate, setSelectedDate] = useState<moment.Moment | null>(moment());
+  const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
+  const [selectedDate, setSelectedDate] = useState<moment.Moment | null>(
+    moment()
+  );
   const [isLoading, setIsLoading] = React.useState(false);
 
   const handleEventClick = (event: any) => {
@@ -46,8 +49,6 @@ const ManageReservationsPage: React.FC = () => {
     setIsDialogOpen(true);
     setIsStatusModified(false);
   };
-
-
 
   const parseStringToDate = (dateString: string): Date => {
     return parse(dateString, "dd/MM/yyyy HH:mm", new Date());
@@ -83,8 +84,8 @@ const ManageReservationsPage: React.FC = () => {
 
   useEffect(() => {
     checkTokenExpiredAndRefresh();
-    let startDate = moment().startOf('month').format("DD/MM/YYYY").toString();
-    let endDate = moment().endOf('month').format("DD/MM/YYYY").toString();
+    let startDate = moment().startOf("month").format("DD/MM/YYYY").toString();
+    let endDate = moment().endOf("month").format("DD/MM/YYYY").toString();
     const fetchData = async () => {
       try {
         const data = await fetchReservations({
@@ -146,9 +147,7 @@ const ManageReservationsPage: React.FC = () => {
     updateReservationEvent(selectedEvent as ReservationEvent);
   };
 
-  const updateEventData = (response: {
-    data: Reservation;
-  }) => {
+  const updateEventData = (response: { data: Reservation }) => {
     const updatedEvents = (events as ReservationEvent[]).map((event) => {
       if (event.data.id.toString() === response.data.id.toString()) {
         return { ...event, data: response.data };
@@ -157,7 +156,11 @@ const ManageReservationsPage: React.FC = () => {
     });
 
     setEvents(updatedEvents);
-    setFilteredEvents(updatedEvents.filter(event => moment(event.start).isSame(selectedDate, 'day')));
+    setFilteredEvents(
+      updatedEvents.filter((event) =>
+        moment(event.start).isSame(selectedDate, "day")
+      )
+    );
   };
 
   const updateReservationEvent = async (selectedEvent: ReservationEvent) => {
@@ -174,9 +177,8 @@ const ManageReservationsPage: React.FC = () => {
   };
 
   const handleMonthChange = (date: moment.Moment) => {
-
-    const startDate = date.startOf('month').format("DD/MM/YYYY").toString();
-    const endDate = date.endOf('month').format("DD/MM/YYYY").toString();
+    const startDate = date.startOf("month").format("DD/MM/YYYY").toString();
+    const endDate = date.endOf("month").format("DD/MM/YYYY").toString();
 
     const requestParams: FetchReservationsParams = {
       startDate: startDate,
@@ -185,12 +187,15 @@ const ManageReservationsPage: React.FC = () => {
     fetchReservations(requestParams);
   };
 
-  function EventsDay(props: PickersDayProps<moment.Moment> & { highlightedDays?: number[] }) {
+  function EventsDay(
+    props: PickersDayProps<moment.Moment> & { highlightedDays?: number[] }
+  ) {
     const { highlightedDays = [], day, outsideCurrentMonth, ...other } = props;
 
-    const eventsOfTheDay = events.filter(event => moment(event.start).isSame(day, 'day'));
-    const isSelected =
-      !props.outsideCurrentMonth;
+    const eventsOfTheDay = events.filter((event) =>
+      moment(event.start).isSame(day, "day")
+    );
+    const isSelected = !props.outsideCurrentMonth;
 
     return (
       <Badge
@@ -199,22 +204,29 @@ const ManageReservationsPage: React.FC = () => {
         color="success"
         badgeContent={isSelected ? eventsOfTheDay.length : undefined}
       >
-        <PickersDay {...other} outsideCurrentMonth={outsideCurrentMonth} day={day} />
+        <PickersDay
+          {...other}
+          outsideCurrentMonth={outsideCurrentMonth}
+          day={day}
+        />
       </Badge>
     );
   }
 
-  const dateCalendarHandleDateChange = (date: moment.Moment | null, initialEvents?: ReservationEvent[]) => {
+  const dateCalendarHandleDateChange = (
+    date: moment.Moment | null,
+    initialEvents?: ReservationEvent[]
+  ) => {
     setSelectedDate(date);
     if (date) {
-      let filtered
+      let filtered;
       if (initialEvents && initialEvents.length > 0) {
         filtered = initialEvents
-          .filter(event => moment(event.start).isSame(date, 'day'))
+          .filter((event) => moment(event.start).isSame(date, "day"))
           .sort((a, b) => moment(a.start).diff(moment(b.start)));
       } else {
         filtered = events
-          .filter(event => moment(event.start).isSame(date, 'day'))
+          .filter((event) => moment(event.start).isSame(date, "day"))
           .sort((a, b) => moment(a.start).diff(moment(b.start)));
       }
 
@@ -226,109 +238,135 @@ const ManageReservationsPage: React.FC = () => {
 
   const getStatusBackgroundColorForAvata = (status: string) => {
     switch (status) {
-      case 'CONFIRMED':
-        return 'springgreen';
-      case 'PENDING':
-        return 'darkorange';
-      case 'CANCELLED':
-        return 'crimson';
+      case "CONFIRMED":
+        return "springgreen";
+      case "PENDING":
+        return "darkorange";
+      case "CANCELLED":
+        return "crimson";
       default:
-        return 'default';
+        return "default";
     }
   };
 
-
   return (
-    <div >
+    <div>
       <div className="mx-2 ">
         {isMobile ? (
-          <Box sx={{ width: '100%' }}>
-            <Paper elevation={3} sx={{ padding: '10px', borderRadius: '10px', marginBottom: '10px', marginLeft: '10px', marginRight: '10px' }}>
-              <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={moment.locale.toString()}>
+          <Box sx={{ width: "100%" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                paddingLeft: "1rem",
+              }}
+            >
+              <Typography variant="h6" sx={{ textAlign: "center" }}>
+                Manage Bookings
+              </Typography>
+            </Box>
+            <Paper
+              elevation={3}
+              sx={{
+                borderRadius: "10px",
+                marginLeft: "10px",
+                marginRight: "10px",
+              }}
+            >
+              <LocalizationProvider
+                dateAdapter={AdapterMoment}
+                adapterLocale={moment.locale.toString()}
+              >
                 <DateCalendar
                   value={selectedDate}
                   loading={isLoading}
                   onMonthChange={handleMonthChange}
                   // @ts-ignore
-                  onChange={(newValue) => dateCalendarHandleDateChange(newValue)}
+                  onChange={(newValue) =>
+                    dateCalendarHandleDateChange(newValue)
+                  }
                   renderLoading={() => <DayCalendarSkeleton />}
                   slots={{
                     day: EventsDay,
                   }}
-                  sx={{maxWidth: '290px'}}
+                  sx={{ maxWidth: "290px" }}
                 />
               </LocalizationProvider>
             </Paper>
-            {/* <Divider sx={{ height: '3px', backgroundColor: 'gray' }} /> */}
-            {filteredEvents.length > 0 && (
-              <Box sx={{ maxHeight: 'calc(100vh - 400px)', overflowY: 'auto' }}>
+            <Box sx={{ maxHeight: "calc(100vh - 400px)", overflowY: "auto" }}>
+              {filteredEvents.length > 0 ? (
                 <List>
                   {filteredEvents.map((event) => (
                     <React.Fragment key={event.event_id}>
-                      <ListItemButton
-                        sx={{
-                          width: '100%',
-                          textAlign: 'left',
-                          '&:hover': {
-                            backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                          },
-                        }}
-                        onClick={() => handleEventClick(event)}
-                      >
-                        <ListItem sx={{ padding: '0px' }}>
-                          <Paper elevation={3} sx={{ padding: '10px', borderRadius: '10px', width: '100%' }}>
-                            <ListItemAvatar>
-                              <Avatar sx={{ bgcolor: getStatusBackgroundColorForAvata(event.data.status), width: 20, height: 20 }} />
-                            </ListItemAvatar>
-                            <ListItemText
-                              primary={
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                  <Typography variant="body1">{event.title}</Typography>
-                                  <Typography variant="body2" color="textSecondary">
-                                    {event.data.bookingTime.split(' ')[1] + ' - ' + event.data.endTime.split(' ')[1] + ' ($' + event.data.totalPrice + ')'}
-                                  </Typography>
-                                </Box>
-                              }
-                              secondary={
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                  <Typography variant="body1">Cust: {event.data.customer.firstName}</Typography>
-                                  <Typography variant="body2" color="textSecondary">
-                                  {`${event.data.customer.phone.slice(0, 4)} ${event.data.customer.phone.slice(4, 7)} ${event.data.customer.phone.slice(7, 10)}`}
-                                  </Typography>
-                                </Box>
-                              }
-                            />
-                          </Paper>
-                        </ListItem>
-                      </ListItemButton>
+                      <BookingEventListItem
+                        event={event}
+                        handleEventClick={handleEventClick}
+                        getStatusBackgroundColorForAvata={
+                          getStatusBackgroundColorForAvata
+                        }
+                      />
                     </React.Fragment>
                   ))}
                 </List>
-              </Box>
-            )}
+              ) : (
+                <Typography
+                  variant="h6"
+                  align="center"
+                  sx={{ marginTop: "20px" }}
+                >
+                  No bookings for the day
+                </Typography>
+              )}
+            </Box>
           </Box>
         ) : (
           <div>
-            <Box sx={{ display: 'flex', flexDirection: 'row', paddingLeft: '1rem' }}>
-              <Typography variant="h4" sx={{ textAlign: 'center', margin: '1rem 0' }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                paddingLeft: "1rem",
+              }}
+            >
+              <Typography
+                variant="h5"
+                sx={{ textAlign: "center", margin: "1rem 0" }}
+              >
                 Manage Bookings
               </Typography>
             </Box>
-            <Box pt={1} sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', gap: '1rem' }}>
+            <Box
+              pt={1}
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "flex-start",
+                gap: "1rem",
+              }}
+            >
               {/* Select Date */}
-              <Box order={1} flexGrow={1} sx={{ paddingLeft: '1rem', maxWidth: { lg: '30%' } }}>
-                <Paper elevation={3} sx={{ borderRadius: '20px' }}>
+              <Box
+                order={1}
+                flexGrow={1}
+                sx={{ paddingLeft: "1rem", maxWidth: { lg: "30%" } }}
+              >
+                <Paper elevation={3} sx={{ borderRadius: "20px" }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
                       Select Date
                     </Typography>
-                    <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={moment.locale.toString()}>
+                    <LocalizationProvider
+                      dateAdapter={AdapterMoment}
+                      adapterLocale={moment.locale.toString()}
+                    >
                       <DateCalendar
                         value={selectedDate}
                         loading={isLoading}
                         onMonthChange={handleMonthChange}
                         // @ts-ignore
-                        onChange={(newValue) => dateCalendarHandleDateChange(newValue)}
+                        onChange={(newValue) =>
+                          dateCalendarHandleDateChange(newValue)
+                        }
                         renderLoading={() => <DayCalendarSkeleton />}
                         slots={{
                           day: EventsDay,
@@ -339,61 +377,50 @@ const ManageReservationsPage: React.FC = () => {
                 </Paper>
               </Box>
 
-              <Box order={2} flexGrow={5} sx={{ maxWidth: { lg: '30%' } }}>
-                <Paper elevation={3} sx={{ height: '80vh', maxHeight: 'calc(100vh - 350px)', overflowY: 'auto', borderRadius: '20px' }}>
-                  <List>
-                    {filteredEvents.map((event) => (
-                      <React.Fragment key={event.event_id}>
-                        <ListItemButton
-                          sx={{
-                            width: '100%',
-                            textAlign: 'left',
-                            '&:hover': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                            },
-                          }}
-                          onClick={() => handleEventClick(event)}
-                        >
-                          <ListItem sx={{ padding: '0px' }}>
-                            <Paper elevation={3} sx={{ padding: '10px', borderRadius: '10px', width: '100%' }}>
-                              <ListItemAvatar>
-                                <Avatar sx={{ bgcolor: getStatusBackgroundColorForAvata(event.data.status), width: 20, height: 20 }} />
-                              </ListItemAvatar>
-                              <ListItemText
-                                primary={
-                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                    <Typography variant="body1">{event.title}</Typography>
-                                    <Typography variant="body2" color="textSecondary">
-                                      {event.data.bookingTime.split(' ')[1] + ' - ' + event.data.endTime.split(' ')[1] + ' ($' + event.data.totalPrice + ')'}
-                                    </Typography>
-                                  </Box>
-                                }
-                                secondary={
-                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                    <Typography variant="body1">Cust: {event.data.customer.firstName}</Typography>
-                                    <Typography variant="body2" color="textSecondary">
-                                      {`${event.data.customer.phone.slice(0, 4)} ${event.data.customer.phone.slice(4, 7)} ${event.data.customer.phone.slice(7, 10)}`}
-                                    </Typography>
-                                  </Box>
-                                }
-                              />
-                            </Paper>
-                          </ListItem>
-                        </ListItemButton>
-                      </React.Fragment>
-                    ))}
-                  </List>
+              <Box order={2} flexGrow={5} sx={{ maxWidth: { lg: "30%" } }}>
+                <Paper
+                  elevation={3}
+                  sx={{
+                    height: "80vh",
+                    maxHeight: "calc(100vh - 350px)",
+                    overflowY: "auto",
+                    borderRadius: "20px",
+                  }}
+                >
+                  {filteredEvents.length > 0 ? (
+                    <List>
+                      {filteredEvents.map((event) => (
+                        <React.Fragment key={event.event_id}>
+                          <BookingEventListItem
+                            event={event}
+                            handleEventClick={handleEventClick}
+                            getStatusBackgroundColorForAvata={
+                              getStatusBackgroundColorForAvata
+                            }
+                          />
+                        </React.Fragment>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography
+                      variant="h5"
+                      align="center"
+                      sx={{ marginTop: "5rem" }}
+                    >
+                      No bookings for the day
+                    </Typography>
+                  )}
                 </Paper>
               </Box>
             </Box>
           </div>
         )}
-        <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen} >
+        <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <Dialog.Overlay className="overlay-dialog data-[state=open]:animate-overlayShow" />
           <Dialog.Content
             className="data-[state=open]:animate-contentShow content-dialog z-10"
             aria-describedby={undefined}
-            style={{ maxHeight: '80vh', overflowY: 'auto' }}
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
           >
             <Dialog.Title className="text-slate-700 m-0 text-[17px] font-medium mb-5">
               Booking Details
@@ -507,7 +534,13 @@ const ManageReservationsPage: React.FC = () => {
                           Phone
                         </label>
                         <label className="Input non-editable-label">
-                          {`${selectedEvent.data.customer.phone.slice(0, 4)} ${selectedEvent.data.customer.phone.slice(4, 7)} ${selectedEvent.data.customer.phone.slice(7, 10)}`}
+                          {`${selectedEvent.data.customer.phone.slice(
+                            0,
+                            4
+                          )} ${selectedEvent.data.customer.phone.slice(
+                            4,
+                            7
+                          )} ${selectedEvent.data.customer.phone.slice(7, 10)}`}
                         </label>
                       </fieldset>
                     )}
@@ -516,7 +549,11 @@ const ManageReservationsPage: React.FC = () => {
                         <label className="w-[100px] text-left text-[15px] sm:text-right">
                           Status
                         </label>
-                        <Chip label="Blacklisted" color="error" variant="outlined" />
+                        <Chip
+                          label="Blacklisted"
+                          color="error"
+                          variant="outlined"
+                        />
                       </fieldset>
                     )}
                   </div>
