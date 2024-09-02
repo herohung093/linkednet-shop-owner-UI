@@ -2,7 +2,6 @@ import  { useEffect, useState, useCallback } from "react";
 import CustomLoading from "../components/Loading";
 import SearchIcon from "@mui/icons-material/Search";
 import Staff from "../components/Staff";
-import useAuthCheck from "../hooks/useAuthCheck";
 import { axiosInstance } from "../utils/axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
@@ -30,7 +29,6 @@ const StaffsPage: React.FC = () => {
   const [filter, setFilter] = useState<string>("true");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  useAuthCheck()
 
   const fetchStaffs = useCallback(async () => {
     setLoading(true);

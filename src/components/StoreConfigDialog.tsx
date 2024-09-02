@@ -6,10 +6,6 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import CustomLoading from "./Loading";
-import { useNavigate } from "react-router";
-import isTokenExpired from "../helper/CheckTokenExpired";
-import { refreshToken } from "../helper/RefreshToken";
-import { getToken } from "../helper/getToken";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import AddIcon from "@mui/icons-material/Add";
 
@@ -76,7 +72,6 @@ const StoreConfigDialog: React.FC<StoreConfigDialogProps> = ({
   onUpdate,
   mode,
 }) => {
-  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -104,15 +99,6 @@ const StoreConfigDialog: React.FC<StoreConfigDialogProps> = ({
   const onSubmitHandler = async (values: StoreConfigFormData) => {
     const payload = { ...values };
 
-    if (localStorage.getItem("authToken")) {
-      const token = getToken();
-
-      if (isTokenExpired(token)) {
-        await refreshToken(navigate);
-      }
-    } else {
-      navigate("/session-expired");
-    }
 
     try {
       let response;

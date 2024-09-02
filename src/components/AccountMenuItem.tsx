@@ -8,7 +8,6 @@ import SelectStore from "./SelectStore";
 import { useDispatch, useSelector } from "react-redux";
 import { axiosWithToken } from "../utils/axios";
 import { RootState } from "../redux toolkit/store";
-import useAuthCheck from "../hooks/useAuthCheck";
 import { setStoresList } from "../redux toolkit/storesListSlice";
 import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
 
@@ -21,7 +20,6 @@ const AccountMenuItem = () => {
     localStorageStoreUuid || undefined
   );
 
-  useAuthCheck();
 
   const storeConfigRedux = useSelector(
     (state: RootState) => state.storesList.storesList

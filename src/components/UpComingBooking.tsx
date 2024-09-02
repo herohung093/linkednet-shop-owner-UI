@@ -4,10 +4,6 @@ import BookingEventListItem from "./BookingEventListItem"; // Adjust the import 
 import { parse } from "date-fns";
 import { axiosWithToken } from "../utils/axios";
 import BookingEventDialog from "./BookingEventDialog";
-import { getToken } from "../helper/getToken";
-import isTokenExpired from "../helper/CheckTokenExpired";
-import { refreshToken } from "../helper/RefreshToken";
-import { useNavigate } from "react-router";
 
 const UpComingBooking: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -18,7 +14,6 @@ const UpComingBooking: React.FC = () => {
     null
   );
   const [isStatusModified, setIsStatusModified] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -63,7 +58,6 @@ const UpComingBooking: React.FC = () => {
   };
 
   const updateReservationEvent = async (selectedEvent: ReservationEvent) => {
-    checkTokenExpiredAndRefresh();
     const url = `/reservation/`;
     const response = await axiosWithToken.put(url, selectedEvent.data);
 
@@ -115,17 +109,6 @@ const UpComingBooking: React.FC = () => {
     }
   };
 
-  const checkTokenExpiredAndRefresh = async () => {
-    if (localStorage.getItem("authToken")) {
-      const token = getToken();
-
-      if (isTokenExpired(token)) {
-        await refreshToken(navigate);
-      }
-    } else {
-      navigate("/session-expired");
-    }
-  };
 
   return (
     <>

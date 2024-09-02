@@ -2,13 +2,11 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
 import StoreInfo from "../components/StoreInfo";
-import useAuthCheck from "../hooks/useAuthCheck";
 import { axiosWithToken } from "../utils/axios";
 import { setStoresList } from "../redux toolkit/storesListSlice";
 import { useNavigate } from "react-router";
 
 const StoreSettingPage: React.FC = () => {
-  useAuthCheck();
   const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
   const [selectedStore, setSelectedStore] = useState<number | string>("");
   const dispatch = useDispatch();

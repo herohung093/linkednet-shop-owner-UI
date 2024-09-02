@@ -2,10 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { axiosWithToken } from "../utils/axios";
 import { parse } from "date-fns";
-import isTokenExpired from "../helper/CheckTokenExpired";
-import { refreshToken } from "../helper/RefreshToken";
-import { getToken } from "../helper/getToken";
-import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
 import { useMediaQuery } from "react-responsive";
@@ -33,7 +29,6 @@ const ManageReservationsPage: React.FC = () => {
   );
   const [isStatusModified, setIsStatusModified] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const navigate = useNavigate();
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const [selectedDate, setSelectedDate] = useState<moment.Moment | null>(
     moment()
@@ -54,7 +49,6 @@ const ManageReservationsPage: React.FC = () => {
     params: FetchReservationsParams
   ): Promise<Reservation[]> => {
     setIsLoading(true);
-    checkTokenExpiredAndRefresh();
     try {
       const response = await axiosWithToken.get<Reservation[]>(
         "/reservation/byTimeFrame",
@@ -79,7 +73,6 @@ const ManageReservationsPage: React.FC = () => {
   );
 
   useEffect(() => {
-    checkTokenExpiredAndRefresh();
     let startDate = moment().startOf("month").format("DD/MM/YYYY").toString();
     let endDate = moment().endOf("month").format("DD/MM/YYYY").toString();
     const fetchData = async () => {
@@ -101,17 +94,6 @@ const ManageReservationsPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStoreId]);
 
-  const checkTokenExpiredAndRefresh = async () => {
-    if (localStorage.getItem("authToken")) {
-      const token = getToken();
-
-      if (isTokenExpired(token)) {
-        await refreshToken(navigate);
-      }
-    } else {
-      navigate("/session-expired");
-    }
-  };
 
   const convertToProcessedEvents = (
     reservations: Reservation[]
@@ -160,7 +142,6 @@ const ManageReservationsPage: React.FC = () => {
   };
 
   const updateReservationEvent = async (selectedEvent: ReservationEvent) => {
-    checkTokenExpiredAndRefresh();
     const url = `/reservation/`;
     const response = await axiosWithToken.put(url, selectedEvent.data);
 

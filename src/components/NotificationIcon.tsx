@@ -8,9 +8,6 @@ import { CheckCircle } from '@mui/icons-material';
 import { getToken } from '../helper/getToken';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client/dist/sockjs';
-import isTokenExpired from '../helper/CheckTokenExpired';
-import { refreshToken } from '../helper/RefreshToken';
-import { useNavigate } from "react-router";
 import { Button, Divider, MenuItem, Typography, IconButton } from '@mui/material';
 import Menu from '@mui/material/Menu';
 
@@ -34,21 +31,6 @@ const NotificationIcon: React.FC = () => {
 
 	// Interval to toggle the title when a new notification is received
 	const titleInterval = useRef<NodeJS.Timeout | null>(null);
-	const navigate = useNavigate();
-
-	const checkTokenExpiredAndRefresh = async () => {
-		if (localStorage.getItem("authToken")) {
-			const token = getToken();
-
-			if (isTokenExpired(token)) {
-				await refreshToken(navigate);
-			} else {
-				if (isTokenExpired(token)) {
-					navigate("/session-expired");
-				}
-			}
-		}
-	};
 
 	const loadMoreNotifications = useCallback(async () => {
 		setLoadingNotifications(true);
@@ -68,7 +50,6 @@ const NotificationIcon: React.FC = () => {
 	}, [notificationPage, setNotifications]);
 
 	const fetchNotificationCount = async () => {
-		checkTokenExpiredAndRefresh();
 
 		try {
 			const response = await axiosWithToken.get('/notifications/count-unseen');
@@ -82,7 +63,6 @@ const NotificationIcon: React.FC = () => {
 	}, []);
 
 	const fetchRecentNotifications = async (pageNumber: number) => {
-		checkTokenExpiredAndRefresh();
 		const response = await axiosWithToken.get(`/notifications?page=${pageNumber}&size=5&sort=id,DESC`);
 		if (response.status !== 200) {
 			throw new Error('Network response was not ok');
@@ -97,7 +77,6 @@ const NotificationIcon: React.FC = () => {
 				setNotifications(latestNotifications);
 			} catch (error) {
 				console.error('Failed to fetch recent notifications:', error);
-				navigate("/session-expired");
 			}
 		};
 

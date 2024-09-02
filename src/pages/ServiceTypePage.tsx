@@ -7,7 +7,6 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ServiceDialog from "../components/ServiceDialog";
 import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
-import AuthCheck from "../hooks/useAuthCheck";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
 
@@ -23,7 +22,6 @@ interface ServiceType {
 }
 
 const ServiceTypePage: React.FC = () => {
-  AuthCheck();
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

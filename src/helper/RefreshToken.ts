@@ -6,21 +6,23 @@ interface RefreshTokenResponse {
 }
 
 export const refreshToken = async (
-  navigate: (path: string) => void
+
 ): Promise<RefreshTokenResponse> => {
   const refreshToken = localStorage.getItem("refreshToken");
   try {
     const response = await axiosInstance.post("/auth/refresh-token", {
       refreshToken,
     });
-    
+
     const { token, refreshToken: newRefreshToken } = response.data;
     localStorage.setItem("authToken", token);
     localStorage.setItem("refreshToken", newRefreshToken);
-    
+
     return { token, refreshToken: newRefreshToken };
   } catch (error) {
-    navigate("/session-expired");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("refreshToken");
+    window.location.href = "/session-expired";
     console.error("Failed to refresh token:", error);
     throw error;
   }

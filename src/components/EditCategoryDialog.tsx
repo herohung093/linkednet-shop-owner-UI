@@ -1,13 +1,10 @@
-import isTokenExpired from "../helper/CheckTokenExpired";
-import { refreshToken } from "../helper/RefreshToken";
-import { getToken } from "../helper/getToken";
+
 import { axiosWithToken } from "../utils/axios";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useNavigate } from "react-router";
 import * as yup from "yup";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SwitchActive from "./SwitchActive";
@@ -70,7 +67,6 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
     },
   });
 
-  const navigate = useNavigate();
 
   const onSubmit = async (data: FormData) => {
     const payloadEdit = {
@@ -81,15 +77,6 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
     };
     console.log(payloadEdit);
 
-    if (localStorage.getItem("authToken")) {
-      const token = getToken();
-
-      if (isTokenExpired(token)) {
-        await refreshToken(navigate);
-      }
-    } else {
-      navigate("/session-expired");
-    }
 
     try {
       const response = await axiosWithToken.put(

@@ -1,6 +1,3 @@
-import isTokenExpired from "../helper/CheckTokenExpired";
-import { refreshToken } from "../helper/RefreshToken";
-import { getToken } from "../helper/getToken";
 import { axiosWithToken } from "../utils/axios";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -66,15 +63,6 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
       active: true,
     };
 
-    if (localStorage.getItem("authToken")) {
-      const token = getToken();
-
-      if (isTokenExpired(token)) {
-        await refreshToken(navigate);
-      }
-    } else {
-      navigate("/session-expired");
-    }
 
     try {
       const response = await axiosWithToken.post("/serviceType/", payload);
