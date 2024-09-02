@@ -5,6 +5,7 @@ import StoreInfo from "../components/StoreInfo";
 import { axiosWithToken } from "../utils/axios";
 import { setStoresList } from "../redux toolkit/storesListSlice";
 import { useNavigate } from "react-router";
+import withAuth from "../components/HOC/withAuth";
 
 const StoreSettingPage: React.FC = () => {
   const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
@@ -79,4 +80,4 @@ const navigate =useNavigate()
   );
 };
 
-export default StoreSettingPage;
+export default withAuth(StoreSettingPage);

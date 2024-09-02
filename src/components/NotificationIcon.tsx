@@ -117,15 +117,9 @@ const NotificationIcon: React.FC = () => {
 			const unseenNotificationIds = unseenNotifications.map(notification => notification.id);
 
 			try {
-				const response = await fetch(`${BASE_URL}notifications/seen`, {
-					method: 'PUT',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${getToken()}`,
-					},
-					body: JSON.stringify(unseenNotificationIds),
-				});
-				if (!response.ok) {
+				
+				const response = axiosWithToken.put('/notifications/seen', JSON.stringify(unseenNotificationIds));
+				if ((await response).status !== 200) {
 					throw new Error('Network response was not ok');
 				}
 

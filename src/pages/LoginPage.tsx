@@ -6,10 +6,10 @@ import useAuthResonse from "../hooks/useAuthResponse";
 
 import { useDispatch } from "react-redux";
 import { setStoresList } from "../redux toolkit/storesListSlice";
-import { axiosInstance } from "../utils/axios";
+import { axiosInstance, axiosWithToken } from "../utils/axios";
 import isTokenExpired from "../helper/CheckTokenExpired";
 import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
-import LoadingButton from '@mui/lab/LoadingButton';
+import LoadingButton from "@mui/lab/LoadingButton";
 import { CircularProgress } from "@mui/material";
 
 const LoginPage: React.FC = () => {
@@ -61,16 +61,22 @@ const LoginPage: React.FC = () => {
 
       if (response.status === 200) {
         handleAuthResponse(response.data.token, response.data.refreshToken);
-        const storeListSorted = response?.data?.storeConfig.sort(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (a: any, b: any) => a.id - b.id
-        );
-        localStorage.setItem("storeUuid", storeListSorted[0].storeUuid);
-        dispatch(setSelectedStoreRedux(storeListSorted[0].storeUuid));
-        setEmail("");
-        setPassword("");
-        dispatch(setStoresList(response?.data?.storeConfig));
-        navigate("/dashboard");
+        const getAllStoreResponse = await axiosWithToken.get("/storeConfig/");
+        dispatch(setStoresList(getAllStoreResponse.data));
+
+        if (getAllStoreResponse.data.length === 0) {
+          navigate("/store-setting");
+        } else {
+          const storeListSorted = getAllStoreResponse.data.sort(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (a: any, b: any) => a.id - b.id
+          );
+          localStorage.setItem("storeUuid", storeListSorted[0].storeUuid);
+          dispatch(setSelectedStoreRedux(storeListSorted[0].storeUuid));
+          setEmail("");
+          setPassword("");
+          navigate("/dashboard");
+        }
       } else {
         throw new Error("Failed to submit booking.");
       }
@@ -138,17 +144,21 @@ const LoginPage: React.FC = () => {
               variant="contained" // Use 'contained' to have a solid background color
               className="w-full flex justify-center items-center h-[40px] focus:outline-none focus:shadow-outline"
               loading={loading}
-              loadingIndicator={<CircularProgress style={{ color: 'white' }} size={24} />}
+              loadingIndicator={
+                <CircularProgress style={{ color: "white" }} size={24} />
+              }
               sx={{
-                marginBottom: '1rem',
-                backgroundColor: 'black',
-                color: 'white',
-                textTransform: 'none', // Keep the text casing as it is
-                '&:hover': {
-                  backgroundColor: 'black', // Keep the same background color on hover
+                marginBottom: "1rem",
+                backgroundColor: "black",
+                color: "white",
+                textTransform: "none", // Keep the text casing as it is
+                "&:hover": {
+                  backgroundColor: "black", // Keep the same background color on hover
                 },
               }}
-            >Login</LoadingButton>
+            >
+              Login
+            </LoadingButton>
             <div className="w-full">
               <CustomGoogleLoginButton
                 updateLoading={setLoading}

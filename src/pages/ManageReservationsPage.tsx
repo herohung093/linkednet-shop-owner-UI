@@ -15,6 +15,7 @@ import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
 import moment from "moment";
 import BookingEventListItem from "../components/BookingEventListItem";
 import BookingEventDialog from "../components/BookingEventDialog";
+import withAuth from "../components/HOC/withAuth";
 
 interface FetchReservationsParams {
   startDate: string; //dd/MM/yyyy
@@ -405,4 +406,4 @@ const ManageReservationsPage: React.FC = () => {
   );
 };
 
-export default ManageReservationsPage;
+export default withAuth(ManageReservationsPage);

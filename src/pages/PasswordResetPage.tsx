@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { axiosWithToken } from "../utils/axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import withAuth from "../components/HOC/withAuth";
 
 const PasswordResetPage: React.FC = () => {
 	const [newPassword, setNewPassword] = useState("");
@@ -104,4 +105,4 @@ const PasswordResetPage: React.FC = () => {
 	);
 };
 
-export default PasswordResetPage;
+export default withAuth(PasswordResetPage);

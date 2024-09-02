@@ -5,6 +5,7 @@ import Staff from "../components/Staff";
 import { axiosInstance } from "../utils/axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
+import withAuth from "../components/HOC/withAuth";
 
 interface Staff {
   id: number | null;
@@ -167,4 +168,4 @@ const StaffsPage: React.FC = () => {
   );
 };
 
-export default StaffsPage;
+export default withAuth(StaffsPage);

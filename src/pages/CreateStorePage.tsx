@@ -1,6 +1,7 @@
 import React from "react";
 import StoreInfo from "../components/StoreInfo";
 import { useNavigate } from "react-router";
+import withAuth from "../components/HOC/withAuth";
 
 const CreateStorePage: React.FC = () => {
   const navigate = useNavigate();
@@ -14,4 +15,4 @@ const CreateStorePage: React.FC = () => {
   );
 };
 
-export default CreateStorePage;
+export default withAuth(CreateStorePage);

@@ -9,6 +9,7 @@ import ServiceDialog from "../components/ServiceDialog";
 import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
+import withAuth from "../components/HOC/withAuth";
 
 interface ServiceType {
   id: number;
@@ -170,4 +171,4 @@ const ServiceTypePage: React.FC = () => {
   );
 };
 
-export default ServiceTypePage;
+export default withAuth(ServiceTypePage);

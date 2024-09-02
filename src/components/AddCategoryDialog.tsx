@@ -4,7 +4,6 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
 import * as yup from "yup";
 
 type FormData = {
@@ -46,7 +45,6 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
   onUpdate,
 }) => {
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
   const {
     register,
     handleSubmit,

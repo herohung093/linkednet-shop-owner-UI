@@ -4,6 +4,7 @@ import BookingChart from "../components/BookingCharts";
 import StaffChart from "../components/StaffChart";
 import RevenueChart from "../components/RevenueChart";
 import UpComingBooking from "../components/UpComingBooking";
+import withAuth from "../components/HOC/withAuth";
 
 const Dashboard: React.FC = () => {
   return (
@@ -60,4 +61,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default withAuth(Dashboard);
