@@ -40,7 +40,6 @@ const LoginPage: React.FC = () => {
       });
       if (response.status === 200) {
         handleAuthResponse(response.data.token, response.data.refreshToken);
-        navigate("/dashboard");
       } else {
         console.log("Failed to refresh token.");
       }
