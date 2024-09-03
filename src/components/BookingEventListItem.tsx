@@ -68,9 +68,11 @@ const BookingEventListItem: React.FC<BookingEventListItemProps> = ({
                   {moment(
                     event.data.bookingTime.split(" ")[0],
                     "DD/MM/YYYY"
-                  ).format("dddd, DD MMM YYYY")}
+                  ).format("ddd, DD MMM YYYY")}
                 </Typography>
               )}
+              <Box sx={{ flexGrow: 1 }} />{" "}
+              <Typography variant="body2">#{event.event_id}</Typography>
             </Box>
           </ListItemAvatar>
           <Box
