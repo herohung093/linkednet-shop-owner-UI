@@ -8,8 +8,9 @@ import {
   Paper,
   Typography,
   Avatar,
+  List,
 } from "@mui/material";
-import moment from 'moment';
+import moment from "moment";
 
 interface BookingEventListItemProps {
   event: {
@@ -64,22 +65,27 @@ const BookingEventListItem: React.FC<BookingEventListItemProps> = ({
               />
               {displayDate && (
                 <Typography variant="body2" sx={{ marginLeft: "8px" }}>
-                  {moment(event.data.bookingTime.split(" ")[0], 'DD/MM/YYYY').format('dddd, DD MMM YYYY')}
+                  {moment(
+                    event.data.bookingTime.split(" ")[0],
+                    "DD/MM/YYYY"
+                  ).format("dddd, DD MMM YYYY")}
                 </Typography>
               )}
             </Box>
           </ListItemAvatar>
-          <ListItemText
-            primary={
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  width: "100%",
-                }}
-              >
-                <Typography variant="body1">{event.title}</Typography>
-                <Typography variant="body2" color="textSecondary">
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            <ListItemText
+              primary={<Typography variant="body1">{event.title}</Typography>}
+            />
+            <ListItemText
+              primary={
+                <Typography variant="body2" color="textSecondary" align="right">
                   {event.data.bookingTime.split(" ")[1] +
                     " - " +
                     event.data.endTime.split(" ")[1] +
@@ -87,20 +93,26 @@ const BookingEventListItem: React.FC<BookingEventListItemProps> = ({
                     event.data.totalPrice +
                     ")"}
                 </Typography>
-              </Box>
-            }
-            secondary={
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  width: "100%",
-                }}
-              >
+              }
+            />
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            <ListItemText
+              secondary={
                 <Typography variant="body1">
                   Cust: {event.data.customer.firstName}
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
+              }
+            />
+            <ListItemText
+              secondary={
+                <Typography variant="body2" color="textSecondary" align="right">
                   {`${event.data.customer.phone.slice(
                     0,
                     4
@@ -109,9 +121,9 @@ const BookingEventListItem: React.FC<BookingEventListItemProps> = ({
                     7
                   )} ${event.data.customer.phone.slice(7, 10)}`}
                 </Typography>
-              </Box>
-            }
-          />
+              }
+            />
+          </Box>
         </Paper>
       </ListItem>
     </ListItemButton>
