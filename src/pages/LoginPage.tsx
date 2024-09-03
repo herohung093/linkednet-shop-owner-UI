@@ -61,22 +61,16 @@ const LoginPage: React.FC = () => {
 
       if (response.status === 200) {
         handleAuthResponse(response.data.token, response.data.refreshToken);
-        const getAllStoreResponse = await axiosWithToken.get("/storeConfig/");
-        dispatch(setStoresList(getAllStoreResponse.data));
-
-        if (getAllStoreResponse.data.length === 0) {
-          navigate("/store-setting");
-        } else {
-          const storeListSorted = getAllStoreResponse.data.sort(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (a: any, b: any) => a.id - b.id
-          );
-          localStorage.setItem("storeUuid", storeListSorted[0].storeUuid);
-          dispatch(setSelectedStoreRedux(storeListSorted[0].storeUuid));
-          setEmail("");
-          setPassword("");
-          navigate("/dashboard");
-        }
+        const storeListSorted = response?.data?.storeConfig.sort(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (a: any, b: any) => a.id - b.id
+        );
+        localStorage.setItem("storeUuid", storeListSorted[0].storeUuid);
+        dispatch(setSelectedStoreRedux(storeListSorted[0].storeUuid));
+        setEmail("");
+        setPassword("");
+        dispatch(setStoresList(response?.data?.storeConfig));
+        navigate("/dashboard");
       } else {
         throw new Error("Failed to submit booking.");
       }
