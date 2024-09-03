@@ -110,7 +110,6 @@ const StoreConfigDialog: React.FC<StoreConfigDialogProps> = ({
       } else {
         response = await axiosWithToken.post("/store/", payload);
       }
-      console.log(response.data);
       onUpdate();
       setOpen(false);
 

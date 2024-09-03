@@ -75,15 +75,12 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
       description: null,
       active: data.active,
     };
-    console.log(payloadEdit);
-
 
     try {
       const response = await axiosWithToken.put(
         `/serviceType/${data.typeId}`,
         payloadEdit
       );
-      console.log(response.data);
       onUpdate();
       setOpen(false);
 

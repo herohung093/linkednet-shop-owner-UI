@@ -119,7 +119,6 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
 
     try {
       const response = await axiosWithToken.post("/staff/", payload);
-      console.log(response.data);
       onUpdate();
       setOpen(false);
 

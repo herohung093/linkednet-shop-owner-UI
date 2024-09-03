@@ -50,7 +50,6 @@ const CategoryDialog: React.FC<CategoryDialogType> = ({ edit = false }) => {
     };
     try {
       const response = await axiosWithToken.post("/serviceType/", payload);
-      console.log(response.data);
       handleUpdate();
       setOpen(false);
 

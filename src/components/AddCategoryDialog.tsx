@@ -64,7 +64,6 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
 
     try {
       const response = await axiosWithToken.post("/serviceType/", payload);
-      console.log(response.data);
       onUpdate();
       setOpen(false);
 

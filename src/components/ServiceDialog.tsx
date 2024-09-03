@@ -84,9 +84,6 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
         id: typeId,
       },
     };
-    console.log(payload);
-
-
 
     try {
       let response;
@@ -98,7 +95,6 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
       } else {
         response = await axiosWithToken.post("/service/", payload);
       }
-      console.log(response.data);
       onUpdate();
       setOpen(false);
 

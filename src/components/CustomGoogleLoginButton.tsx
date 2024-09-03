@@ -35,8 +35,6 @@ const CustomGoogleLoginButton: React.FC<CustomGoogleLoginButtonProps> = ({
       }
       handleAuthResponse(response.data.token, response.data.refreshToken);
 
-      // Handle the response, e.g., store the tokens, update UI, etc.
-      console.log("Tokens:", response.data);
       navigate("/dashboard");
     } catch (error) {
       console.error(error);
