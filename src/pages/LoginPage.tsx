@@ -6,7 +6,7 @@ import useAuthResonse from "../hooks/useAuthResponse";
 
 import { useDispatch } from "react-redux";
 import { setStoresList } from "../redux toolkit/storesListSlice";
-import { axiosInstance, axiosWithToken } from "../utils/axios";
+import { axiosInstance } from "../utils/axios";
 import isTokenExpired from "../helper/CheckTokenExpired";
 import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
 import LoadingButton from "@mui/lab/LoadingButton";
