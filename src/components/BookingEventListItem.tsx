@@ -8,7 +8,6 @@ import {
   Paper,
   Typography,
   Avatar,
-  List,
 } from "@mui/material";
 import moment from "moment";
 
