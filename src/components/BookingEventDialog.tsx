@@ -1,8 +1,11 @@
 import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
-import { ChevronDownIcon, CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
-import { Chip } from "@mui/material";
+import { ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";
+import { Button, Chip, IconButton } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import CloseSharpIcon from "@mui/icons-material/CloseSharp";
+import { useNavigate } from "react-router";
 
 interface BookingEventDialogProps {
   isDialogOpen: boolean;
@@ -21,18 +24,27 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
   handleSubmit,
   isStatusModified,
 }) => {
+
+  const navigate = useNavigate();
+
+  const handleEditClick = () => {
+    if (selectedEvent && selectedEvent.data) {
+      navigate("/edit-booking", { state: selectedEvent.data });
+    }
+  };
+
   return (
     <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <Dialog.Overlay className="overlay-dialog data-[state=open]:animate-overlayShow" />
       <Dialog.Content
-        className="data-[state=open]:animate-contentShow content-dialog z-10"
+        className="data-[state=open]:animate-contentShow content-dialog z-20"
         aria-describedby={undefined}
         style={{ maxHeight: "80vh", overflowY: "auto" }}
       >
         <Dialog.Title className="text-slate-700 m-0 text-[17px] font-medium mb-5">
           Booking Details
         </Dialog.Title>
-        <div className="bg-white p-4 rounded shadow-lg">
+        <div>
           {selectedEvent && (
             <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
               <div className="flex flex-wrap items-center gap-3 mb-[15px]">
@@ -53,16 +65,36 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                   </label>
                 </fieldset>
               </div>
-              <fieldset className="mb-[15px] flex items-center gap-3">
+              <fieldset className="mb-[2px] flex items-center gap-3">
                 <label className="w-[100px] text-left text-[15px]">
                   Booking Time
                 </label>
-                <label className="Input non-editable-label">
-                  {selectedEvent.data.bookingTime.split(" ")[1]} -{" "}
-                  {selectedEvent.data.endTime.split(" ")[1]} (
-                  {selectedEvent.data.totalEstimatedTime} mins)
-                </label>
+                <div className="flex-grow flex items-center justify-between">
+                  <IconButton
+                    size="small"
+                    aria-label="account of current user"
+                    aria-controls="menu-appbar"
+                    aria-haspopup="true"
+                    onClick={handleEditClick}
+                    sx={{
+                      color: "#284f5b",
+                      borderRadius: "20px",
+                      backgroundColor: "#d3eae2",
+                      border: "1px solid #E5E7EB",
+                      fontSize: "14px",
+                      paddingRight: "0.5rem",
+                      paddingLeft: "0.5rem",
+                    }}
+                  >
+                    {selectedEvent.data.bookingTime.split(" ")[1]} -{" "}
+                      {selectedEvent.data.endTime.split(" ")[1]} (
+                      {selectedEvent.data.totalEstimatedTime} mins)
+
+                    <EditIcon fontSize="medium" className="ml-1"/>
+                  </IconButton>
+                </div>
               </fieldset>
+
               <fieldset className="mb-[15px] flex items-center gap-3">
                 <label className="w-[100px] text-left text-[15px]">
                   Total Price
@@ -186,27 +218,53 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
           <div className="mt-[25px] flex justify-end">
             <Dialog.Close asChild>
               {isStatusModified && (
-                <button
+                <Button
+                  variant="contained"
+                  color="inherit"
+                  className="h-[35px] w-[135px] sm:w-[100px] rounded-md px-[15px]"
+                  sx={{
+                    backgroundColor: "black",
+                    color: "white",
+                    borderRadius: "20px",
+                    marginLeft: "1rem",
+                    textTransform: "none",
+                    "&:hover": {
+                      backgroundColor: "grey",
+                    },
+                  }}
                   onClick={handleSubmit}
-                  className="hover:bg-blue-500 focus:shadow-blue-700 inline-flex h-[35px] w-[135px] sm:w-[100px] items-center justify-center rounded-md px-[15px] font-medium leading-none focus:shadow-[0_0_0_2px] focus:outline-none bg-blue-700 text-white mr-2"
                 >
                   Submit
-                </button>
+                </Button>
               )}
             </Dialog.Close>
             <Dialog.Close asChild>
-              <button className="hover:bg-blue-500 focus:shadow-blue-700 inline-flex h-[35px] w-[135px] sm:w-[100px] items-center justify-center rounded-md px-[15px] font-medium leading-none focus:shadow-[0_0_0_2px] focus:outline-none bg-blue-700 text-white">
+              <Button
+                variant="contained"
+                color="inherit"
+                className="h-[35px] w-[135px] sm:w-[100px] rounded-md px-[15px]"
+                sx={{
+                  backgroundColor: "black",
+                  color: "white",
+                  borderRadius: "20px",
+                  marginLeft: "1rem",
+                  textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: "grey",
+                  },
+                }}
+              >
                 Cancel
-              </button>
+              </Button>
             </Dialog.Close>
           </div>
         </div>
         <Dialog.Close asChild>
           <button
-            className="absolute top-[10px] right-[10px] inline-flex h-[25px] w-[25px] appearance-none items-center justify-center rounded-full focus:shadow-[0_0_0_2px] focus:outline-none"
+            className="absolute top-[10px] right-[10px] inline-flex h-[35px] w-[35px] appearance-none items-center justify-center rounded-full focus:shadow-[0_0_0_2px] focus:outline-none"
             aria-label="Close"
           >
-            <Cross2Icon />
+            <CloseSharpIcon />
           </button>
         </Dialog.Close>
       </Dialog.Content>

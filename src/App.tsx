@@ -20,6 +20,7 @@ import ManageReservationsPage from "./pages/ManageReservationsPage.tsx";
 import CreateStorePage from "./pages/CreateStorePage.tsx";
 import NotFoundPage from "./pages/NotFoundPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
+import EditBookingPage from "./pages/EditBookingPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -44,7 +45,7 @@ const router = createBrowserRouter([
       },
       {
         path: "manage-bookings",
-        element: <ManageReservationsPage />,
+        element: <ManageReservationsPage />
       },
       {
         path: "staffs",
@@ -73,6 +74,10 @@ const router = createBrowserRouter([
       {
         path: "password-reset",
         element: <PasswordResetPage />,
+      },
+      {
+        path: "edit-booking",
+        element: <EditBookingPage />,
       },
       {
         path: "404",

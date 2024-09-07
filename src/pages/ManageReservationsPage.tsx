@@ -35,6 +35,7 @@ const ManageReservationsPage: React.FC = () => {
     moment()
   );
   const [isLoading, setIsLoading] = React.useState(false);
+    useState<Reservation | null>(null);
 
   const handleEventClick = (event: any) => {
     setSelectedEvent(event as ReservationEvent);
@@ -213,7 +214,7 @@ const ManageReservationsPage: React.FC = () => {
       setFilteredEvents([]);
     }
   };
-
+  
   const getStatusBackgroundColorForAvata = (status: string) => {
     switch (status) {
       case "CONFIRMED":
@@ -390,17 +391,17 @@ const ManageReservationsPage: React.FC = () => {
                   )}
                 </Paper>
               </Box>
-            </Box>
+                          </Box>
           </div>
         )}
         <BookingEventDialog
-        isDialogOpen={isDialogOpen}
-        setIsDialogOpen={setIsDialogOpen}
-        selectedEvent={selectedEvent}
-        handleStatusChange={handleStatusChange}
-        handleSubmit={handleSubmit}
-        isStatusModified={isStatusModified}
-      />
+          isDialogOpen={isDialogOpen}
+          setIsDialogOpen={setIsDialogOpen}
+          selectedEvent={selectedEvent}
+          handleStatusChange={handleStatusChange}
+          handleSubmit={handleSubmit}
+          isStatusModified={isStatusModified}
+        />
       </div>
     </div>
   );
