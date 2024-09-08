@@ -3,7 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 
 const Main = () => {
   const location = useLocation();
-  const hideMenubarPaths = ["/login", "/session-expired", "/404", "/", "/reset-password-verification"];
+  const hideMenubarPaths = ["/login", "/session-expired", "/404", "/", "/reset-password-verification", "email-confirmation"];
 
   return (
     <>

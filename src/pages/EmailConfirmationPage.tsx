@@ -6,7 +6,7 @@ const EmailConfirmationPage: React.FC = () => {
     const navigate = useNavigate();
 
     const handleLoginRedirect = () => {
-        navigate("/", { replace: true });
+        navigate("/login", { replace: true });
     };
 
     return (
