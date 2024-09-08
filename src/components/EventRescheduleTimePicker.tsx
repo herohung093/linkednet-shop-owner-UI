@@ -92,9 +92,9 @@ const EventRescheduleTimePicker: React.FC<EventRescheduleTimePickerProps> = ({
 
   const anyStaff: Staff = {
     id: 0,
-    firstName: "Any",
+    firstName: "Anyone",
     lastName: "Professional",
-    nickname: "Any",
+    nickname: "Anyone",
     phone: "",
     skillLevel: 5,
     dateOfBirth: "",
