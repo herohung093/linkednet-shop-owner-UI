@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -19,6 +20,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import EventRescheduleTimePicker from "../components/EventRescheduleTimePicker";
 import moment from "moment";
 import { axiosWithToken } from "../utils/axios";
+import LoadingButton from "@mui/lab/LoadingButton";
 
 const EditBookingPage: React.FC = () => {
   const location = useLocation();
@@ -29,12 +31,14 @@ const EditBookingPage: React.FC = () => {
   );
   const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
   const [isEditBookingError, setIsEditBookingError] = useState<boolean>(false);
+  const [isUpdatingBooking, setIsUpdatingBooking] = useState<boolean>(false);
 
   const handleConfirmCancel = () => {
     setConfirmDialogOpen(false);
   };
 
   const handleConfirmYes = async () => {
+    setIsUpdatingBooking(true);
     const response = await axiosWithToken.put(
       "/reservation/",
       newTimeReservations
@@ -47,6 +51,7 @@ const EditBookingPage: React.FC = () => {
       // @ts-ignore
       navigate(-1, { replace: true });
     }
+    setIsUpdatingBooking(false);
   };
 
   useEffect(() => {
@@ -290,24 +295,27 @@ const EditBookingPage: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button
-            variant="contained"
-            color="inherit"
-            className="h-[35px] w-[135px] sm:w-[100px] rounded-md px-[15px]"
-            sx={{
-              backgroundColor: "black",
-              color: "white",
-              borderRadius: "20px",
-              marginLeft: "1rem",
-              textTransform: "none",
-              "&:hover": {
-                backgroundColor: "grey",
-              },
-            }}
-            onClick={handleConfirmYes}
-          >
-            Confirm
-          </Button>
+          <LoadingButton
+              onClick={handleConfirmYes}
+              variant="contained" // Use 'contained' to have a solid background color
+              className="h-[35px] w-[135px] sm:w-[100px] rounded-md px-[15px]"
+              loading={isUpdatingBooking}
+              loadingIndicator={
+                <CircularProgress style={{ color: "white" }} size={24} />
+              }
+              sx={{
+                backgroundColor: "black",
+                color: "white",
+                borderRadius: "20px",
+                marginLeft: "1rem",
+                textTransform: "none",
+                "&:hover": {
+                  backgroundColor: "grey",
+                },
+              }}
+            >
+              Confirm
+            </LoadingButton>
           <Button
             variant="contained"
             color="inherit"
