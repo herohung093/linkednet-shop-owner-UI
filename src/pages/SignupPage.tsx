@@ -33,7 +33,6 @@ const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
   const {
     control,
-    register,
     formState: { errors },
     handleSubmit,
     watch,
