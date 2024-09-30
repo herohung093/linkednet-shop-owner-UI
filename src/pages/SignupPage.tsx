@@ -11,7 +11,6 @@ import {
   Typography,
 } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
-import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
@@ -112,21 +111,31 @@ const SignUpPage: React.FC = () => {
                   },
                 }}
                 render={({ field }) => (
-                  <div className="mb-4">
-                    <TextField
+                  <FormControl
+                    variant="outlined"
+                    fullWidth
+                    error={!!errors.firstName}
+                  >
+                    <InputLabel htmlFor="firstName" required>
+                      First Name
+                    </InputLabel>
+                    <OutlinedInput
                       {...field}
-                      required
                       id="firstName"
+                      required
                       label="First Name"
-                      variant="outlined"
-                      fullWidth
-                      error={!!errors.firstName}
-                      helperText={
-                        errors.firstName ? errors.firstName.message : ""
-                      }
                       inputProps={{ maxLength: 50 }}
+                      onInput={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        field.onChange(target.value);
+                      }}
                     />
-                  </div>
+                    {errors.firstName && (
+                      <Typography color="error">
+                        {errors.firstName.message}
+                      </Typography>
+                    )}
+                  </FormControl>
                 )}
               />
             </div>
@@ -142,21 +151,31 @@ const SignUpPage: React.FC = () => {
                   },
                 }}
                 render={({ field }) => (
-                  <div className="mb-4">
-                    <TextField
+                  <FormControl
+                    variant="outlined"
+                    fullWidth
+                    error={!!errors.lastName}
+                  >
+                    <InputLabel htmlFor="lastName" required>
+                      Last Name
+                    </InputLabel>
+                    <OutlinedInput
                       {...field}
                       id="lastName"
                       required
                       label="Last Name"
-                      variant="outlined"
-                      fullWidth
-                      error={!!errors.lastName}
-                      helperText={
-                        errors.lastName ? errors.lastName.message : ""
-                      }
                       inputProps={{ maxLength: 50 }}
+                      onInput={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        field.onChange(target.value);
+                      }}
                     />
-                  </div>
+                    {errors.lastName && (
+                      <Typography color="error">
+                        {errors.lastName.message}
+                      </Typography>
+                    )}
+                  </FormControl>
                 )}
               />
             </div>
@@ -172,18 +191,35 @@ const SignUpPage: React.FC = () => {
                   },
                 }}
                 render={({ field }) => (
-                  <div className="mb-4">
-                    <TextField
+                  <FormControl
+                    variant="outlined"
+                    fullWidth
+                    error={!!errors.email}
+                  >
+                    <InputLabel htmlFor="email" required>
+                      Email
+                    </InputLabel>
+                    <OutlinedInput
                       {...field}
                       id="email"
                       required
                       label="Email"
-                      variant="outlined"
-                      fullWidth
-                      error={!!errors.email}
-                      helperText={errors.email ? errors.email.message : ""}
+                      type="email"
+                      inputProps={{
+                        pattern:
+                          /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                      }}
+                      onInput={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        field.onChange(target.value);
+                      }}
                     />
-                  </div>
+                    {errors.email && (
+                      <Typography color="error">
+                        {errors.email.message}
+                      </Typography>
+                    )}
+                  </FormControl>
                 )}
               />
             </div>
@@ -208,7 +244,9 @@ const SignUpPage: React.FC = () => {
                     fullWidth
                     error={!!errors.password}
                   >
-                    <InputLabel htmlFor="password">Password</InputLabel>
+                    <InputLabel htmlFor="password" required>
+                      Password
+                    </InputLabel>
                     <OutlinedInput
                       {...field}
                       id="password"
@@ -262,7 +300,7 @@ const SignUpPage: React.FC = () => {
                     fullWidth
                     error={!!errors.confirmPassword}
                   >
-                    <InputLabel htmlFor="confirmPassword">
+                    <InputLabel htmlFor="confirmPassword" required>
                       Confirm Password
                     </InputLabel>
                     <OutlinedInput
@@ -284,8 +322,7 @@ const SignUpPage: React.FC = () => {
                             onMouseDown={handleMouseDownPassword}
                             onMouseUp={handleMouseUpPassword}
                             edge="end"
-                          >
-                          </IconButton>
+                          ></IconButton>
                         </InputAdornment>
                       }
                     />
