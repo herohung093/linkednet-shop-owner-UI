@@ -64,6 +64,14 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     {selectedEvent.data.staff.nickname}
                   </label>
                 </fieldset>
+                <fieldset className="flex items-center gap-3 w-full sm:w-auto">
+                  <label className="w-[100px] text-left text-[15px] sm:text-right">
+                    Created At
+                  </label>
+                  <label className="Input non-editable-label">
+                    {selectedEvent.data.createdTime}
+                  </label>
+                </fieldset>
               </div>
               <fieldset className="mb-[2px] flex items-center gap-3">
                 <label className="w-[100px] text-left text-[15px]">
