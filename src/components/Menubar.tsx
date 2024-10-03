@@ -1,17 +1,33 @@
-import { AppBar, Box, Drawer, IconButton, List, ListItem, ListItemButton, ListItemText, Slide, Toolbar, useScrollTrigger } from "@mui/material";
+import {
+  AppBar,
+  Box,
+  Button,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Slide,
+  Toolbar,
+  useScrollTrigger,
+} from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import NotificationIcon from "./NotificationIcon";
+import HomeIcon from "@mui/icons-material/Home";
 import AccountMenuItem from "./AccountMenuItem";
-import * as Menubar from '@radix-ui/react-menubar';
-import MenuIcon from '@mui/icons-material/Menu';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
+import MenuIcon from "@mui/icons-material/Menu";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 
 interface MenuItemProps {
   label: string;
-  path: string;
+  path?: string;
   onClick?: () => void;
+  children?: MenuItemProps[];
 }
 
 interface Props {
@@ -23,19 +39,44 @@ interface Props {
   children?: React.ReactElement<any>;
 }
 
+const mainMenuStyle = {
+  color: "black",
+  fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+  fontWeight: 550,
+};
+
 const MenubarDemo = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+
+  const handleManageStoreClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+    setOpenMenu("Manage Stores");
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+    setOpenMenu(null);
+  };
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
 
-  const menuItems: MenuItemProps[] = [
-    { label: "Home", path: "/dashboard" },
+  const storeMenuItems: MenuItemProps[] = [
+    { label: "Create Store", path: "/create-store" },
+    { label: "Store Details", path: "/store-details" },
     { label: "Store Settings", path: "/store-settings" },
+  ];
+
+  const mainMenuItems: MenuItemProps[] = [
+    { label: "Home", path: "/dashboard" },
+    { label: "Manage Stores", children: storeMenuItems },
     { label: "Staffs", path: "/staffs" },
     { label: "Services", path: "/services" },
     { label: "Manage Bookings", path: "/manage-bookings" },
@@ -59,37 +100,59 @@ const MenubarDemo = () => {
 
   const drawerMenuList = () => (
     <Box
-      sx={{ width: 200, display: "flex", flexDirection: "column", justifyContent: "space-between", height: '95vh' }}
+      sx={{
+        width: 200,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        height: "95vh",
+      }}
       role="presentation"
       onClick={toggleMenu}
       onKeyDown={toggleMenu}
     >
-        <List>
-          {menuItems.map((item, index) => (
-            <ListItem key={index} sx={{ paddingTop: '0px', paddingBottom: '0px' }}>
-              <ListItemButton onClick={() => navigate(item.path)}>
-                <ListItemText primary={item.label} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
+      <List>
+        {mainMenuItems.map((item, index) => (
+          <ListItem
+            key={index}
+            sx={{ paddingTop: "0px", paddingBottom: "0px" }}
+          >
+            <ListItemButton onClick={() => item.path && navigate(item.path)}>
+              <ListItemText primary={item.label} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
     </Box>
   );
 
   return (
-    <div >
+    <div>
       {isMobile && (
         <Box sx={{ flexGrow: 1 }}>
           <HideOnScroll>
-            <AppBar position="fixed" sx={{ background: 'white' }}>
+            <AppBar position="fixed" sx={{ background: "white" }}>
               <Toolbar variant="dense">
-                <Box sx={{ flexDirection: 'row', flexGrow: 1, justifyContent: 'space-between', display: { xs: 'flex', md: 'none' } }}>
+                <Box
+                  sx={{
+                    flexDirection: "row",
+                    flexGrow: 1,
+                    justifyContent: "space-between",
+                    display: { xs: "flex", md: "none" },
+                  }}
+                >
                   <Box>
-                    <IconButton onClick={toggleMenu} edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
-                      <MenuIcon sx={{ color: 'black' }} />
+                    <IconButton
+                      onClick={toggleMenu}
+                      edge="start"
+                      color="inherit"
+                      aria-label="menu"
+                      sx={{ mr: 2 }}
+                    >
+                      <MenuIcon sx={{ color: "black" }} />
                     </IconButton>
                   </Box>
-                  <Box sx={{ display: 'flex', gap: '0.5rem' }}>
+                  <Box sx={{ display: "flex", gap: "0.5rem" }}>
                     <NotificationIcon />
                     <AccountMenuItem />
                   </Box>
@@ -104,29 +167,102 @@ const MenubarDemo = () => {
       )}
 
       <>
-        {!isMobile && <AppBar position="fixed" sx={{ background: 'white' }}>
-          <Toolbar>
-            <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'flex', lg: 'flex' }, justifyContent: 'space-between' }}>
-              <Menubar.Root style={{ display: 'flex', gap: '1rem' }}>
-                {menuItems.map((menuItem) => (
-                  <Menubar.Menu key={menuItem.label}>
-                    <Menubar.Trigger
-                      onClick={() => navigate(menuItem.path)}
-                      className={`cursor-pointer py-2 px-3 outline-none select-none font-medium leading-none rounded text-slate-900 lg:text-base flex items-center justify-between gap-[2px] hover:underline hover:underline-offset-4 ${window.location.pathname === menuItem.path && "underline underline-offset-4"}`}
+        {!isMobile && (
+          <AppBar position="fixed" sx={{ background: "white" }}>
+            <Toolbar>
+              <Box
+                sx={{
+                  flexGrow: 1,
+                  display: { xs: "flex", md: "flex", lg: "flex" },
+                  justifyContent: "space-between",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: "2rem",
+                  }}
+                >
+                  <Button
+                    onClick={() => navigate("/dashboard")}
+                    sx={{
+                      color: "black",
+                    }}
+                  >
+                    <HomeIcon />
+                  </Button>
+                  <div>
+                    <Button
+                      id="manage-store-menu"
+                      onClick={handleManageStoreClick}
+                      sx={mainMenuStyle}
                     >
-                      {menuItem.label}
-                    </Menubar.Trigger>
-                  </Menubar.Menu>
-                ))}
-              </Menubar.Root>
-              <Box sx={{ display: 'flex', gap: '0.5rem' }}>
-                <NotificationIcon />
-                <AccountMenuItem />
+                      Manage Stores
+                    </Button>
+                    <Menu
+                      id="manage-store-menu"
+                      aria-labelledby="manage-store-button"
+                      anchorEl={anchorEl}
+                      keepMounted
+                      open={openMenu === "Manage Stores"}
+                      onClose={handleClose}
+                      anchorOrigin={{
+                        vertical: "bottom",
+                        horizontal: "left",
+                      }}
+                      transformOrigin={{
+                        vertical: "top",
+                        horizontal: "left",
+                      }}
+                      MenuListProps={{
+                        "aria-labelledby": "basic-button",
+                      }}
+                    >
+                      {storeMenuItems.map((item, index) => (
+                        <MenuItem
+                          key={index}
+                          onClick={() => {
+                            handleClose();
+                            item.path && navigate(item.path);
+                          }}
+                        >
+                          {item.label}
+                        </MenuItem>
+                      ))}
+                    </Menu>
+                  </div>
+                  <Button
+                    onClick={() => navigate("/staffs")}
+                    sx={mainMenuStyle}
+                  >
+                    Staffs
+                  </Button>
+                  <Button
+                    onClick={() => navigate("/services")}
+                    sx={{
+                      color: "black",
+                      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                      fontWeight: 550,
+                    }}
+                  >
+                    Services
+                  </Button>
+                  <Button
+                    onClick={() => navigate("/manage-bookings")}
+                    sx={mainMenuStyle}
+                  >
+                    Manage Bookings
+                  </Button>
+                </Box>
+                <Box sx={{ display: "flex", gap: "0.5rem" }}>
+                  <NotificationIcon />
+                  <AccountMenuItem />
+                </Box>
               </Box>
-            </Box>
-          </Toolbar>
-        </AppBar>}
-        <Box sx={{ height: '64px' }} />
+            </Toolbar>
+          </AppBar>
+        )}
+        <Box sx={{ height: "64px" }} />
       </>
     </div>
   );
