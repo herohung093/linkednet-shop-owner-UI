@@ -2,9 +2,9 @@ import {
   AppBar,
   Box,
   Button,
+  Collapse,
   Drawer,
   IconButton,
-  List,
   ListItem,
   ListItemButton,
   ListItemText,
@@ -22,6 +22,7 @@ import AccountMenuItem from "./AccountMenuItem";
 import MenuIcon from "@mui/icons-material/Menu";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
 
 interface MenuItemProps {
   label: string;
@@ -46,13 +47,20 @@ const mainMenuStyle = {
 };
 
 const MenubarDemo = () => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpenDrawer, setIsOpenDrawer] = useState<boolean>(false);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+
+  const [openMobileChildMenu, setOpenMobileChildMenu] = useState<string | null>(
+    null
+  );
+  const handleMobileItemClick = (label: string) => {
+    setOpenMobileChildMenu(openMobileChildMenu === label ? null : label);
+  };
 
   const handleManageStoreClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -64,8 +72,8 @@ const MenubarDemo = () => {
     setOpenMenu(null);
   };
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
+  const toggleDrawer = () => {
+    setIsOpenDrawer(!isOpenDrawer);
   };
 
   const storeMenuItems: MenuItemProps[] = [
@@ -104,25 +112,57 @@ const MenubarDemo = () => {
         width: 200,
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-between",
         height: "95vh",
+        gap: "0rem",
       }}
       role="presentation"
-      onClick={toggleMenu}
-      onKeyDown={toggleMenu}
+      onKeyDown={toggleDrawer}
     >
-      <List>
-        {mainMenuItems.map((item, index) => (
-          <ListItem
-            key={index}
-            sx={{ paddingTop: "0px", paddingBottom: "0px" }}
-          >
-            <ListItemButton onClick={() => item.path && navigate(item.path)}>
+      {mainMenuItems.map((item, index) => (
+        <div key={index}>
+          <ListItem sx={{ paddingTop: "0px", paddingBottom: "0px" }}>
+            <ListItemButton
+              onClick={() => {
+                if (item.children) {
+                  handleMobileItemClick(item.label);
+                } else {
+                  toggleDrawer();
+                  item.path && navigate(item.path);
+                }
+              }}
+            >
               <ListItemText primary={item.label} />
+              {item.children ? (
+                openMobileChildMenu === item.label ? (
+                  <ExpandLess />
+                ) : (
+                  <ExpandMore />
+                )
+              ) : null}
             </ListItemButton>
           </ListItem>
-        ))}
-      </List>
+          {item.children && (
+            <Collapse
+              in={openMobileChildMenu === item.label}
+              timeout="auto"
+              unmountOnExit
+            >
+              {item.children.map((child, childIndex) => (
+                <ListItem key={childIndex} sx={{ paddingLeft: 4 }}>
+                  <ListItemButton
+                    onClick={() => {
+                      toggleDrawer();
+                      child.path && navigate(child.path);
+                    }}
+                  >
+                    <ListItemText primary={child.label} />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </Collapse>
+          )}
+        </div>
+      ))}
     </Box>
   );
 
@@ -143,7 +183,7 @@ const MenubarDemo = () => {
                 >
                   <Box>
                     <IconButton
-                      onClick={toggleMenu}
+                      onClick={toggleDrawer}
                       edge="start"
                       color="inherit"
                       aria-label="menu"
@@ -160,7 +200,7 @@ const MenubarDemo = () => {
               </Toolbar>
             </AppBar>
           </HideOnScroll>
-          <Drawer anchor="left" open={isOpen} onClose={toggleMenu}>
+          <Drawer anchor="left" open={isOpenDrawer} onClose={toggleDrawer}>
             {drawerMenuList()}
           </Drawer>
         </Box>
