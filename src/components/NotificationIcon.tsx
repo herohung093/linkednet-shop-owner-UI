@@ -291,4 +291,4 @@ const NotificationIcon: React.FC = () => {
 	);
 };
 
-export default NotificationIcon;
+export default React.memo(NotificationIcon);
