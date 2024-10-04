@@ -6,7 +6,7 @@ const NotFoundPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleGoBack = () => {
-    navigate("/");
+    navigate("/dashboard");
   };
 
   return (
