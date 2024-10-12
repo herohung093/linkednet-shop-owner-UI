@@ -23,6 +23,8 @@ import MenuIcon from "@mui/icons-material/Menu";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import { RootState } from "../redux toolkit/store";
+import { useSelector } from "react-redux";
 
 interface MenuItemProps {
   label: string;
@@ -58,6 +60,10 @@ const MenubarDemo = () => {
   const [openMobileChildMenu, setOpenMobileChildMenu] = useState<string | null>(
     null
   );
+  const storeConfigRedux = useSelector(
+    (state: RootState) => state.storesList.storesList
+  );
+
   const handleMobileItemClick = (label: string) => {
     setOpenMobileChildMenu(openMobileChildMenu === label ? null : label);
   };
@@ -77,7 +83,9 @@ const MenubarDemo = () => {
   };
 
   const storeMenuItems: MenuItemProps[] = [
-    { label: "Create Store", path: "/create-store" },
+    ...(storeConfigRedux.length > 1
+      ? [{ label: "Create Store", path: "/create-store" }]
+      : []),
     { label: "Store Details", path: "/store-details" },
     { label: "Store Settings", path: "/store-settings" },
   ];
