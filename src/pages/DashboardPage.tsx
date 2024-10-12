@@ -12,25 +12,17 @@ import WelcomeDialog from "../components/dialogs/WelcomeDialog";
 const Dashboard: React.FC = () => {
   const [openWelcomeDialog, setOpenWelcomeDialog] = useState<boolean>(false);
 
-  const storeConfigRedux = useSelector(
-    (state: RootState) => state.storesList.storesList
-  );
-  const storeConfig = useMemo(() => {
-    if (storeConfigRedux) {
-      return storeConfigRedux.slice().sort((a, b) => a.id - b.id);
-    }
-    return [];
-  }, [storeConfigRedux]);
+  const storeConfigRedux = useSelector((state: RootState) => state.storesList.storesList);
 
   const handleCloseWelcomeDialog = () => {
     setOpenWelcomeDialog(false);
   };
 
   useEffect(() => {
-    if (storeConfig.length === 0) {
+    if (storeConfigRedux.length === 0) {
       setOpenWelcomeDialog(true);
     }
-  }, [storeConfig]);
+  }, [storeConfigRedux]);
 
   return (
     <div>
