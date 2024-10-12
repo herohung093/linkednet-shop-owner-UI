@@ -11,6 +11,9 @@ const useAuthHomePageRedirect = () => {
     const token = getToken();
     if (!token || isTokenExpired(token)) {
       navigate("/login");
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("storeUuid");
     } else {
       navigate("/dashboard");
     }
