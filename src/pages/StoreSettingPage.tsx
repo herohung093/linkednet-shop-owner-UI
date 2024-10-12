@@ -4,8 +4,8 @@ import { RootState } from "../redux toolkit/store";
 import StoreInfo from "../components/StoreInfo";
 import { axiosWithToken } from "../utils/axios";
 import { setStoresList } from "../redux toolkit/storesListSlice";
-import { useNavigate } from "react-router";
 import withAuth from "../components/HOC/withAuth";
+import { Box } from "@mui/material";
 
 const StoreSettingPage: React.FC = () => {
   const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
@@ -49,8 +49,6 @@ const StoreSettingPage: React.FC = () => {
     }
   }, [storeConfig, currentStore]);
 
-
-
   const selectedStoreInfo = storeConfig.find(
     (store) => store.id === selectedStore
   );
@@ -58,25 +56,28 @@ const StoreSettingPage: React.FC = () => {
   const handleUpdate = () => {
     setUpdateTrigger((prev) => !prev);
   };
-const navigate =useNavigate()
   return (
-    <div className="min-h-screen xl:w-[90%] 2xl:w-[80%] mx-auto">
-      <div className="flex justify-center md:justify-end items-center my-4">      
-        <button onClick={()=>navigate('/create-store')}  className="btn-primary ml-4 px-4 py-2 ">Create Store</button>
-      </div>
+    <Box sx={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      height: "100%",
+      width: "100%",
+    }}>
       {storeConfig.length > 0 ? (
         <>
           {selectedStoreInfo && (
             <StoreInfo
               storeUuid={selectedStoreInfo.storeUuid}
               handleUpdate={handleUpdate}
+              submitType="update"
             />
           )}
         </>
       ) : (
         <p>No stores available. Please create a store!</p>
       )}
-    </div>
+    </Box>
   );
 };
 
