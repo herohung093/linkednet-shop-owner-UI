@@ -21,7 +21,8 @@ const WelcomeDialog: React.FC<WelcomeDialogProps> = ({ open, onClose }) => {
     onClose();
     navigate("/create-store");
   };
-
+  
+//@ts-ignore
   const handleClose = (event: object, reason: string) => {
     if (reason !== "backdropClick") {
       onClose();
