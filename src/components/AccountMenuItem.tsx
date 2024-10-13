@@ -10,6 +10,7 @@ import { axiosWithToken } from "../utils/axios";
 import { RootState } from "../redux toolkit/store";
 import { setStoresList } from "../redux toolkit/storesListSlice";
 import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
+import React from "react";
 
 const AccountMenuItem = () => {
   const [profileIconRef, setProfileIconRef] = useState<null | HTMLElement>(null);
@@ -29,7 +30,11 @@ const AccountMenuItem = () => {
   const fetchAllStore = useCallback(async () => {
     try {
       const response = await axiosWithToken.get("/storeConfig/");
-      dispatch(setStoresList(response.data));
+      const newStoresList = response.data;
+      // Compare current state with new state
+      if (JSON.stringify(storeConfig) !== JSON.stringify(newStoresList)) {
+        dispatch(setStoresList(newStoresList));
+      }
     } catch (error) {
       console.error("Error fetching store config:", error);
     }
