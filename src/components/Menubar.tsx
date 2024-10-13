@@ -87,7 +87,7 @@ const MenubarDemo = () => {
     ...(storeConfigRedux.length > 1
       ? [{ label: "Create Store", path: "/create-store" }]
       : []),
-    { label: "Store Details", path: "/store-details" },
+    // { label: "Store Details", path: "/store-details" },
     { label: "Store Settings", path: "/store-settings" },
   ];
 
