@@ -27,6 +27,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import LoadingButton from "@mui/lab/LoadingButton";
+import SuccessDialog from "./dialogs/SuccessDialog";
 
 type BusinessHour = {
   dayOfWeek: string;
@@ -185,6 +186,8 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
     ],
   };
 
+  const [openSuccessDialog, setOpenSuccessDialog] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const {
@@ -245,18 +248,21 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
   const onSubmit = async (data: StoreInfo) => {
     try {
       await schema.validate(data, { abortEarly: false });
-      console.log('Form is valid');
+      console.log("Form is valid");
     } catch (validationErrors) {
-      console.log('Validation errors:', validationErrors);
+      console.log("Validation errors:", validationErrors);
     }
     setSubmitting(true);
     try {
       let response;
       if (submitType === "update") {
         response = await axiosWithToken.put("/storeConfig/", data);
+        setSuccessMessage("Store updated successfully!");
       } else {
         response = await axiosWithToken.post("/storeConfig/", data);
+        setSuccessMessage("Store created successfully!");
       }
+      setOpenSuccessDialog(true);
       reset(response.data);
       handleUpdate();
     } catch (error) {
@@ -293,18 +299,22 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
   };
 
   const getOutlinedInputStyles = (dirtyFields: any, fieldName: string) => ({
-    '& .MuiOutlinedInput-root': {
-      '& fieldset': {
-        borderColor: dirtyFields[fieldName] ? 'rgb(46, 125, 50)' : 'inherit',
+    "& .MuiOutlinedInput-root": {
+      "& fieldset": {
+        borderColor: dirtyFields[fieldName] ? "rgb(46, 125, 50)" : "inherit",
       },
-      '&:hover fieldset': {
-        borderColor: dirtyFields[fieldName] ? 'rgb(46, 125, 50)' : 'inherit',
+      "&:hover fieldset": {
+        borderColor: dirtyFields[fieldName] ? "rgb(46, 125, 50)" : "inherit",
       },
-      '&.Mui-focused fieldset': {
-        borderColor: 'blue', 
+      "&.Mui-focused fieldset": {
+        borderColor: "blue",
       },
     },
   });
+
+  const handleCloseSuccessDialog = () => {
+    setOpenSuccessDialog(false);
+  };
 
   if (loading) return <CustomPageLoading />;
 
@@ -327,7 +337,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
                   variant="outlined"
                   fullWidth
                   error={!!errors.storeName}
-                  sx={getOutlinedInputStyles(dirtyFields, 'storeName')}
+                  sx={getOutlinedInputStyles(dirtyFields, "storeName")}
                 >
                   <InputLabel htmlFor="storeName" required>
                     Store Name
@@ -373,7 +383,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
                   variant="outlined"
                   fullWidth
                   error={!!errors.shortStoreName}
-                  sx={getOutlinedInputStyles(dirtyFields, 'shortStoreName')}
+                  sx={getOutlinedInputStyles(dirtyFields, "shortStoreName")}
                 >
                   <InputLabel htmlFor="shortStoreName" required>
                     Short Store Name
@@ -419,7 +429,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
                   variant="outlined"
                   fullWidth
                   error={!!errors.zoneId}
-                  sx={getOutlinedInputStyles(dirtyFields, 'zoneId')}
+                  sx={getOutlinedInputStyles(dirtyFields, "zoneId")}
                 >
                   <InputLabel htmlFor="zoneId" required>
                     Store Timezone
@@ -461,7 +471,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
                   variant="outlined"
                   fullWidth
                   error={!!errors.storeAddress}
-                  sx={getOutlinedInputStyles(dirtyFields, 'storeAddress')}
+                  sx={getOutlinedInputStyles(dirtyFields, "storeAddress")}
                 >
                   <InputLabel htmlFor="storeAddress" required>
                     Address
@@ -495,7 +505,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
                   variant="outlined"
                   fullWidth
                   error={!!errors.storePhoneNumber}
-                  sx={getOutlinedInputStyles(dirtyFields, 'storePhoneNumber')}
+                  sx={getOutlinedInputStyles(dirtyFields, "storePhoneNumber")}
                 >
                   <InputLabel htmlFor="storePhoneNumber" required>
                     Store Phone Number
@@ -533,7 +543,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
                   variant="outlined"
                   fullWidth
                   error={!!errors.storeEmail}
-                  sx={getOutlinedInputStyles(dirtyFields, 'storeEmail')}
+                  sx={getOutlinedInputStyles(dirtyFields, "storeEmail")}
                 >
                   <InputLabel htmlFor="storeEmail" required>
                     Store Email Address
@@ -569,11 +579,9 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
                   variant="outlined"
                   fullWidth
                   error={!!errors.facebookLink}
-                  sx={getOutlinedInputStyles(dirtyFields, 'facebookLink')}
+                  sx={getOutlinedInputStyles(dirtyFields, "facebookLink")}
                 >
-                  <InputLabel htmlFor="facebookLink">
-                    Facebook Link
-                  </InputLabel>
+                  <InputLabel htmlFor="facebookLink">Facebook Link</InputLabel>
                   <OutlinedInput
                     {...field}
                     id="facebookLink"
@@ -612,7 +620,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
                   variant="outlined"
                   fullWidth
                   error={!!errors.instagramLink}
-                  sx={getOutlinedInputStyles(dirtyFields, 'instagramLink')}
+                  sx={getOutlinedInputStyles(dirtyFields, "instagramLink")}
                 >
                   <InputLabel htmlFor="instagramLink">
                     Instagram Link
@@ -652,7 +660,11 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
                 Booking Link
               </label>
               <Tooltip title="This is the booking link of your store. You can add this link to your Google page.">
-                <IconButton aria-label="bookingLinkHint" edge="end" sx={{ mb: 1 }}>
+                <IconButton
+                  aria-label="bookingLinkHint"
+                  edge="end"
+                  sx={{ mb: 1 }}
+                >
                   <InfoOutlinedIcon />
                 </IconButton>
               </Tooltip>
@@ -704,13 +716,23 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
                               field.value ? moment(field.value, "HH:mm") : null
                             }
                             onChange={(newValue) => {
-                              field.onChange(newValue ? newValue.format("HH:mm") : null);
-                              handleBusinessHourChange(businessHourItem.dayOfWeek, "openingTime", newValue);
+                              field.onChange(
+                                newValue ? newValue.format("HH:mm") : null
+                              );
+                              handleBusinessHourChange(
+                                businessHourItem.dayOfWeek,
+                                "openingTime",
+                                newValue
+                              );
                             }}
-                            sx={{ width: "7rem",
-                              backgroundColor: dirtyFields.businessHoursList?.[index]?.openingTime ? 'lightyellow' : 'inherit',
-                             }}
-                            
+                            sx={{
+                              width: "7rem",
+                              backgroundColor: dirtyFields.businessHoursList?.[
+                                index
+                              ]?.openingTime
+                                ? "lightyellow"
+                                : "inherit",
+                            }}
                           />
                         )}
                       />
@@ -732,12 +754,23 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
                               field.value ? moment(field.value, "HH:mm") : null
                             }
                             onChange={(newValue) => {
-                              field.onChange(newValue ? newValue.format("HH:mm") : null);
-                              handleBusinessHourChange(businessHourItem.dayOfWeek, "closingTime", newValue);
+                              field.onChange(
+                                newValue ? newValue.format("HH:mm") : null
+                              );
+                              handleBusinessHourChange(
+                                businessHourItem.dayOfWeek,
+                                "closingTime",
+                                newValue
+                              );
                             }}
-                            sx={{ width: "7rem",
-                              backgroundColor: dirtyFields.businessHoursList?.[index]?.openingTime ? 'lightyellow' : 'inherit',
-                             }}
+                            sx={{
+                              width: "7rem",
+                              backgroundColor: dirtyFields.businessHoursList?.[
+                                index
+                              ]?.openingTime
+                                ? "lightyellow"
+                                : "inherit",
+                            }}
                           />
                         )}
                       />
@@ -752,7 +785,10 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
                             checked={field.value ?? false}
                             onChange={(e) => {
                               field.onChange(e.target.checked);
-                              handleBusinessHourSwitchChange(businessHourItem.dayOfWeek, e.target.checked);
+                              handleBusinessHourSwitchChange(
+                                businessHourItem.dayOfWeek,
+                                e.target.checked
+                              );
                             }}
                             color="primary"
                           />
@@ -773,28 +809,33 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
           </div>
           <div className="text-center">
             <LoadingButton
-                type="submit"
-                variant="contained" // Use 'contained' to have a solid background color
-                className="w-full flex justify-center items-center h-[40px] focus:outline-none focus:shadow-outline"
-                loading={submitting}
-                disabled={!isValid || submitting || !isDirty}
-                loadingIndicator={
-                  <CircularProgress style={{ color: "white" }} size={24} />
-                }
-                sx={{
+              type="submit"
+              variant="contained" // Use 'contained' to have a solid background color
+              className="w-full flex justify-center items-center h-[40px] focus:outline-none focus:shadow-outline"
+              loading={submitting}
+              disabled={!isValid || submitting || !isDirty}
+              loadingIndicator={
+                <CircularProgress style={{ color: "white" }} size={24} />
+              }
+              sx={{
+                backgroundColor: "black",
+                color: "white",
+                textTransform: "none",
+                "&:hover": {
                   backgroundColor: "black",
-                  color: "white",
-                  textTransform: "none",
-                  "&:hover": {
-                    backgroundColor: "black",
-                  },
-                }}
-              >
-                {submitType?.toLocaleUpperCase()}
-              </LoadingButton>
+                },
+              }}
+            >
+              {submitType?.toLocaleUpperCase()}
+            </LoadingButton>
           </div>
         </form>
       </Paper>
+      <SuccessDialog
+        open={openSuccessDialog}
+        onClose={handleCloseSuccessDialog}
+        message={successMessage}
+      />
     </Box>
   );
 };
