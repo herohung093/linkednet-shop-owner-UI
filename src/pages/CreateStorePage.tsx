@@ -14,7 +14,7 @@ const CreateStorePage: React.FC = () => {
         width: "100%",
       }}
     >
-      <StoreInfo handleUpdate={() => {}} submitType="create"></StoreInfo>
+      <StoreInfo submitType="create"></StoreInfo>
     </Box>
   );
 };

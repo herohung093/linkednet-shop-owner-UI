@@ -3,9 +3,9 @@ import { AccountCircle } from "@mui/icons-material";
 import { Avatar, IconButton, MenuItem, Menu, SelectChangeEvent, Divider, Box } from "@mui/material";
 import { useNavigate } from "react-router";
 import LogoutIcon from '@mui/icons-material/Logout';
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import SelectStore from "./SelectStore";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { axiosWithToken } from "../utils/axios";
 import { RootState } from "../redux toolkit/store";
 import { setStoresList } from "../redux toolkit/storesListSlice";
@@ -21,16 +21,10 @@ const AccountMenuItem = () => {
   );
 
 
-  const storeConfigRedux = useSelector(
-    (state: RootState) => state.storesList.storesList
+  const storeConfig = useSelector(
+    (state: RootState) => state.storesList.storesList,
+    shallowEqual
   );
-  const storeConfig = useMemo(() => {
-    if (storeConfigRedux) {
-      return storeConfigRedux.slice().sort((a, b) => a.id - b.id);
-    }
-    return [];
-  }, [storeConfigRedux]);
-
 
   const fetchAllStore = useCallback(async () => {
     try {

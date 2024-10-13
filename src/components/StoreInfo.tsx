@@ -28,6 +28,8 @@ import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import LoadingButton from "@mui/lab/LoadingButton";
 import SuccessDialog from "./dialogs/SuccessDialog";
+import { useDispatch } from "react-redux";
+import { setStoresList } from "../redux toolkit/storesListSlice";
 
 type BusinessHour = {
   dayOfWeek: string;
@@ -121,12 +123,10 @@ const schema = yup.object().shape({
 interface StoreInfoProps {
   submitType?: string;
   storeUuid?: string;
-  handleUpdate: () => void;
 }
 
 const StoreInfo: React.FC<StoreInfoProps> = ({
   storeUuid,
-  handleUpdate,
   submitType,
 }) => {
   const defaultStoreConfig: StoreInfo = {
@@ -190,6 +190,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const dispatch = useDispatch();
   const {
     control,
     handleSubmit,
@@ -264,7 +265,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
       }
       setOpenSuccessDialog(true);
       reset(response.data);
-      handleUpdate();
+      dispatch(setStoresList([response.data]));
     } catch (error) {
       console.log(error);
     } finally {
