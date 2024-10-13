@@ -94,7 +94,7 @@ const MenubarDemo = () => {
   const mainMenuItems: MenuItemProps[] = [
     { label: "Home", path: "/dashboard" },
     { label: "Manage Stores", children: storeMenuItems },
-    { label: "Staffs", path: "/staffs" },
+    { label: "Staff", path: "/staff" },
     { label: "Services", path: "/services" },
     { label: "Manage Bookings", path: "/manage-bookings" },
   ];
@@ -281,10 +281,10 @@ const MenubarDemo = () => {
                     </Menu>
                   </div>
                   <Button
-                    onClick={() => navigate("/staffs")}
+                    onClick={() => navigate("/staff")}
                     sx={mainMenuStyle}
                   >
-                    Staffs
+                    Staff
                   </Button>
                   <Button
                     onClick={() => navigate("/services")}

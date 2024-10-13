@@ -48,7 +48,7 @@ const router = createBrowserRouter([
         element: <ManageReservationsPage />
       },
       {
-        path: "staffs",
+        path: "staff",
         element: <StaffsPage />,
       },
       {
