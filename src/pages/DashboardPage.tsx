@@ -21,6 +21,8 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (storeConfigRedux.length === 0) {
       setOpenWelcomeDialog(true);
+    } else {
+      setOpenWelcomeDialog(false);
     }
   }, [storeConfigRedux]);
 
