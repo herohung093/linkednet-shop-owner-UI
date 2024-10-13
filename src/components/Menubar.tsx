@@ -24,7 +24,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { RootState } from "../redux toolkit/store";
-import { useSelector } from "react-redux";
+import { useSelector, shallowEqual } from "react-redux";
 
 interface MenuItemProps {
   label: string;
@@ -61,7 +61,8 @@ const MenubarDemo = () => {
     null
   );
   const storeConfigRedux = useSelector(
-    (state: RootState) => state.storesList.storesList
+    (state: RootState) => state.storesList.storesList,
+    shallowEqual // Use shallowEqual to avoid re-renders if the value is the same
   );
 
   const handleMobileItemClick = (label: string) => {
