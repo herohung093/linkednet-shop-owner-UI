@@ -37,7 +37,7 @@ const WelcomeDialog: React.FC<WelcomeDialogProps> = ({ open, onClose }) => {
       aria-describedby="welcome-dialog-description"
       disableEscapeKeyDown
     >
-      <DialogTitle id="welcome-dialog-title">Welcome!</DialogTitle>
+      <DialogTitle id="welcome-dialog-title">Welcome to Big Umbrella!</DialogTitle>
       <DialogContent>
         <DialogContentText id="welcome-dialog-description">
           You have just created an account. There is no store associated with
@@ -45,7 +45,19 @@ const WelcomeDialog: React.FC<WelcomeDialogProps> = ({ open, onClose }) => {
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleCreateStore} color="primary" variant="contained">
+        <Button
+          onClick={handleCreateStore}
+          variant="contained"
+          sx={{
+            width: "200px",
+            backgroundColor: "black",
+            color: "white",
+            textTransform: "none",
+            "&:hover": {
+              backgroundColor: "black",
+            },
+          }}
+        >
           Create Store
         </Button>
       </DialogActions>
