@@ -172,10 +172,7 @@ const ManageCustomersPage: React.FC = () => {
     handleMenuClose();
   };
 
-  const onSubmit = (data: {
-    searchString: string;
-    filterBlacklisted: boolean;
-  }) => {
+  const onSubmit = () => {
     fetchCustomers(page, pageSize);
   };
 
