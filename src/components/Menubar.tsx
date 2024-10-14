@@ -97,6 +97,7 @@ const MenubarDemo = () => {
     { label: "Staff", path: "/staff" },
     { label: "Services", path: "/services" },
     { label: "Manage Bookings", path: "/manage-bookings" },
+    { label: "Manage Customers", path: "/manage-customers" },
   ];
 
   function HideOnScroll(props: Props) {
@@ -301,6 +302,12 @@ const MenubarDemo = () => {
                     sx={mainMenuStyle}
                   >
                     Manage Bookings
+                  </Button>
+                  <Button
+                    onClick={() => navigate("/manage-customers")}
+                    sx={mainMenuStyle}
+                  >
+                    Manage Customer
                   </Button>
                 </Box>
                 <Box sx={{ display: "flex", gap: "0.5rem" }}>

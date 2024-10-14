@@ -21,6 +21,7 @@ import CreateStorePage from "./pages/CreateStorePage.tsx";
 import NotFoundPage from "./pages/NotFoundPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
 import EditBookingPage from "./pages/EditBookingPage.tsx";
+import ManageCustomersPage from "./pages/ManageCustomersPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -46,6 +47,10 @@ const router = createBrowserRouter([
       {
         path: "manage-bookings",
         element: <ManageReservationsPage />
+      },
+      {
+        path: "manage-customers",
+        element: <ManageCustomersPage />
       },
       {
         path: "staff",
