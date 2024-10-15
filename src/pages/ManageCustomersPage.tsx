@@ -28,15 +28,12 @@ const ManageCustomersPage: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRow, setSelectedRow] = useState<null | GridRowId>(null);
 
-  const { control, handleSubmit, watch } = useForm({
+  const { control, handleSubmit, getValues } = useForm({
     defaultValues: {
       searchString: "",
       filterBlacklisted: false,
     },
   });
-
-  const searchString = watch("searchString");
-  const filterBlacklisted = watch("filterBlacklisted");
 
   const formatPhoneNumber = (mobileNumber: string) => {
     if (!mobileNumber) {
@@ -134,6 +131,7 @@ const ManageCustomersPage: React.FC = () => {
   const columns = isSmallOrMediumScreen ? mobileColumns : desktopColumns;
 
   const fetchCustomers = async (page: number, pageSize: number) => {
+    const { searchString, filterBlacklisted } = getValues();
     setLoading(true);
     try {
       const response = await axiosWithToken.get(`/customer/search`, {
