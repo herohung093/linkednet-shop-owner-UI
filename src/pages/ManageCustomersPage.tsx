@@ -14,10 +14,9 @@ import { axiosWithToken } from "../utils/axios";
 import moment from "moment";
 import { useMediaQuery } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
-import { green, red } from "@mui/material/colors";
+import HighlightOffRoundedIcon from '@mui/icons-material/HighlightOffRounded';
 import { Controller, useForm } from "react-hook-form";
+import red from "@mui/material/colors/red";
 
 const ManageCustomersPage: React.FC = () => {
   const [customers, setCustomers] = useState([]);
@@ -65,13 +64,13 @@ const ManageCustomersPage: React.FC = () => {
     },
     {
       field: "blacklisted",
-      headerName: "Blacklisted",
+      headerName: "Blocked",
       width: 150,
       renderCell: (params) =>
         params.value ? (
-          <CheckIcon style={{ color: red[500] }} />
+          <HighlightOffRoundedIcon  sx={{color: red[500]}} />
         ) : (
-          <CloseIcon style={{ color: green[500] }} />
+          <></>
         ),
     },
     {
@@ -106,13 +105,13 @@ const ManageCustomersPage: React.FC = () => {
     },
     {
       field: "blacklisted",
-      headerName: "Blacklisted",
+      headerName: "Blocked",
       flex: 1,
       renderCell: (params) =>
         params.value ? (
-          <CheckIcon style={{ color: red[500] }} />
+          <HighlightOffRoundedIcon sx={{color: red[500]}} />
         ) : (
-          <CloseIcon style={{ color: green[500] }} />
+          <></>
         ),
     },
     {
