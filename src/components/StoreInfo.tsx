@@ -27,7 +27,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import LoadingButton from "@mui/lab/LoadingButton";
-import SuccessDialog from "./dialogs/SuccessDialog";
+import ActionResultDialog from "./dialogs/ActionResultDialog";
 import { useDispatch } from "react-redux";
 import { setStoresList } from "../redux toolkit/storesListSlice";
 
@@ -125,10 +125,7 @@ interface StoreInfoProps {
   storeUuid?: string;
 }
 
-const StoreInfo: React.FC<StoreInfoProps> = ({
-  storeUuid,
-  submitType,
-}) => {
+const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
   const defaultStoreConfig: StoreInfo = {
     storeName: "",
     shortStoreName: "",
@@ -186,8 +183,11 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
     ],
   };
 
-  const [openSuccessDialog, setOpenSuccessDialog] = useState<boolean>(false);
-  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [openResultDialog, setOpenResultDialog] = useState<boolean>(false);
+  const [resultDialogType, setResultDialogType] = useState<
+    "success" | "failure"
+  >("success");
+  const [resultDialogMessage, setResultDialogMessage] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const dispatch = useDispatch();
@@ -258,17 +258,22 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
       let response;
       if (submitType === "update") {
         response = await axiosWithToken.put("/storeConfig/", data);
-        setSuccessMessage("Store updated successfully!");
+        setResultDialogMessage("Store updated successfully!");
       } else {
         response = await axiosWithToken.post("/storeConfig/", data);
-        setSuccessMessage("Store created successfully!");
+        setResultDialogMessage("Store created successfully!");
       }
-      setOpenSuccessDialog(true);
+      setResultDialogType("success");
       reset(response.data);
       dispatch(setStoresList([response.data]));
     } catch (error) {
       console.log(error);
+      setResultDialogType("failure");
+      setResultDialogMessage(
+        "Failed to update store information. Please try again!"
+      );
     } finally {
+      setOpenResultDialog(true);
       setSubmitting(false);
     }
   };
@@ -313,8 +318,8 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
     },
   });
 
-  const handleCloseSuccessDialog = () => {
-    setOpenSuccessDialog(false);
+  const handleCloseResultDialogDialog = () => {
+    setOpenResultDialog(false);
   };
 
   if (loading) return <CustomPageLoading />;
@@ -832,10 +837,11 @@ const StoreInfo: React.FC<StoreInfoProps> = ({
           </div>
         </form>
       </Paper>
-      <SuccessDialog
-        open={openSuccessDialog}
-        onClose={handleCloseSuccessDialog}
-        message={successMessage}
+      <ActionResultDialog
+        open={openResultDialog}
+        onClose={handleCloseResultDialogDialog}
+        message={resultDialogMessage}
+        type={resultDialogType}
       />
     </Box>
   );
