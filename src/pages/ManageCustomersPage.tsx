@@ -122,7 +122,7 @@ const ManageCustomersPage: React.FC = () => {
     {
       field: "actions",
       headerName: "Actions",
-      width: 100,
+      width: 70,
       renderCell: (params) => (
         <IconButton onClick={(event) => handleMenuOpen(event, params.id)}>
           <MoreVertIcon />
@@ -161,7 +161,7 @@ const ManageCustomersPage: React.FC = () => {
     {
       field: "actions",
       headerName: "Actions",
-      flex: 1,
+      width: 70,
       renderCell: (params) => (
         <IconButton onClick={(event) => handleMenuOpen(event, params.id)}>
           <MoreVertIcon />
