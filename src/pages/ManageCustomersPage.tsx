@@ -22,7 +22,7 @@ import { axiosWithToken } from "../utils/axios";
 import moment from "moment";
 import { useMediaQuery } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { Controller, set, useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import ActionResultDialog from "../components/dialogs/ActionResultDialog";
 
 interface Customer {
@@ -240,11 +240,7 @@ const ManageCustomersPage: React.FC = () => {
         blacklisted: newRow.blacklisted,
       };
 
-      // Optionally, make a PUT request to update the customer on the server
-      const response = await axiosWithToken.put(
-        `/customer/${newRow.id}`,
-        updatedRow
-      );
+      await axiosWithToken.put(`/customer/${newRow.id}`, updatedRow);
 
       // Update the state with the edited row
       setCustomers((prevCustomers) =>
