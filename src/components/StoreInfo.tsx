@@ -732,7 +732,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
                               );
                             }}
                             sx={{
-                              width: "7rem",
+                              width: { xs: "5rem", sm: "7rem" },
                               backgroundColor: dirtyFields.businessHoursList?.[
                                 index
                               ]?.openingTime
@@ -770,7 +770,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
                               );
                             }}
                             sx={{
-                              width: "7rem",
+                              width: { xs: "5rem", sm: "7rem" },
                               backgroundColor: dirtyFields.businessHoursList?.[
                                 index
                               ]?.openingTime
