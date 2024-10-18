@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   TextField,
   Box,
@@ -24,24 +24,18 @@ import { useMediaQuery } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Controller, useForm } from "react-hook-form";
 import ActionResultDialog from "../components/dialogs/ActionResultDialog";
-
-interface Customer {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  createdAt: string;
-  blacklisted: boolean;
-}
+import { useNavigate, useNavigationType } from "react-router";
 
 const ManageCustomersPage: React.FC = () => {
+  const navigate = useNavigate();
+  const navigationType = useNavigationType();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(20); // Default page size
   const [rowCount, setRowCount] = useState(0); // Total number of rows
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [actionMenuAnchorEl, setActionmenuAnchorEl] =
+    useState<null | HTMLElement>(null);
   const [selectedRow, setSelectedRow] = useState<null | GridRowId>(null);
   const [customerUpdateResultDialogOpen, setCustomerUpdateResultDialogOpen] =
     useState(false);
@@ -49,12 +43,21 @@ const ManageCustomersPage: React.FC = () => {
     "success" | "failure"
   >("success");
 
-  const { control, handleSubmit, getValues } = useForm({
+  const { control, handleSubmit, getValues, setValue } = useForm({
     defaultValues: {
       searchString: "",
       filterBlacklisted: false,
     },
   });
+
+  const saveStateToSessionStorage = (state: any) => {
+    sessionStorage.setItem("manageCustomersPageState", JSON.stringify(state));
+  };
+
+  const loadStateFromSessionStorage = () => {
+    const state = sessionStorage.getItem("manageCustomersPageState");
+    return state ? JSON.parse(state) : null;
+  };
 
   const formatPhoneNumber = (mobileNumber: string) => {
     if (!mobileNumber) {
@@ -188,6 +191,12 @@ const ManageCustomersPage: React.FC = () => {
       });
       setCustomers(response.data.content);
       setRowCount(response.data.totalElements);
+      saveStateToSessionStorage({
+        page,
+        pageSize,
+        searchString,
+        filterBlacklisted,
+      });
     } catch (error) {
       console.error("Error fetching customers:", error);
     } finally {
@@ -195,21 +204,35 @@ const ManageCustomersPage: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    const savedState = loadStateFromSessionStorage();
+    if (savedState && navigationType === "POP") {
+      setPage(savedState.page);
+      setPageSize(savedState.pageSize);
+      setValue("searchString", savedState.searchString);
+      setValue("filterBlacklisted", savedState.filterBlacklisted);
+      fetchCustomers(savedState.page, savedState.pageSize);
+    }
+  }, []);
+
   const handleMenuOpen = (
     event: React.MouseEvent<HTMLElement>,
     rowId: GridRowId
   ) => {
-    setAnchorEl(event.currentTarget);
+    setActionmenuAnchorEl(event.currentTarget);
     setSelectedRow(rowId);
   };
 
   const handleMenuClose = () => {
-    setAnchorEl(null);
+    setActionmenuAnchorEl(null);
     setSelectedRow(null);
   };
 
   const handleMenuItemClick = (action: string) => {
     console.log(`Action: ${action}, Row ID: ${selectedRow}`);
+    if (action === "Find Bookings") {
+      navigate(`/customer-bookings-history/${selectedRow}`);
+    }
     handleMenuClose();
   };
 
@@ -373,10 +396,11 @@ const ManageCustomersPage: React.FC = () => {
         editMode="row"
         showCellVerticalBorder={true}
         processRowUpdate={processRowUpdate}
+        sx={{ maxHeight: 700, minHeight: 300 }}
       />
       <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
+        anchorEl={actionMenuAnchorEl}
+        open={Boolean(actionMenuAnchorEl)}
         onClose={handleMenuClose}
       >
         <MenuItem onClick={() => handleMenuItemClick("Find Bookings")}>

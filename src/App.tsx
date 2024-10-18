@@ -22,6 +22,7 @@ import NotFoundPage from "./pages/NotFoundPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
 import EditBookingPage from "./pages/EditBookingPage.tsx";
 import ManageCustomersPage from "./pages/ManageCustomersPage.tsx";
+import CustomerBookingsHistory from "./components/CustomerBookingsHistory.tsx";
 
 const router = createBrowserRouter([
   {
@@ -51,6 +52,10 @@ const router = createBrowserRouter([
       {
         path: "manage-customers",
         element: <ManageCustomersPage />
+      },
+      {
+        path: "customer-bookings-history/:customerId",
+        element: <CustomerBookingsHistory />,
       },
       {
         path: "staff",

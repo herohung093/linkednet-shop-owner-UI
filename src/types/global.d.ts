@@ -65,6 +65,7 @@ declare interface Customer {
   email: string;
   phone: string;
   blacklisted: boolean;
+  createdAt: string;
 }
 
 declare ReservationStatus = {
