@@ -25,6 +25,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Controller, useForm } from "react-hook-form";
 import ActionResultDialog from "../components/dialogs/ActionResultDialog";
 import { useNavigate, useNavigationType } from "react-router";
+import ResponsiveBox from "../components/ResponsiveBox";
 
 const ManageCustomersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -174,6 +175,7 @@ const ManageCustomersPage: React.FC = () => {
   ];
 
   const isSmallOrMediumScreen = useMediaQuery("(max-width:960px)");
+  const isMobile = useMediaQuery("(max-width:600px)");
   const columns = isSmallOrMediumScreen ? mobileColumns : desktopColumns;
 
   const fetchCustomers = async (page: number, pageSize: number) => {
@@ -282,7 +284,8 @@ const ManageCustomersPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ padding: 2 }}>
+    <ResponsiveBox
+    >
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box
           sx={{
@@ -396,7 +399,7 @@ const ManageCustomersPage: React.FC = () => {
         editMode="row"
         showCellVerticalBorder={true}
         processRowUpdate={processRowUpdate}
-        sx={{ maxHeight: 700, minHeight: 300 }}
+        sx={{  maxWidth: 1300, minHeight: 300, height: "80vh" }}
       />
       <Menu
         anchorEl={actionMenuAnchorEl}
@@ -417,7 +420,7 @@ const ManageCustomersPage: React.FC = () => {
         }
         type={resultDialogType}
       />
-    </Box>
+    </ResponsiveBox>
   );
 };
 

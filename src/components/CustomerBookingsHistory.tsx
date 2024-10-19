@@ -4,7 +4,8 @@ import { Box, Typography, CircularProgress } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { axiosWithToken } from "../utils/axios";
 import moment from "moment";
-import { useMediaQuery } from '@mui/material';
+import { useMediaQuery } from "@mui/material";
+import ResponsiveBox from "./ResponsiveBox";
 
 const CustomerBookingsHistory: React.FC = () => {
   const { customerId: urlCustomerId } = useParams<{ customerId: string }>();
@@ -15,7 +16,8 @@ const CustomerBookingsHistory: React.FC = () => {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(20); // Default page size
   const [rowCount, setRowCount] = useState(0); // Total number of rows
-  const isLargeScreen = useMediaQuery('(min-width:1200px)');
+  const isLargeScreen = useMediaQuery("(min-width:1200px)");
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const getStatusBackgroundColor = (status: string) => {
     switch (status) {
@@ -51,6 +53,7 @@ const CustomerBookingsHistory: React.FC = () => {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchReservations(page, pageSize);
   }, [customerId]);
@@ -141,40 +144,47 @@ const CustomerBookingsHistory: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <ResponsiveBox
+    >
       <Typography variant="h4" component="h1" gutterBottom>
         Customer Bookings History
       </Typography>
       <Typography variant="body1" gutterBottom>
         Customer ID: {customerId}
       </Typography>
-      <DataGrid
-        rows={reservations}
-        columns={columns}
-        loading={loading}
-        paginationMode="server"
-        pagination
-        hideFooterSelectedRowCount
-        rowCount={rowCount}
-        showCellVerticalBorder={true}
-        initialState={{
-          density: "compact",
-          pagination: {
-            paginationModel: {
-              pageSize: pageSize,
-              page: page,
+      <Box sx={{}}>
+        <DataGrid
+          rows={reservations}
+          columns={columns}
+          loading={loading}
+          paginationMode="server"
+          pagination
+          hideFooterSelectedRowCount
+          rowCount={rowCount}
+          showCellVerticalBorder={true}
+          initialState={{
+            density: "compact",
+            pagination: {
+              paginationModel: {
+                pageSize: pageSize,
+                page: page,
+              },
             },
-          },
-        }}
-        pageSizeOptions={[20, 50, 100]}
-        onPaginationModelChange={(params) => {
-          setPage(params.page);
-          setPageSize(params.pageSize);
-          fetchReservations(params.page, params.pageSize);
-        }}
-        sx={{ width: isLargeScreen ? "70%" : "100%", maxHeight: 600, minHeight: 400 }}
-      />
-    </Box>
+          }}
+          pageSizeOptions={[20, 50, 100]}
+          onPaginationModelChange={(params) => {
+            setPage(params.page);
+            setPageSize(params.pageSize);
+            fetchReservations(params.page, params.pageSize);
+          }}
+          sx={{
+            height: "80vh",
+            minHeight: 400,
+            maxWidth: 1300
+          }}
+        />
+      </Box>
+    </ResponsiveBox>
   );
 };
 
