@@ -26,6 +26,7 @@ import { Controller, useForm } from "react-hook-form";
 import ActionResultDialog from "../components/dialogs/ActionResultDialog";
 import { useNavigate, useNavigationType } from "react-router";
 import ResponsiveBox from "../components/ResponsiveBox";
+import DataGridNoRowsOverlay from "../components/DataGridNoRowsOverlay";
 
 const ManageCustomersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -400,6 +401,9 @@ const ManageCustomersPage: React.FC = () => {
         showCellVerticalBorder={true}
         processRowUpdate={processRowUpdate}
         sx={{  maxWidth: 1300, minHeight: 300, height: "80vh" }}
+        slots={{
+          noRowsOverlay: DataGridNoRowsOverlay,
+        }}
       />
       <Menu
         anchorEl={actionMenuAnchorEl}

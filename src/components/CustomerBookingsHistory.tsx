@@ -6,6 +6,7 @@ import { axiosWithToken } from "../utils/axios";
 import moment from "moment";
 import { useMediaQuery } from "@mui/material";
 import ResponsiveBox from "./ResponsiveBox";
+import DataGridNoRowsOverlay from "./DataGridNoRowsOverlay";
 
 const CustomerBookingsHistory: React.FC = () => {
   const { customerId: urlCustomerId } = useParams<{ customerId: string }>();
@@ -181,6 +182,9 @@ const CustomerBookingsHistory: React.FC = () => {
             height: "80vh",
             minHeight: 400,
             maxWidth: 1300
+          }}
+          slots={{
+            noRowsOverlay: DataGridNoRowsOverlay,
           }}
         />
       </Box>
