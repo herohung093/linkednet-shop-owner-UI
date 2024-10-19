@@ -4,9 +4,9 @@ import { Box, Typography, CircularProgress } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { axiosWithToken } from "../utils/axios";
 import moment from "moment";
-import { useMediaQuery } from "@mui/material";
 import ResponsiveBox from "./ResponsiveBox";
 import DataGridNoRowsOverlay from "./DataGridNoRowsOverlay";
+import BookingEventDialog from "./BookingEventDialog";
 
 const CustomerBookingsHistory: React.FC = () => {
   const { customerId: urlCustomerId } = useParams<{ customerId: string }>();
@@ -17,8 +17,9 @@ const CustomerBookingsHistory: React.FC = () => {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(20); // Default page size
   const [rowCount, setRowCount] = useState(0); // Total number of rows
-  const isLargeScreen = useMediaQuery("(min-width:1200px)");
-  const isMobile = useMediaQuery("(max-width:600px)");
+  const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Reservation | null>(null);
+  const [isStatusModified, setIsStatusModified] = useState(false);
 
   const getStatusBackgroundColor = (status: string) => {
     switch (status) {
@@ -119,6 +120,52 @@ const CustomerBookingsHistory: React.FC = () => {
     },
   ];
 
+  const convertReservationToProcessedEvent = (reservation: Reservation) => {
+    if (reservation) {
+      return {
+        event_id: reservation.id,
+        title: reservation.customer.firstName,
+        start: new Date(reservation.bookingTime),
+        end: new Date(reservation.endTime),
+        data: reservation,
+      };
+    } else return null;
+  }
+
+  const handleBookingStatusChange = (e: any) => {
+    if (selectedEvent) {
+      setSelectedEvent({
+        ...selectedEvent,
+        status: e,
+      });
+    }
+
+    setIsStatusModified(selectedEvent?.status !== e);
+    }
+
+    const updateEventData = (response: Reservation) => {
+      setReservations((prevReservations) =>
+        prevReservations.map((reservation) =>
+          reservation.id === response.id ? response : reservation
+        )
+      );
+    };
+
+    const updateReservationEvent = async (selectedEvent: Reservation) => {
+      const url = `/reservation/`;
+      const response = await axiosWithToken.put(url, selectedEvent);
+  
+      if (!response.data) {
+        throw new Error("Failed to update reservation event");
+      }
+  
+      updateEventData(response.data);
+    };
+
+    const handleSubmitUpdateBooking = () => {
+      updateReservationEvent(selectedEvent!);
+    };
+
   if (loading) {
     return (
       <Box
@@ -186,8 +233,20 @@ const CustomerBookingsHistory: React.FC = () => {
           slots={{
             noRowsOverlay: DataGridNoRowsOverlay,
           }}
+          onRowClick={(params) => {
+            setIsBookingDialogOpen(true);
+            setSelectedEvent(params.row);
+          }}
         />
       </Box>
+      <BookingEventDialog
+          isDialogOpen={isBookingDialogOpen}
+          setIsDialogOpen={setIsBookingDialogOpen}
+          selectedEvent={convertReservationToProcessedEvent(selectedEvent!)}
+          handleStatusChange={handleBookingStatusChange}
+          handleSubmit={handleSubmitUpdateBooking}
+          isStatusModified={isStatusModified}
+        />
     </ResponsiveBox>
   );
 };

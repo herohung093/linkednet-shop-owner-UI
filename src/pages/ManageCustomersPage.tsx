@@ -176,7 +176,6 @@ const ManageCustomersPage: React.FC = () => {
   ];
 
   const isSmallOrMediumScreen = useMediaQuery("(max-width:960px)");
-  const isMobile = useMediaQuery("(max-width:600px)");
   const columns = isSmallOrMediumScreen ? mobileColumns : desktopColumns;
 
   const fetchCustomers = async (page: number, pageSize: number) => {
