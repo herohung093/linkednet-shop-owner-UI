@@ -1,11 +1,12 @@
 import React from "react";
-import { Box, useMediaQuery } from "@mui/material";
+import { Box, SxProps, Theme, useMediaQuery } from "@mui/material";
 
 interface ResponsiveBoxProps {
   children: React.ReactNode;
+  sx?: SxProps<Theme>;
 }
 
-const ResponsiveBox: React.FC<ResponsiveBoxProps> = ({ children }) => {
+const ResponsiveBox: React.FC<ResponsiveBoxProps> = ({ children, sx }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
 
   return (
@@ -15,6 +16,7 @@ const ResponsiveBox: React.FC<ResponsiveBoxProps> = ({ children }) => {
         transform: isMobile ? "scale(0.7)" : "none",
         transformOrigin: "top left",
         width: isMobile ? "140%" : "100%",
+        ...sx, // Merge additional styles
       }}
     >
       {children}

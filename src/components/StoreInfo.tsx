@@ -325,7 +325,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
   if (loading) return <CustomPageLoading />;
 
   return (
-    <Box sx={{ maxWidth: { md: "70%", lg: "40%" }, width: "33rem" }}>
+    <Box sx={{ maxWidth: 600 }}>
       <Paper
         elevation={1}
         sx={{
@@ -732,7 +732,6 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
                               );
                             }}
                             sx={{
-                              width: { xs: "5rem", sm: "7rem" },
                               backgroundColor: dirtyFields.businessHoursList?.[
                                 index
                               ]?.openingTime
@@ -770,7 +769,6 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
                               );
                             }}
                             sx={{
-                              width: { xs: "5rem", sm: "7rem" },
                               backgroundColor: dirtyFields.businessHoursList?.[
                                 index
                               ]?.openingTime

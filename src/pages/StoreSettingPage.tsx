@@ -4,6 +4,7 @@ import { RootState } from "../redux toolkit/store";
 import StoreInfo from "../components/StoreInfo";
 import withAuth from "../components/HOC/withAuth";
 import { Box } from "@mui/material";
+import ResponsiveBox from "../components/ResponsiveBox";
 
 const StoreSettingPage: React.FC = () => {
   const [selectedStore, setSelectedStore] = useState<number | string>("");
@@ -38,21 +39,22 @@ const StoreSettingPage: React.FC = () => {
 
   return (
     <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100%",
-        width: "100%",
-      }}
     >
       {storeConfig.length > 0 ? (
         <>
           {selectedStoreInfo && (
-            <StoreInfo
-              storeUuid={selectedStoreInfo.storeUuid}
-              submitType="update"
-            />
+            <ResponsiveBox
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <StoreInfo
+                storeUuid={selectedStoreInfo.storeUuid}
+                submitType="update"
+              />
+            </ResponsiveBox>
           )}
         </>
       ) : (
