@@ -124,7 +124,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
         {mode === "edit" ? (
           <EditIcon className="cursor-pointer text-blue-500" />
         ) : (
-          <AddIcon />
+          <AddIcon className="cursor-pointer text-blue-500"/>
         )}
       </IconButton>
 
