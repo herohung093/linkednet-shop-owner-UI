@@ -1,20 +1,24 @@
 import { useEffect, useState } from "react";
-import * as Dialog from "@radix-ui/react-dialog";
-import { Cross2Icon } from "@radix-ui/react-icons";
 import { axiosWithToken } from "../utils/axios";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
 import {
   FormControl,
   InputLabel,
   OutlinedInput,
   FormHelperText,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
 } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface ServiceItem {
   id: number;
@@ -114,37 +118,44 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
     }
   };
 
-  useEffect(() => {
-    return () => {
-      reset();
-    };
-  }, [reset]);
-
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild className="sm:hidden">
-        <button className="">
-          {mode === "edit" ? (
-            <MoreVertIcon className="cursor-pointer text-blue-500" />
-          ) : (
-            <AddIcon />
-          )}
-        </button>
-      </Dialog.Trigger>
-      <Dialog.Trigger asChild className="hidden sm:block">
-        <button className="btn-secondary">
-          {mode === "edit" ? "Edit Service" : "Add Service"}
-        </button>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="overlay-dialog data-[state=open]:animate-overlayShow" />
-        <Dialog.Content className="data-[state=open]:animate-contentShow content-dialog">
-          <Dialog.Title className="text-slate-700 m-0 text-[17px] font-medium mb-5">
-            {mode === "edit"
-              ? `Edit Service for ${typeName}`
-              : `Add Service to ${typeName}`}
-          </Dialog.Title>
-          <form onSubmit={handleSubmit(onSubmitHandler)}>
+    <>
+      <IconButton onClick={() => setOpen(true)} className="sm:hidden">
+        {mode === "edit" ? (
+          <EditIcon className="cursor-pointer text-blue-500" />
+        ) : (
+          <AddIcon />
+        )}
+      </IconButton>
+
+      {/* <Button onClick={() => setOpen(true)} className="hidden sm:block">
+        {mode === "edit" ? "Edit Service" : "Add Service"}
+      </Button> */}
+
+      <Dialog
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          reset();
+        }}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>
+          {mode === "edit"
+            ? `Edit Service for ${typeName}`
+            : `Add Service to ${typeName}`}
+          <IconButton
+            aria-label="close"
+            onClick={() => setOpen(false)}
+            style={{ position: "absolute", right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <form onSubmit={handleSubmit(onSubmitHandler)}>
+          <DialogContent dividers>
             <FormControl
               className="!mb-4"
               fullWidth
@@ -250,41 +261,37 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
                 <FormHelperText>{errors.estimatedTime.message}</FormHelperText>
               )}
             </FormControl>
+          </DialogContent>
 
-            <div className="mt-5 flex justify-end">
-              <LoadingButton
-                type="submit"
-                variant="contained" // Use 'contained' to have a solid background color
-                className="w-full flex justify-center items-center h-[40px] focus:outline-none focus:shadow-outline"
-                loading={isSubmitting}
-                disabled={!isValid || isSubmitting || !isDirty}
-                loadingIndicator={
-                  <CircularProgress style={{ color: "white" }} size={24} />
-                }
-                sx={{
+          <DialogActions
+            sx={{
+              justifyContent: "center",
+            }}
+          >
+            <LoadingButton
+              type="submit"
+              variant="contained"
+              loading={isSubmitting}
+              disabled={!isValid || isSubmitting || !isDirty}
+              loadingIndicator={
+                <CircularProgress style={{ color: "white" }} size={24} />
+              }
+              sx={{
+                backgroundColor: "black",
+                color: "white",
+                textTransform: "none",
+                "&:hover": {
                   backgroundColor: "black",
-                  color: "white",
-                  textTransform: "none",
-                  "&:hover": {
-                    backgroundColor: "black",
-                  },
-                }}
-              >
-                {mode === "add" ? "Create Service" : "Submit"}
-              </LoadingButton>
-            </div>
-          </form>
-          <Dialog.Close asChild>
-            <button
-              className="absolute top-[10px] right-[10px] inline-flex h-[25px] w-[25px] appearance-none items-center justify-center rounded-full focus:shadow-[0_0_0_2px] focus:outline-none"
-              aria-label="Close"
+                },
+                width: "200px",
+              }}
             >
-              <Cross2Icon />
-            </button>
-          </Dialog.Close>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+              {mode === "add" ? "Create Service" : "Submit"}
+            </LoadingButton>
+          </DialogActions>
+        </form>
+      </Dialog>
+    </>
   );
 };
 

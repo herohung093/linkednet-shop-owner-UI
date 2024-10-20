@@ -81,7 +81,7 @@ const ServiceTypePage: React.FC = () => {
   );
 
   return (
-    <div className="p-4 md:w-[80%] mx-auto">
+    <div className="p-4 md:w-[80%] mx-auto max-w-[1024px]">
       <div className="mb-6 flex sm:justify-between justify-center items-center">
         <div className="hidden sm:block"></div>
         <div className="mb-6 flex justify-end sm:gap-x-8 ">
