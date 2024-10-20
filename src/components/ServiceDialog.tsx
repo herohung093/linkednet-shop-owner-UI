@@ -1,14 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
-import SwitchActive from "./SwitchActive";
 import { axiosWithToken } from "../utils/axios";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import CustomLoading from "./Loading";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import AddIcon from "@mui/icons-material/Add";
+import {
+  FormControl,
+  InputLabel,
+  OutlinedInput,
+  FormHelperText,
+  CircularProgress,
+} from "@mui/material";
+import LoadingButton from "@mui/lab/LoadingButton";
 
 interface ServiceItem {
   id: number;
@@ -34,18 +40,20 @@ const schemaValidation = yup
     serviceName: yup
       .string()
       .required("Please enter service name")
-      .max(50, "Must be less than 50 characters"),
+      .max(100, "Must be less than 100 characters"),
     serviceDescription: yup
       .string()
       .required("Please enter service description")
-      .max(100, "Must be less than 100 characters"),
+      .max(255, "Must be less than 255 characters"),
     servicePrice: yup
       .number()
       .required("Please enter service price")
+      .positive("Service price must be a positive number")
       .typeError("Service price must be a number"),
     estimatedTime: yup
       .number()
       .required("Please enter estimated time")
+      .positive("Estimated time must be a positive number")
       .typeError("Estimated time must be a number"),
     active: yup.boolean().required(),
   })
@@ -59,10 +67,10 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
   typeName,
 }) => {
   const {
-    register,
     handleSubmit,
     control,
-    formState: { errors, isValid, isSubmitting },
+    reset,
+    formState: { errors, isValid, isSubmitting, isDirty },
   } = useForm<ServiceItemFormData>({
     resolver: yupResolver(schemaValidation),
     mode: "onChange",
@@ -106,9 +114,15 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
     }
   };
 
+  useEffect(() => {
+    return () => {
+      reset();
+    };
+  }, [reset]);
+
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild className=" sm:hidden">
+      <Dialog.Trigger asChild className="sm:hidden">
         <button className="">
           {mode === "edit" ? (
             <MoreVertIcon className="cursor-pointer text-blue-500" />
@@ -118,118 +132,146 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
         </button>
       </Dialog.Trigger>
       <Dialog.Trigger asChild className="hidden sm:block">
-        <button
-          className="btn-secondary"
-        >
+        <button className="btn-secondary">
           {mode === "edit" ? "Edit Service" : "Add Service"}
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="overlay-dialog data-[state=open]:animate-overlayShow " />
+        <Dialog.Overlay className="overlay-dialog data-[state=open]:animate-overlayShow" />
         <Dialog.Content className="data-[state=open]:animate-contentShow content-dialog">
           <Dialog.Title className="text-slate-700 m-0 text-[17px] font-medium mb-5">
             {mode === "edit"
-              ? `Edit Service from ${typeName}`
+              ? `Edit Service for ${typeName}`
               : `Add Service to ${typeName}`}
           </Dialog.Title>
-          <Dialog.Description className="text-mauve11 mt-[10px] mb-5 text-[15px] leading-normal">
-            {mode === "edit"
-              ? "Edit your service. Click save when you're done."
-              : "Add a new service. Click save when you're done."}
-          </Dialog.Description>
           <form onSubmit={handleSubmit(onSubmitHandler)}>
-            <div
-              className={`input-box ${
-                errors?.serviceName?.message && "mb-10 md:mb-5"
-              }`}
+            <FormControl
+              className="!mb-4"
+              fullWidth
+              variant="outlined"
+              error={!!errors.serviceName}
             >
-              <label className="label">Service Name</label>
-              <div className="h-[35px] w-[150px] sm:w-full flex-1 items-center justify-center">
-                <input {...register("serviceName")} className="input" />
-                {errors.serviceName && (
-                  <div className="error-message">
-                    {errors.serviceName.message}
-                  </div>
+              <InputLabel htmlFor="serviceName" required>
+                Service Name
+              </InputLabel>
+              <Controller
+                name="serviceName"
+                control={control}
+                render={({ field }) => (
+                  <OutlinedInput
+                    id="serviceName"
+                    label="Service Name"
+                    {...field}
+                  />
                 )}
-              </div>
-            </div>
-            <div
-              className={`input-box ${
-                errors?.serviceDescription?.message && "mb-10 md:mb-5"
-              }`}
-            >
-              <label className="label">Service Description</label>
-              <div className="h-[35px] w-[150px] sm:w-full flex-1 items-center justify-center">
-                <input {...register("serviceDescription")} className="input" />
-                {errors.serviceDescription && (
-                  <div className="error-message">
-                    {errors.serviceDescription.message}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div
-              className={`input-box ${
-                errors?.servicePrice?.message && "mb-10 md:mb-5"
-              }`}
-            >
-              <label className="label">Service Price</label>
-              <div className="h-[35px] w-[150px] sm:w-full flex-1 items-center justify-center">
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  {...register("servicePrice")}
-                  className="input"
-                />
-                {errors.servicePrice && (
-                  <div className="error-message">
-                    {errors.servicePrice.message}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div
-              className={`input-box ${
-                errors?.estimatedTime?.message && "mb-10 md:mb-5"
-              }`}
-            >
-              <label className="label">Estimated Time</label>
-              <div className="h-[35px] w-[150px] sm:w-full flex-1 items-center justify-center">
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  {...register("estimatedTime")}
-                  className="input"
-                />
-                {errors.estimatedTime && (
-                  <div className="error-message">
-                    {errors.estimatedTime.message}
-                  </div>
-                )}
-              </div>
-            </div>
-            <Controller
-              control={control}
-              name="active"
-              render={({ field }) => (
-                <SwitchActive
-                  active={field.value}
-                  onChange={(value) => field.onChange(value)}
-                />
+              />
+              {errors.serviceName && (
+                <FormHelperText>{errors.serviceName.message}</FormHelperText>
               )}
-            />
+            </FormControl>
+
+            <FormControl
+              className="!mb-4"
+              fullWidth
+              variant="outlined"
+              error={!!errors.serviceDescription}
+            >
+              <InputLabel htmlFor="serviceDescription">
+                Service Description
+              </InputLabel>
+              <Controller
+                name="serviceDescription"
+                control={control}
+                render={({ field }) => (
+                  <OutlinedInput
+                    id="serviceDescription"
+                    label="Service Description"
+                    {...field}
+                  />
+                )}
+              />
+              {errors.serviceDescription && (
+                <FormHelperText>
+                  {errors.serviceDescription.message}
+                </FormHelperText>
+              )}
+            </FormControl>
+
+            <FormControl
+              className="!mb-4"
+              fullWidth
+              variant="outlined"
+              error={!!errors.servicePrice}
+            >
+              <InputLabel htmlFor="servicePrice" required>
+                Service Price
+              </InputLabel>
+              <Controller
+                name="servicePrice"
+                control={control}
+                render={({ field }) => (
+                  <OutlinedInput
+                    id="servicePrice"
+                    label="Service Price"
+                    type="number"
+                    inputMode="numeric"
+                    {...field}
+                  />
+                )}
+              />
+              {errors.servicePrice && (
+                <FormHelperText>{errors.servicePrice.message}</FormHelperText>
+              )}
+            </FormControl>
+
+            <FormControl
+              className="!mb-4"
+              fullWidth
+              variant="outlined"
+              error={!!errors.estimatedTime}
+            >
+              <InputLabel htmlFor="estimatedTime" required>
+                Estimated Time in Minutes
+              </InputLabel>
+              <Controller
+                name="estimatedTime"
+                control={control}
+                render={({ field }) => (
+                  <OutlinedInput
+                    id="estimatedTime"
+                    label="Estimated Time in Minutes"
+                    type="number"
+                    inputMode="numeric"
+                    {...field}
+                  />
+                )}
+              />
+              {errors.estimatedTime && (
+                <FormHelperText>{errors.estimatedTime.message}</FormHelperText>
+              )}
+            </FormControl>
+
             <div className="mt-5 flex justify-end">
-              <button
+              <LoadingButton
                 type="submit"
-                className={`hover:bg-blue-500 focus:shadow-blue-700 inline-flex h-[35px] w-[135px] items-center justify-center rounded-md px-[15px] font-medium leading-none focus:shadow-[0_0_0_2px] focus:outline-none ${
-                  !isValid
-                    ? "bg-slate-500 text-white"
-                    : "bg-slate-950 text-white"
-                }`}
-                disabled={!isValid}
+                variant="contained" // Use 'contained' to have a solid background color
+                className="w-full flex justify-center items-center h-[40px] focus:outline-none focus:shadow-outline"
+                loading={isSubmitting}
+                disabled={!isValid || isSubmitting || !isDirty}
+                loadingIndicator={
+                  <CircularProgress style={{ color: "white" }} size={24} />
+                }
+                sx={{
+                  backgroundColor: "black",
+                  color: "white",
+                  textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: "black",
+                  },
+                }}
               >
-                {isSubmitting ? <CustomLoading /> : "Save changes"}
-              </button>
+                {mode === "add" ? "Create Service" : "Submit"}
+              </LoadingButton>
             </div>
           </form>
           <Dialog.Close asChild>
