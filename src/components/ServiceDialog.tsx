@@ -119,7 +119,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
       </Dialog.Trigger>
       <Dialog.Trigger asChild className="hidden sm:block">
         <button
-          className={`${mode === "edit" ? "btn-secondary" : "btn-primary"}`}
+          className="btn-secondary"
         >
           {mode === "edit" ? "Edit Service" : "Add Service"}
         </button>
