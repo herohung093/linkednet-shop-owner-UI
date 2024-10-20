@@ -1,4 +1,3 @@
-
 import { axiosWithToken } from "../utils/axios";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -61,12 +60,11 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
     mode: "onChange",
     defaultValues: {
       typeName: serviceType?.type || "",
-      levelType: serviceType?.levelType || 1,
+      levelType: serviceType?.levelType || 5, // default to level 5
       typeId: serviceType?.id.toString() || "",
       active: serviceType?.active,
     },
   });
-
 
   const onSubmit = async (data: FormData) => {
     const payloadEdit = {
@@ -94,27 +92,25 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild className="sm:hidden" >
+      <Dialog.Trigger asChild className="sm:hidden">
         <button>
           <MoreVertIcon className="cursor-pointer" />
-        </button>     
-      </Dialog.Trigger> 
-      <Dialog.Trigger asChild className="hidden sm:block" >
-        <button className="btn-primary">
-          Edit Type
-        </button>     
-      </Dialog.Trigger> 
+        </button>
+      </Dialog.Trigger>
+      <Dialog.Trigger asChild className="hidden sm:block">
+        <button className="btn-primary w-44">Edit Service Type</button>
+      </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="data-[state=open]:animate-overlayShow overlay-dialog" />
         <Dialog.Content className="data-[state=open]:animate-contentShow content-dialog">
           <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium mb-5">
-            Edit
+            Edit Service Type
           </Dialog.Title>
           <Dialog.Description></Dialog.Description>
           <form onSubmit={handleSubmit(onSubmit)}>
             <fieldset className="mb-[15px] flex items-center gap-5">
               <label
-                className="text-violet11 w-[90px] text-right text-[15px]"
+                className="text-violet11 text-right text-[15px]"
                 htmlFor="typeName"
               >
                 Type
@@ -130,18 +126,35 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
                 </span>
               )}
             </fieldset>
+
             <fieldset className="mb-[15px] flex items-center gap-5">
               <label
-                className="text-violet11 w-[90px] text-right text-[15px]"
+                className="text-violet11 text-right text-[15px]"
                 htmlFor="levelType"
               >
                 Level Type
               </label>
-              <input
-                className={` text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]`}
-                id="levelType"
-                type="number"
-                {...register("levelType")}
+              <Controller
+                name="levelType"
+                control={control}
+                render={({ field }) => (
+                  <div className="flex space-x-2">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <button
+                        key={level}
+                        type="button"
+                        className={` rounded ${
+                          field.value === level
+                            ? "border-blue-700 bg-blue-700 text-white font-bold w-8"
+                            : "bg-slate-300   border-slate-300 border-2 w-8"
+                        }`}
+                        onClick={() => field.onChange(level)}
+                      >
+                        {level}
+                      </button>
+                    ))}
+                  </div>
+                )}
               />
               {errors.levelType && (
                 <span className="text-red-500 text-sm">
@@ -174,7 +187,7 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
                 className="btn-primary"
                 disabled={isSubmitting}
               >
-                Edit
+                Submit
               </button>
             </div>
           </form>

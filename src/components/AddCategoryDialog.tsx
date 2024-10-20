@@ -3,7 +3,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 
 type FormData = {
@@ -15,12 +15,8 @@ const schemaValidation = yup.object({
   typeName: yup
     .string()
     .required("Please enter type name")
-    .max(20, "Type name must be less than 20 characters"),
-  levelType: yup
-    .number()
-    .required("Please enter level type")
-    .positive("Level type must be a positive number")
-    .integer("Level type must be an integer"),
+    .max(50, "Type name must be less than 50 characters"),
+  levelType: yup.number().required("Please enter level type"),
 });
 
 interface ServiceType {
@@ -49,9 +45,13 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    control,
   } = useForm<FormData>({
     resolver: yupResolver(schemaValidation),
     mode: "onChange",
+    defaultValues: {
+      levelType: edit ? serviceType?.levelType : 5, // Default to level 5
+    },
   });
 
   const onSubmit = async (data: FormData) => {
@@ -60,7 +60,6 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
       levelType: data.levelType,
       active: true,
     };
-
 
     try {
       const response = await axiosWithToken.post("/serviceType/", payload);
@@ -78,13 +77,13 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <button className="btn-primary">{edit ? "Edit" : "Add Type"}</button>
+        <button className="btn-primary w-44">{edit ? "Edit Service  Type" : "Create Service Type"}</button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="data-[state=open]:animate-overlayShow overlay-dialog" />
         <Dialog.Content className="data-[state=open]:animate-contentShow content-dialog">
           <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium mb-5">
-            {edit ? "Edit" : "Add Type"}
+            {edit ? "Edit Service  Type" : "Create Service Type"}
           </Dialog.Title>
           <Dialog.Description></Dialog.Description>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -107,19 +106,35 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
                 </span>
               )}
             </fieldset>
+
             <fieldset className="mb-[15px] flex items-center gap-5">
               <label
                 className="text-violet11 w-[90px] text-right text-[15px]"
                 htmlFor="levelType"
               >
-                 Type Level
+                Type Level
               </label>
-              <input
-                className={` text-violet11 shadow-violet7 focus:shadow-violet8 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]`}
-                id="levelType"
-                type="number"
-                defaultValue={edit ? serviceType?.levelType : ""}
-                {...register("levelType")}
+              <Controller
+                name="levelType"
+                control={control}
+                render={({ field }) => (
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <button
+                        key={level}
+                        type="button"
+                        className={`rounded ${
+                          field.value === level
+                            ? "border-blue-700 bg-blue-700 text-white font-bold w-7"
+                            : "bg-slate-300   border-slate-300 border-2 w-7"
+                        }`}
+                        onClick={() => field.onChange(level)}
+                      >
+                        {level}
+                      </button>
+                    ))}
+                  </div>
+                )}
               />
               {errors.levelType && (
                 <span className="text-red-500 text-sm">
@@ -127,6 +142,7 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
                 </span>
               )}
             </fieldset>
+
             <div className="mt-[25px] flex justify-end">
               <button
                 type="submit"
