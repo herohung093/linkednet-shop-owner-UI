@@ -60,10 +60,7 @@ const MenubarDemo = () => {
   const [openMobileChildMenu, setOpenMobileChildMenu] = useState<string | null>(
     null
   );
-  const storeConfigRedux = useSelector(
-    (state: RootState) => state.storesList.storesList,
-    shallowEqual // Use shallowEqual to avoid re-renders if the value is the same
-  );
+  const storeConfigUuid = localStorage.getItem("storeUuid");
 
   const handleMobileItemClick = (label: string) => {
     setOpenMobileChildMenu(openMobileChildMenu === label ? null : label);
@@ -84,7 +81,7 @@ const MenubarDemo = () => {
   };
 
   const storeMenuItems: MenuItemProps[] = [
-    ...(storeConfigRedux.length > 1
+    ...(!storeConfigUuid
       ? [{ label: "Create Store", path: "/create-store" }]
       : []),
     // { label: "Store Details", path: "/store-details" },
