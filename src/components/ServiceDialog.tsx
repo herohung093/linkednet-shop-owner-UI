@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { axiosWithToken } from "../utils/axios";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
