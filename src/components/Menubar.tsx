@@ -23,8 +23,6 @@ import MenuIcon from "@mui/icons-material/Menu";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
-import { RootState } from "../redux toolkit/store";
-import { useSelector, shallowEqual } from "react-redux";
 
 interface MenuItemProps {
   label: string;
