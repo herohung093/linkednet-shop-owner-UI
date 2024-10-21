@@ -10,6 +10,7 @@ import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
 import withAuth from "../components/HOC/withAuth";
+import ErrorOverlayComponent from "../components/ErrorOverlayComponent";
 
 interface ServiceType {
   id: number;
@@ -56,7 +57,10 @@ const ServiceTypePage: React.FC = () => {
   }, [fetchCategories, updateTrigger, selectedStoreId]);
 
   if (loading) return <CustomLoading />;
-  if (error) return <div>Error</div>;
+  if (error) {
+    return (<ErrorOverlayComponent/>
+    );
+  }
 
   const handleUpdate = () => {
     setUpdateTrigger(!updateTrigger);

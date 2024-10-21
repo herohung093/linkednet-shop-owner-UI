@@ -5,6 +5,7 @@ import StoreInfo from "../components/StoreInfo";
 import withAuth from "../components/HOC/withAuth";
 import { Box } from "@mui/material";
 import ResponsiveBox from "../components/ResponsiveBox";
+import ErrorOverlayComponent from "../components/ErrorOverlayComponent";
 
 const StoreSettingPage: React.FC = () => {
   const [selectedStore, setSelectedStore] = useState<number | string>("");
@@ -58,7 +59,7 @@ const StoreSettingPage: React.FC = () => {
           )}
         </>
       ) : (
-        <p>No stores available. Please create a store!</p>
+       <ErrorOverlayComponent message="No stores available. Please create a store!"/>
       )}
     </Box>
   );

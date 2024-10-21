@@ -6,6 +6,7 @@ import { axiosInstance } from "../utils/axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
 import withAuth from "../components/HOC/withAuth";
+import ErrorOverlayComponent from "../components/ErrorOverlayComponent";
 
 interface Staff {
   id: number | null;
@@ -82,7 +83,7 @@ const StaffsPage: React.FC = () => {
   );
 
   if (error) {
-    return <div>Error fetching data: {error}</div>;
+    return <ErrorOverlayComponent/>;
   }
 
   const emptyForm: Staff = {
