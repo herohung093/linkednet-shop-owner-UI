@@ -5,26 +5,23 @@ import StaffChart from "../components/StaffChart";
 import RevenueChart from "../components/RevenueChart";
 import UpComingBooking from "../components/UpComingBooking";
 import withAuth from "../components/HOC/withAuth";
-import { shallowEqual, useSelector } from "react-redux";
-import { RootState } from "../redux toolkit/store";
 import WelcomeDialog from "../components/dialogs/WelcomeDialog";
 
 const Dashboard: React.FC = () => {
   const [openWelcomeDialog, setOpenWelcomeDialog] = useState<boolean>(false);
-
-  const storeConfigRedux = useSelector((state: RootState) => state.storesList.storesList, shallowEqual);
+  const storeConfigUuid = localStorage.getItem("storeUuid");
 
   const handleCloseWelcomeDialog = () => {
     setOpenWelcomeDialog(false);
   };
 
   useEffect(() => {
-    if (storeConfigRedux.length === 0) {
+    if (!storeConfigUuid) {
       setOpenWelcomeDialog(true);
     } else {
       setOpenWelcomeDialog(false);
     }
-  }, [storeConfigRedux]);
+  }, [storeConfigUuid]);
 
   return (
     <div>
