@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import ForgotPasswordDialog from "../components/ForgotPasswordDialog";
 import { useNavigate } from "react-router-dom";
 import CustomGoogleLoginButton from "../components/CustomGoogleLoginButton";
@@ -21,6 +22,7 @@ const LoginPage: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const handleAuthResponse = useAuthResonse();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const authToken = localStorage.getItem("authToken");
@@ -46,6 +48,10 @@ const LoginPage: React.FC = () => {
     } catch (error) {
       console.error("Error refreshing token:", error);
     }
+  };
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -93,7 +99,7 @@ const LoginPage: React.FC = () => {
     <div className="relative lg:grid lg:grid-cols-2">
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-2xl text-slate-900 -mt-20 mb-10">
-          Shop Owner Login
+          {t("loginPage.page.title")}
         </div>
         <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-3">
           <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
@@ -173,9 +179,21 @@ const LoginPage: React.FC = () => {
             Join Us Now
           </button>
         </div>
-        <div className="cursor-pointer absolute bottom-8">
-          Language - Support - Privacy Policy
+        <div className="flex justify-between w-full px-4 m-4">
+        <div>
+          <button onClick={() => changeLanguage('en')} className="mr-2">
+            English
+          </button>
+          <button onClick={() => changeLanguage('vi')}>
+            Tiếng Việt
+          </button>
         </div>
+        <div className="flex space-x-4">
+          <a href="/login" className="text-blue-500">Language</a>
+          <a href="/login" className="text-blue-500">Support</a>
+          <a href="/login" className="text-blue-500">Privacy Policy</a>
+        </div>
+      </div>
       </div>
       <div>
         <img
