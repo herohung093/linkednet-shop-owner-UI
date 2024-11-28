@@ -33,6 +33,11 @@ const CustomGoogleLoginButton: React.FC<CustomGoogleLoginButtonProps> = ({
       if (!response) {
         throw new Error("Failed to exchange code for tokens");
       }
+      const storeListSorted = response?.data?.storeConfig.sort(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (a: any, b: any) => a.id - b.id
+      );
+      localStorage.setItem("storeUuid", storeListSorted[0].storeUuid);
       handleAuthResponse(response.data.token, response.data.refreshToken);
 
       navigate("/dashboard");

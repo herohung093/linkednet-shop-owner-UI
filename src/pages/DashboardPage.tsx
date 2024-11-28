@@ -8,20 +8,17 @@ import withAuth from "../components/HOC/withAuth";
 import WelcomeDialog from "../components/dialogs/WelcomeDialog";
 
 const Dashboard: React.FC = () => {
-  const [openWelcomeDialog, setOpenWelcomeDialog] = useState<boolean>(false);
   const storeConfigUuid = localStorage.getItem("storeUuid");
+  const [openWelcomeDialog, setOpenWelcomeDialog] = useState<boolean>(() => {
+    if (!storeConfigUuid) {
+      return true;
+    }
+    return false;
+  });
 
   const handleCloseWelcomeDialog = () => {
     setOpenWelcomeDialog(false);
   };
-
-  useEffect(() => {
-    if (!storeConfigUuid) {
-      setOpenWelcomeDialog(true);
-    } else {
-      setOpenWelcomeDialog(false);
-    }
-  }, [storeConfigUuid]);
 
   return (
     <div>
