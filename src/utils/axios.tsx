@@ -3,8 +3,8 @@ import { getStoreUuid } from "../helper/getStoreUuid";
 import { getToken } from "../helper/getToken";
 import { refreshToken } from "../helper/RefreshToken";
 
-export const BASE_URL = "https://big-umbrella-c5c3450b8837.herokuapp.com/";
-// export const BASE_URL = "http://localhost:8080/";
+export const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+
 
 let isRefreshing = false;
 let failedQueue: any[] = [];
