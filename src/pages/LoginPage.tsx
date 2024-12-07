@@ -70,8 +70,10 @@ const LoginPage: React.FC = () => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (a: any, b: any) => a.id - b.id
         );
-        dispatch(setSelectedStoreRedux(storeListSorted[0].storeUuid));
-        localStorage.setItem("storeUuid", storeListSorted[0].storeUuid);
+        if (storeListSorted[0]) {
+          dispatch(setSelectedStoreRedux(storeListSorted[0].storeUuid));
+          localStorage.setItem("storeUuid", storeListSorted[0].storeUuid);
+        }
         handleAuthResponse(response.data.token, response.data.refreshToken);
         setEmail("");
         setPassword("");

@@ -38,8 +38,10 @@ const CustomGoogleLoginButton: React.FC<CustomGoogleLoginButtonProps> = ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (a: any, b: any) => a.id - b.id
       );
-      localStorage.setItem("storeUuid", storeListSorted[0].storeUuid);
-      dispatch(setSelectedStoreRedux(storeListSorted[0].storeUuid));
+      if (storeListSorted[0]) {
+        localStorage.setItem("storeUuid", storeListSorted[0].storeUuid);
+        dispatch(setSelectedStoreRedux(storeListSorted[0].storeUuid));
+      }
       handleAuthResponse(response.data.token, response.data.refreshToken);
 
     } catch (error) {
