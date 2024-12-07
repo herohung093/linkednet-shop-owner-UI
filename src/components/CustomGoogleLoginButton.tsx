@@ -3,7 +3,8 @@ import React from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import { axiosInstance } from "../utils/axios";
 import useAuthResonse from "../hooks/useAuthResponse";
-import { useNavigate } from "react-router";
+import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
+import { useDispatch } from "react-redux";
 
 interface CustomGoogleLoginButtonProps {
   updateLoading: (isLoading: boolean) => void;
@@ -15,7 +16,7 @@ const CustomGoogleLoginButton: React.FC<CustomGoogleLoginButtonProps> = ({
   className,
 }) => {
   const handleAuthResponse = useAuthResonse();
-  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const googleLogin = useGoogleLogin({
     onSuccess: (codeResponse) => exchangeCodeForTokens(codeResponse.code),
     onError: () => {
@@ -38,9 +39,9 @@ const CustomGoogleLoginButton: React.FC<CustomGoogleLoginButtonProps> = ({
         (a: any, b: any) => a.id - b.id
       );
       localStorage.setItem("storeUuid", storeListSorted[0].storeUuid);
+      dispatch(setSelectedStoreRedux(storeListSorted[0].storeUuid));
       handleAuthResponse(response.data.token, response.data.refreshToken);
 
-      navigate("/dashboard");
     } catch (error) {
       console.error(error);
     } finally {

@@ -15,7 +15,7 @@ import {
   useScrollTrigger,
 } from "@mui/material";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import NotificationIcon from "./NotificationIcon";
 import HomeIcon from "@mui/icons-material/Home";
 import AccountMenuItem from "./AccountMenuItem";
@@ -49,6 +49,7 @@ const mainMenuStyle = {
 const MenubarDemo = () => {
   const [isOpenDrawer, setIsOpenDrawer] = useState<boolean>(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -94,6 +95,11 @@ const MenubarDemo = () => {
     { label: "Manage Bookings", path: "/manage-bookings" },
     { label: "Manage Customers", path: "/manage-customers" },
   ];
+
+  // Define paths where specific menu items should be hidden
+  const hiddenPaths = {
+    updatePayment: ['/update-payment-details'],
+  };
 
   function HideOnScroll(props: Props) {
     const { children, window } = props;
@@ -186,17 +192,19 @@ const MenubarDemo = () => {
                     display: { xs: "flex", md: "none" },
                   }}
                 >
-                  <Box>
-                    <IconButton
-                      onClick={toggleDrawer}
-                      edge="start"
-                      color="inherit"
-                      aria-label="menu"
-                      sx={{ mr: 2 }}
-                    >
-                      <MenuIcon sx={{ color: "black" }} />
-                    </IconButton>
-                  </Box>
+                  {!hiddenPaths.updatePayment.includes(location.pathname) && (
+                    <Box>
+                      <IconButton
+                        onClick={toggleDrawer}
+                        edge="start"
+                        color="inherit"
+                        aria-label="menu"
+                        sx={{ mr: 2 }}
+                      >
+                        <MenuIcon sx={{ color: "black" }} />
+                      </IconButton>
+                    </Box>
+                  )}
                   <Box sx={{ display: "flex", gap: "0.5rem" }}>
                     <NotificationIcon />
                     <AccountMenuItem />
@@ -222,89 +230,92 @@ const MenubarDemo = () => {
                   justifyContent: "space-between",
                 }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: "2rem",
-                  }}
-                >
-                  <Button
-                    onClick={() => navigate("/dashboard")}
+                {!hiddenPaths.updatePayment.includes(location.pathname) && (
+                  <Box
                     sx={{
-                      color: "black",
+                      display: "flex",
+                      gap: "2rem",
                     }}
                   >
-                    <HomeIcon />
-                  </Button>
-                  <div>
                     <Button
-                      id="manage-store-menu"
-                      onClick={handleManageStoreClick}
+                      onClick={() => navigate("/dashboard")}
+                      sx={{
+                        color: "black",
+                      }}
+                    >
+                      <HomeIcon />
+                    </Button>
+                    <div>
+                      <Button
+                        id="manage-store-menu"
+                        onClick={handleManageStoreClick}
+                        sx={mainMenuStyle}
+                      >
+                        Manage Stores
+                      </Button>
+                      <Menu
+                        id="manage-store-menu"
+                        aria-labelledby="manage-store-button"
+                        anchorEl={anchorEl}
+                        keepMounted
+                        open={openMenu === "Manage Stores"}
+                        onClose={handleClose}
+                        anchorOrigin={{
+                          vertical: "bottom",
+                          horizontal: "left",
+                        }}
+                        transformOrigin={{
+                          vertical: "top",
+                          horizontal: "left",
+                        }}
+                        MenuListProps={{
+                          "aria-labelledby": "basic-button",
+                        }}
+                      >
+                        {storeMenuItems.map((item, index) => (
+                          <MenuItem
+                            key={index}
+                            onClick={() => {
+                              handleClose();
+                              item.path && navigate(item.path);
+                            }}
+                          >
+                            {item.label}
+                          </MenuItem>
+                        ))}
+                      </Menu>
+                    </div>
+                    <Button
+                      onClick={() => navigate("/staff")}
                       sx={mainMenuStyle}
                     >
-                      Manage Stores
+                      Staff
                     </Button>
-                    <Menu
-                      id="manage-store-menu"
-                      aria-labelledby="manage-store-button"
-                      anchorEl={anchorEl}
-                      keepMounted
-                      open={openMenu === "Manage Stores"}
-                      onClose={handleClose}
-                      anchorOrigin={{
-                        vertical: "bottom",
-                        horizontal: "left",
-                      }}
-                      transformOrigin={{
-                        vertical: "top",
-                        horizontal: "left",
-                      }}
-                      MenuListProps={{
-                        "aria-labelledby": "basic-button",
+                    <Button
+                      onClick={() => navigate("/services")}
+                      sx={{
+                        color: "black",
+                        fontFamily:
+                          '"Roboto", "Helvetica", "Arial", sans-serif',
+                        fontWeight: 550,
                       }}
                     >
-                      {storeMenuItems.map((item, index) => (
-                        <MenuItem
-                          key={index}
-                          onClick={() => {
-                            handleClose();
-                            item.path && navigate(item.path);
-                          }}
-                        >
-                          {item.label}
-                        </MenuItem>
-                      ))}
-                    </Menu>
-                  </div>
-                  <Button
-                    onClick={() => navigate("/staff")}
-                    sx={mainMenuStyle}
-                  >
-                    Staff
-                  </Button>
-                  <Button
-                    onClick={() => navigate("/services")}
-                    sx={{
-                      color: "black",
-                      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-                      fontWeight: 550,
-                    }}
-                  >
-                    Services
-                  </Button>
-                  <Button
-                    onClick={() => navigate("/manage-bookings")}
-                    sx={mainMenuStyle}
-                  >
-                    Manage Bookings
-                  </Button>
-                  <Button
-                    onClick={() => navigate("/manage-customers")}
-                    sx={mainMenuStyle}
-                  >
-                    Manage Customer
-                  </Button>
-                </Box>
+                      Services
+                    </Button>
+                    <Button
+                      onClick={() => navigate("/manage-bookings")}
+                      sx={mainMenuStyle}
+                    >
+                      Manage Bookings
+                    </Button>
+                    <Button
+                      onClick={() => navigate("/manage-customers")}
+                      sx={mainMenuStyle}
+                    >
+                      Manage Customer
+                    </Button>
+                  </Box>
+                )}
                 <Box sx={{ display: "flex", gap: "0.5rem" }}>
                   <NotificationIcon />
                   <AccountMenuItem />

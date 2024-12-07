@@ -21,7 +21,7 @@ const PasswordResetPage: React.FC = () => {
     }
 
     try {
-      await axiosWithToken.put("/users", {
+      await axiosWithToken.put("/user", {
         newPassword: newPassword,
         confirmPassword: confirmPassword,
       });

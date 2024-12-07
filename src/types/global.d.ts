@@ -87,6 +87,16 @@ declare interface Notification {
   type: string;
 }
 
+declare interface UserDetails {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  createdAt: string;
+  stripeCustomerId: string;
+  authProvider: string;
+}
+
 declare module 'sockjs-client/dist/sockjs' {
   import SockJS from '@types/sockjs-client';
 

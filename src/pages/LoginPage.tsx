@@ -66,13 +66,13 @@ const LoginPage: React.FC = () => {
       const response = await axiosInstance.post("/auth/authenticate", payload);
 
       if (response.status === 200) {
-        handleAuthResponse(response.data.token, response.data.refreshToken);
         const storeListSorted = response?.data?.storeConfig.sort(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (a: any, b: any) => a.id - b.id
         );
-        localStorage.setItem("storeUuid", storeListSorted[0].storeUuid);
         dispatch(setSelectedStoreRedux(storeListSorted[0].storeUuid));
+        localStorage.setItem("storeUuid", storeListSorted[0].storeUuid);
+        handleAuthResponse(response.data.token, response.data.refreshToken);
         setEmail("");
         setPassword("");
         dispatch(setStoresList(response?.data?.storeConfig));

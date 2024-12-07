@@ -15,6 +15,9 @@ import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { Elements } from "@stripe/react-stripe-js";
+import StripePayment from "../components/StripePayment";
+import { loadStripe, PaymentMethod } from "@stripe/stripe-js";
 
 interface RegisterForm {
   firstName: string;
@@ -22,6 +25,7 @@ interface RegisterForm {
   email: string;
   password: string;
   confirmPassword: string;
+  stripePaymentMethodId: string;
 }
 
 const SignUpPage: React.FC = () => {
@@ -29,6 +33,24 @@ const SignUpPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState(false);
+  const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_API_KEY);
+  const [isPaymentMethodAdded, setIsPaymentMethodAdded] = useState(false);
+  const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null);
+  const [cardDetails, setCardDetails] = useState<{ last4: string; expMonth: number; expYear: number } | null>(null);
+
+  const handlePaymentSuccess = (paymentMethod: PaymentMethod) => {
+    setPaymentMethodId(paymentMethod.id);
+    setIsPaymentMethodAdded(true);
+
+    if (paymentMethod.card) {
+      setCardDetails({
+        last4: paymentMethod.card.last4,
+        expMonth: paymentMethod.card.exp_month,
+        expYear: paymentMethod.card.exp_year,
+      });
+    }
+  };
+
   const navigate = useNavigate();
   const {
     control,
@@ -39,6 +61,11 @@ const SignUpPage: React.FC = () => {
   const password = watch("password");
 
   const onSubmit = async (formData: RegisterForm) => {
+    if (!isPaymentMethodAdded) {
+      alert("Please complete and save the payment details!");
+      return;
+    }
+
     setLoading(true);
 
     const payload = {
@@ -46,6 +73,7 @@ const SignUpPage: React.FC = () => {
       lastName: formData.lastName,
       email: formData.email,
       password: formData.password,
+      stripePaymentMethodId: paymentMethodId,
     };
 
     try {
@@ -84,6 +112,12 @@ const SignUpPage: React.FC = () => {
   ) => {
     event.preventDefault();
   };
+
+  // Customize the appearance of Elements using the Appearance API.
+const appearance = {
+  theme: 'stripe' as 'stripe',
+
+};
 
   return (
     <div className="relative lg:grid lg:grid-cols-2">
@@ -233,10 +267,6 @@ const SignUpPage: React.FC = () => {
                     value: 10,
                     message: "Password must be at least 10 characters",
                   },
-                  pattern: {
-                    value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{10,}$/,
-                    message: "Password must contain both letters and digits",
-                  },
                 }}
                 render={({ field }) => (
                   <FormControl
@@ -266,6 +296,7 @@ const SignUpPage: React.FC = () => {
                             onMouseDown={handleMouseDownPassword}
                             onMouseUp={handleMouseUpPassword}
                             edge="end"
+                            tabIndex={-1}
                           >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
@@ -334,6 +365,23 @@ const SignUpPage: React.FC = () => {
                   </FormControl>
                 )}
               />
+            </div>
+            <div className="mb-6">
+              <Elements stripe={stripePromise} options={{ appearance }}>
+                <div>
+                  {paymentMethodId && cardDetails ? (
+                    <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '16px', maxWidth: '400px', margin: '16px auto', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
+                    <p style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>Payment method added</p>
+                    <p style={{ fontSize: '16px', marginBottom: '4px' }}>Card ending in **** **** **** {cardDetails.last4}</p>
+                    <p style={{ fontSize: '16px', color: '#555' }}>
+                      Expires {cardDetails.expMonth}/{cardDetails.expYear}
+                    </p>
+                  </div>
+                  ) : (
+                    <StripePayment onPaymentSuccess={handlePaymentSuccess} />
+                  )}
+                </div>
+              </Elements>
             </div>
             <div className={`mb-4 text-red-700 ${!error && "hidden"} `}>
               {errorMessage}

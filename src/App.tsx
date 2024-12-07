@@ -23,6 +23,7 @@ import DashboardPage from "./pages/DashboardPage.tsx";
 import EditBookingPage from "./pages/EditBookingPage.tsx";
 import ManageCustomersPage from "./pages/ManageCustomersPage.tsx";
 import CustomerBookingsHistory from "./components/CustomerBookingsHistory.tsx";
+import UpdatePaymentPage from "./pages/UpdatePaymentPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -88,6 +89,10 @@ const router = createBrowserRouter([
       {
         path: "edit-booking",
         element: <EditBookingPage />,
+      },
+      {
+        path: "update-payment-details",
+        element: <UpdatePaymentPage />,
       },
       {
         path: "404",
