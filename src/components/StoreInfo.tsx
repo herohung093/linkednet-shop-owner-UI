@@ -818,19 +818,19 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
                       control={control}
                       render={({ field }) => (
                         <Stack direction="row" sx={{ alignItems: "center" }}>
-                          <Typography>Open</Typography>
+                          <Typography>Close</Typography>
                           <Switch
-                            checked={field.value ?? false}
+                            checked={!field.value}
                             onChange={(e) => {
-                              field.onChange(e.target.checked);
+                              field.onChange(!e.target.checked);
                               handleBusinessHourSwitchChange(
                                 businessHourItem.dayOfWeek,
-                                e.target.checked
+                                !e.target.checked
                               );
                             }}
                             color="primary"
                           />
-                          <Typography>Close</Typography>
+                          <Typography>Open</Typography>
                         </Stack>
                       )}
                     />
