@@ -24,6 +24,7 @@ declare interface Store {
   storeEmail: string;
   frontEndUrl: string;
   enableReservationConfirmation: boolean;
+  enableInDayBooking: boolean;
   automaticApproved: boolean;
 }
 

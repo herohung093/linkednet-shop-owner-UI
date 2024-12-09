@@ -8,6 +8,7 @@ import {
   Box,
   CircularProgress,
   FormControl,
+  FormControlLabel,
   IconButton,
   InputAdornment,
   InputLabel,
@@ -47,6 +48,7 @@ type StoreInfo = {
   storeEmail: string;
   frontEndUrl: string;
   enableReservationConfirmation: boolean;
+  enableInDayBooking: boolean;
   instagramLink: string;
   facebookLink: string;
   businessHoursList: BusinessHour[];
@@ -75,6 +77,7 @@ const schema = yup.object().shape({
     .required("Store Email is required"),
   frontEndUrl: yup.string(),
   enableReservationConfirmation: yup.boolean().required(),
+  enableInDayBooking: yup.boolean().required(),
   businessHoursList: yup
     .array()
     .of(
@@ -137,6 +140,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
     instagramLink: "",
     facebookLink: "",
     enableReservationConfirmation: false,
+    enableInDayBooking: true,
     businessHoursList: [
       {
         dayOfWeek: "MONDAY",
@@ -660,6 +664,36 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
               )}
             />
           </div>
+
+          <div className="mb-4">
+            <Controller
+              name="enableInDayBooking"
+              control={control}
+              render={({ field }) => (
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  width="100%"
+                >
+                  <Box display="flex" alignItems="center">
+                    <Typography>Enable In-Day Booking</Typography>
+                    <Tooltip title="Enable this option to allow customers to book appointments on the same day. If disabled, bookings will only be allowed at least 1 hour in advance.">
+                      <IconButton
+                        aria-label="enable-in-day-booking-hint"
+                        edge="end"
+                        sx={{ mb: 1 }}
+                      >
+                        <InfoOutlinedIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                  <Switch {...field} checked={field.value} />
+                </Box>
+              )}
+            />
+          </div>
+
           <div className="mb-4">
             <div className="flex items-center">
               <label className="block text-gray-700 font-bold mb-2">

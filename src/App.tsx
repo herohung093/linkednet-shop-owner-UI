@@ -24,6 +24,7 @@ import EditBookingPage from "./pages/EditBookingPage.tsx";
 import ManageCustomersPage from "./pages/ManageCustomersPage.tsx";
 import CustomerBookingsHistory from "./components/CustomerBookingsHistory.tsx";
 import UpdatePaymentPage from "./pages/UpdatePaymentPage.tsx";
+// import { useEffect } from "react";
 
 const router = createBrowserRouter([
   {
@@ -107,6 +108,19 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
+
+  // This effect will remove the storeUuid from localStorage when the user closes the tab
+  // useEffect(() => {
+  //   const handleBeforeUnload = () => {
+  //     localStorage.removeItem('storeUuid');
+  //   };
+
+  //   window.addEventListener('beforeunload', handleBeforeUnload);
+  //   return () => {
+  //     window.removeEventListener('beforeunload', handleBeforeUnload);
+  //   };
+  // }, []);
+  
   return (
     <GoogleOAuthProvider clientId={googleOAuthConfig.clientId}>
       <RouterProvider router={router} />
