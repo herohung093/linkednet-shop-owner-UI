@@ -285,7 +285,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
   const handleBusinessHourChange = (
     day: string,
     field: "openingTime" | "closingTime",
-    value: Moment | null
+    value: String | null
   ) => {
     const updatedBusinessHoursList = (
       watch("businessHoursList") as BusinessHour[]
@@ -756,13 +756,12 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
                               field.value ? moment(field.value, "HH:mm") : null
                             }
                             onChange={(newValue) => {
-                              field.onChange(
-                                newValue ? newValue.format("HH:mm") : null
-                              );
+                              const formattedValue = newValue ? moment(newValue).format("HH:mm") : null;
+                              field.onChange(formattedValue);
                               handleBusinessHourChange(
                                 businessHourItem.dayOfWeek,
                                 "openingTime",
-                                newValue
+                                formattedValue
                               );
                             }}
                             sx={{
@@ -793,13 +792,12 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
                               field.value ? moment(field.value, "HH:mm") : null
                             }
                             onChange={(newValue) => {
-                              field.onChange(
-                                newValue ? newValue.format("HH:mm") : null
-                              );
+                              const formattedValue = newValue ? moment(newValue).format("HH:mm") : null;
+                              field.onChange(formattedValue);
                               handleBusinessHourChange(
                                 businessHourItem.dayOfWeek,
                                 "closingTime",
-                                newValue
+                                formattedValue
                               );
                             }}
                             sx={{
@@ -851,7 +849,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
               variant="contained" // Use 'contained' to have a solid background color
               className="w-full flex justify-center items-center h-[40px] focus:outline-none focus:shadow-outline"
               loading={submitting}
-              disabled={!isValid || submitting || !isDirty}
+              disabled={submitting || !isDirty}
               loadingIndicator={
                 <CircularProgress style={{ color: "white" }} size={24} />
               }
