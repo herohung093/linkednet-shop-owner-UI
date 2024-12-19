@@ -26,6 +26,7 @@ interface ServiceItem {
   serviceDescription: string;
   servicePrice: number;
   estimatedTime: number;
+  displayOrder: number;
   active: boolean;
 }
 
@@ -59,6 +60,11 @@ const schemaValidation = yup
       .required("Please enter estimated time")
       .positive("Estimated time must be a positive number")
       .typeError("Estimated time must be a number"),
+    displayOrder: yup
+      .number()
+      .typeError("Display Order must be a number")
+      .required("Please enter display order")
+      .min(1, "Minimum display order is 1"),
     active: yup.boolean().required(),
   })
   .required();
@@ -83,6 +89,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
       serviceDescription: serviceItem?.serviceDescription || "",
       servicePrice: serviceItem?.servicePrice || 0,
       estimatedTime: serviceItem?.estimatedTime || 0,
+      displayOrder: serviceItem?.displayOrder || 1,
       active: serviceItem?.active || true,
     },
   });
@@ -124,7 +131,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
         {mode === "edit" ? (
           <EditIcon className="cursor-pointer text-blue-500" />
         ) : (
-          <AddIcon className="cursor-pointer text-blue-500"/>
+          <AddIcon className="cursor-pointer text-blue-500" />
         )}
       </IconButton>
 
@@ -259,6 +266,33 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
               />
               {errors.estimatedTime && (
                 <FormHelperText>{errors.estimatedTime.message}</FormHelperText>
+              )}
+            </FormControl>
+
+            <FormControl
+              className="!mb-4"
+              fullWidth
+              variant="outlined"
+              error={!!errors.displayOrder}
+            >
+              <InputLabel htmlFor="displayOrder" required>
+                Display Order
+              </InputLabel>
+              <Controller
+                name="displayOrder"
+                control={control}
+                render={({ field }) => (
+                  <OutlinedInput
+                    id="displayOrder"
+                    label="Display Order"
+                    type="number"
+                    inputMode="numeric"
+                    {...field}
+                  />
+                )}
+              />
+              {errors.displayOrder && (
+                <FormHelperText>{errors.displayOrder.message}</FormHelperText>
               )}
             </FormControl>
           </DialogContent>

@@ -1,5 +1,6 @@
 import { axiosWithToken } from "../utils/axios";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { FormControl, FormHelperText, InputLabel, MenuItem, Select } from "@mui/material";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import React, { useState } from "react";
@@ -9,6 +10,7 @@ import * as yup from "yup";
 type FormData = {
   typeName: string;
   levelType: number;
+  displayOrder: number;
 };
 
 const schemaValidation = yup.object({
@@ -17,6 +19,11 @@ const schemaValidation = yup.object({
     .required("Please enter type name")
     .max(50, "Type name must be less than 50 characters"),
   levelType: yup.number().required("Please enter level type"),
+  displayOrder: yup
+    .number()
+    .typeError("Display Order must be a number")
+    .required("Please enter display order")
+    .min(1, "Minimum display order is 1"),
 });
 
 interface ServiceType {
@@ -26,6 +33,7 @@ interface ServiceType {
   description: string | null;
   storeUuid: string;
   active: boolean;
+  displayOrder: number;
   tenantUuid: string;
 }
 
@@ -50,7 +58,9 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
     resolver: yupResolver(schemaValidation),
     mode: "onChange",
     defaultValues: {
-      levelType: edit ? serviceType?.levelType : 5, // Default to level 5
+      levelType: edit ? serviceType?.levelType : 1, // Default to level 1
+      displayOrder: edit ? serviceType?.displayOrder : 1, // Default to display order 1
+
     },
   });
 
@@ -58,6 +68,7 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
     const payload = {
       type: data.typeName,
       levelType: data.levelType,
+      displayOrder: data.displayOrder,
       active: true,
     };
 
@@ -77,7 +88,9 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <button className="btn-primary w-44">{edit ? "Edit Service  Type" : "Create Service Type"}</button>
+        <button className="btn-primary w-44">
+          {edit ? "Edit Service  Type" : "Create Service Type"}
+        </button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="data-[state=open]:animate-overlayShow overlay-dialog" />
@@ -139,6 +152,28 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
               {errors.levelType && (
                 <span className="text-red-500 text-sm">
                   {errors.levelType.message}
+                </span>
+              )}
+            </fieldset>
+
+            <fieldset className="mb-[15px] flex items-center gap-5">
+              <label
+                className="text-violet11 w-[90px] text-right text-[15px]"
+                htmlFor="levelType"
+              >
+                Display Order
+              </label>
+              <input
+                type="number"
+                min="1"
+                defaultValue={1}
+                id="displayOrder"
+                {...register("displayOrder", { valueAsNumber: true })}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              />
+              {errors.displayOrder && (
+                <span className="text-red-500 text-sm">
+                  {errors.displayOrder.message}
                 </span>
               )}
             </fieldset>

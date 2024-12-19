@@ -12,6 +12,7 @@ type FormData = {
   typeName: string;
   levelType: number;
   typeId: string;
+  displayOrder: number;
   active: boolean;
 };
 
@@ -27,6 +28,11 @@ const schemaValidation = yup.object({
     .required("Please enter level type")
     .positive("Level type must be a positive number")
     .integer("Level type must be an integer"),
+  displayOrder: yup
+    .number()
+    .typeError("Display Order must be a number")
+    .required("Please enter display order")
+    .min(1, "Minimum display order is 1"),
 });
 
 interface ServiceType {
@@ -36,6 +42,7 @@ interface ServiceType {
   description: string | null;
   storeUuid: string;
   active: boolean;
+  displayOrder: number;
   tenantUuid: string;
 }
 
@@ -62,6 +69,7 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
       typeName: serviceType?.type || "",
       levelType: serviceType?.levelType || 5, // default to level 5
       typeId: serviceType?.id.toString() || "",
+      displayOrder: serviceType?.displayOrder || 1, // default to display order 1
       active: serviceType?.active,
     },
   });
@@ -71,6 +79,7 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
       type: data.typeName,
       levelType: data.levelType,
       description: null,
+      displayOrder: data.displayOrder,
       active: data.active,
     };
 
@@ -159,6 +168,28 @@ const EditCategoryDialog: React.FC<EditCategoryDialogType> = ({
               {errors.levelType && (
                 <span className="text-red-500 text-sm">
                   {errors.levelType.message}
+                </span>
+              )}
+            </fieldset>
+
+            <fieldset className="mb-[15px] flex items-center gap-5">
+              <label
+                className="text-violet11 w-[90px] text-right text-[15px]"
+                htmlFor="displayOrder"
+              >
+                Display Order
+              </label>
+              <input
+                type="number"
+                id="displayOrder"
+                min="1"
+                defaultValue={1}
+                {...register("displayOrder", { valueAsNumber: true })}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              />
+              {errors.displayOrder && (
+                <span className="text-red-500 text-sm">
+                  {errors.displayOrder.message}
                 </span>
               )}
             </fieldset>

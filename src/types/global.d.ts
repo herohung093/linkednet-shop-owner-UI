@@ -35,6 +35,7 @@ declare interface ServiceItem {
   servicePrice: number;
   estimatedTime: number;
   active: boolean;
+  displayOrder: number;
 }
 
 declare interface Reservation {

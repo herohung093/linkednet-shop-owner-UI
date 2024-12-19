@@ -17,6 +17,7 @@ interface ServiceType {
   type: string;
   levelType: number;
   description: string | null;
+  displayOrder: number;
   storeUuid: string;
   active: boolean;
   tenantUuid: string;
@@ -102,7 +103,9 @@ const ServiceTypePage: React.FC = () => {
         </div>
       </div>
 
-      {filteredServiceType.map((serviceType) => (
+      {filteredServiceType
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((serviceType) => (
         <div key={serviceType.id} className="mb-6 border-b border-black">
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-md font-bold">{serviceType.type}</h3>
@@ -132,7 +135,9 @@ const ServiceTypePage: React.FC = () => {
           </div>
           {visibleServiceType === serviceType.id && (
             <div className="ml-4">
-              {serviceType.serviceItems.map((serviceItem, index) => (
+              {serviceType.serviceItems
+              .sort((a, b) => a.displayOrder - b.displayOrder)
+              .map((serviceItem, index) => (
                 <div
                   key={serviceItem.id}
                   className={`mb-2 flex justify-between items-center  ${
@@ -153,6 +158,9 @@ const ServiceTypePage: React.FC = () => {
                     </p>
                     <p className="text-sm mx-3">
                       Estimated Time: {serviceItem.estimatedTime} mins
+                    </p>
+                    <p className="text-sm mx-3">
+                      Display Order: {serviceItem.displayOrder}
                     </p>
                     <p className="text-sm mx-3">
                       Active: {serviceItem.active ? "Yes" : "No"}
