@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
 import CloseIcon from "@mui/icons-material/Close";
+import SwitchActive from "./SwitchActive";
 
 interface ServiceItem {
   id: number;
@@ -90,7 +91,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
       servicePrice: serviceItem?.servicePrice || 0,
       estimatedTime: serviceItem?.estimatedTime || 0,
       displayOrder: serviceItem?.displayOrder || 1,
-      active: serviceItem?.active || true,
+      active: serviceItem?.active || false,
     },
   });
 
@@ -293,6 +294,27 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
               />
               {errors.displayOrder && (
                 <FormHelperText>{errors.displayOrder.message}</FormHelperText>
+              )}
+            </FormControl>
+
+            <FormControl
+              className="!mb-4"
+              fullWidth
+              variant="outlined"
+              error={!!errors.active}
+            >
+              <Controller
+                control={control}
+                name="active"
+                render={({ field }) => (
+                  <SwitchActive
+                    active={field.value}
+                    onChange={(value) => field.onChange(value)}
+                  />
+                )}
+              />
+              {errors.active && (
+                <FormHelperText>{errors.active.message}</FormHelperText>
               )}
             </FormControl>
           </DialogContent>
