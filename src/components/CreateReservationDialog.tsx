@@ -335,11 +335,14 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
                   },
                 }}
               >
-                {staffList.map((staff) => (
-                  <MenuItem key={staff.id} value={staff.id ?? ""}>
-                    {staff.nickname}
-                  </MenuItem>
-                ))}
+                {staffList
+                  .slice()
+                  .sort((a, b) => a.nickname.localeCompare(b.nickname))
+                  .map((staff) => (
+                    <MenuItem key={staff.id} value={staff.id ?? ""}>
+                      {staff.nickname}
+                    </MenuItem>
+                  ))}
               </TextField>
             )}
           />
@@ -352,12 +355,14 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
               <Autocomplete
                 {...field}
                 multiple
-                options={servicesList.filter(
-                  (service) =>
-                    !selectedServices?.some(
-                      (selected) => selected.id === service.id
-                    )
-                )}
+                options={servicesList
+                  .filter(
+                    (service) =>
+                      !selectedServices?.some(
+                        (selected) => selected.id === service.id
+                      )
+                  )
+                  .sort((a, b) => a.serviceName.localeCompare(b.serviceName))}
                 getOptionLabel={(option) => option.serviceName}
                 onChange={(event, newValue) =>
                   setValue("selectedServices", newValue)
