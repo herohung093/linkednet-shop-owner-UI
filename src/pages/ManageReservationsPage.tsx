@@ -12,10 +12,13 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { PickersDay, PickersDayProps } from "@mui/x-date-pickers/PickersDay";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
+import { Fab } from "@mui/material";
+import AddIcon from '@mui/icons-material/Add';
 import moment from "moment";
 import BookingEventListItem from "../components/BookingEventListItem";
 import BookingEventDialog from "../components/BookingEventDialog";
 import withAuth from "../components/HOC/withAuth";
+import CreateReservationDialog from "../components/CreateReservationDialog";
 
 interface FetchReservationsParams {
   startDate: string; //dd/MM/yyyy
@@ -36,6 +39,8 @@ const ManageReservationsPage: React.FC = () => {
   );
   const [isLoading, setIsLoading] = React.useState(false);
     useState<Reservation | null>(null);
+
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const handleEventClick = (event: any) => {
     setSelectedEvent(event as ReservationEvent);
@@ -228,6 +233,26 @@ const ManageReservationsPage: React.FC = () => {
     }
   };
 
+  const handleCreateBooking = () => {
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleCreateDialogClose = () => {
+    setIsCreateDialogOpen(false);
+  };
+
+  const handleReservationCreated = async () => {
+    let startDate = moment().startOf("month").format("DD/MM/YYYY").toString();
+    let endDate = moment().endOf("month").format("DD/MM/YYYY").toString();
+    const data = await fetchReservations({
+      startDate: startDate,
+      endDate: endDate,
+    });
+    const processedEvents = await convertToProcessedEvents(data);
+    setEvents(processedEvents);
+    dateCalendarHandleDateChange(selectedDate, processedEvents);
+  };
+
   return (
     <div>
       <div className="mx-2 ">
@@ -403,6 +428,25 @@ const ManageReservationsPage: React.FC = () => {
           isStatusModified={isStatusModified}
         />
       </div>
+      <Fab
+      color="primary"
+      aria-label="add"
+      style={{
+        position: 'fixed',
+        bottom: 16,
+        right: 16,
+      }}
+      onClick={handleCreateBooking}
+    >
+      <AddIcon />
+    </Fab>
+
+    <CreateReservationDialog
+      isCreateDialogOpen={isCreateDialogOpen}
+      handleCreateDialogClose={handleCreateDialogClose}
+      selectedDate={selectedDate}
+      onReservationCreated={handleReservationCreated}
+    />
     </div>
   );
 };
