@@ -1,10 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import { ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";
-import { Button, Chip, IconButton } from "@mui/material";
+import {
+  Box,
+  Button,
+  Chip,
+  IconButton,
+  Link,
+  Snackbar,
+  Tooltip,
+} from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseSharpIcon from "@mui/icons-material/CloseSharp";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { useNavigate } from "react-router";
 
 interface BookingEventDialogProps {
@@ -24,8 +33,20 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
   handleSubmit,
   isStatusModified,
 }) => {
-
   const navigate = useNavigate();
+
+  const [copyPhoneNumberSuccess, setCopyPhoneNumberSuccess] = useState(false);
+
+  const handleCopyPhoneNumber = () => {
+    if (selectedEvent && selectedEvent.data && selectedEvent.data.customer) {
+      navigator.clipboard.writeText(selectedEvent.data.customer.phone);
+    }
+    setCopyPhoneNumberSuccess(true);
+  };
+
+  const handleCloseSnackbar = () => {
+    setCopyPhoneNumberSuccess(false);
+  };
 
   const handleEditClick = () => {
     if (selectedEvent && selectedEvent.data) {
@@ -95,10 +116,9 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     }}
                   >
                     {selectedEvent.data.bookingTime.split(" ")[1]} -{" "}
-                      {selectedEvent.data.endTime.split(" ")[1]} (
-                      {selectedEvent.data.totalEstimatedTime} mins)
-
-                    <EditIcon fontSize="medium" className="ml-1"/>
+                    {selectedEvent.data.endTime.split(" ")[1]} (
+                    {selectedEvent.data.totalEstimatedTime} mins)
+                    <EditIcon fontSize="medium" className="ml-1" />
                   </IconButton>
                 </div>
               </fieldset>
@@ -175,15 +195,36 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     <label className="w-[100px] text-left text-[15px] sm:text-right">
                       Phone
                     </label>
-                    <label className="Input non-editable-label">
-                      {`${selectedEvent.data.customer.phone.slice(
-                        0,
-                        4
-                      )} ${selectedEvent.data.customer.phone.slice(
-                        4,
-                        7
-                      )} ${selectedEvent.data.customer.phone.slice(7, 10)}`}
-                    </label>
+                    <Box display="flex" alignItems="center">
+                      <Link
+                        href={`tel:${selectedEvent.data.customer.phone}`}
+                        className="Input clickable-label"
+                        underline="always"
+                      >
+                        {`${selectedEvent.data.customer.phone.slice(
+                          0,
+                          4
+                        )} ${selectedEvent.data.customer.phone.slice(
+                          4,
+                          7
+                        )} ${selectedEvent.data.customer.phone.slice(7, 10)}`}
+                      </Link>
+                      <Tooltip title="Copy Phone Number">
+                        <IconButton
+                          aria-label="copy phone number"
+                          onClick={handleCopyPhoneNumber}
+                          size="small"
+                        >
+                          <ContentCopyIcon fontSize="inherit" />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                    <Snackbar
+                      open={copyPhoneNumberSuccess}
+                      autoHideDuration={3000}
+                      onClose={handleCloseSnackbar}
+                      message="Phone number copied to clipboard"
+                    />
                   </fieldset>
                 )}
                 {selectedEvent.data.customer.blacklisted && (
