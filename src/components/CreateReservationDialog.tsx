@@ -133,7 +133,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
 
       fetchStaffAvailability();
     }
-  }, [selectedDate, selectedStaff]);
+  }, [selectedDate, selectedStaff, isCreateDialogOpen]);
 
   useEffect(() => {
     // Calculate the estimated time
