@@ -1,8 +1,15 @@
-
 import { AccountCircle } from "@mui/icons-material";
-import { Avatar, IconButton, MenuItem, Menu, SelectChangeEvent, Divider, Box } from "@mui/material";
+import {
+  Avatar,
+  IconButton,
+  MenuItem,
+  Menu,
+  SelectChangeEvent,
+  Divider,
+  Box,
+} from "@mui/material";
 import { useNavigate } from "react-router";
-import LogoutIcon from '@mui/icons-material/Logout';
+import LogoutIcon from "@mui/icons-material/Logout";
 import { useCallback, useEffect, useState } from "react";
 import SelectStore from "./SelectStore";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
@@ -13,18 +20,23 @@ import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
 import React from "react";
 
 const AccountMenuItem = () => {
-  const [profileIconRef, setProfileIconRef] = useState<null | HTMLElement>(null);
-  const navigate = useNavigate()
+  const [profileIconRef, setProfileIconRef] = useState<null | HTMLElement>(
+    null
+  );
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const localStorageStoreUuid = localStorage.getItem("storeUuid");
   const [selectedStore, setSelectedStore] = useState<string | undefined>(
     localStorageStoreUuid || undefined
   );
 
-
   const storeConfig = useSelector(
     (state: RootState) => state.storesList.storesList,
     shallowEqual
+  );
+
+  const userDetails = useSelector(
+    (state: RootState) => state.userDetails.userDetails
   );
 
   const fetchAllStore = useCallback(async () => {
@@ -96,26 +108,28 @@ const AccountMenuItem = () => {
         onClick={handleProfileMenu}
         color="inherit"
         sx={{
-          boxShadow: '0 0 5px rgba(0, 0, 0, 0.1)',
-          borderRadius: '50%',
-          backgroundColor: 'white',
-          border: '1px solid #E5E7EB'
+          boxShadow: "0 0 5px rgba(0, 0, 0, 0.1)",
+          borderRadius: "50%",
+          backgroundColor: "white",
+          border: "1px solid #E5E7EB",
         }}
       >
-        <Avatar sx={{ width: 24, height: 24 }}>M</Avatar>
+        <Avatar sx={{ width: 24, height: 24 }}>
+          {userDetails?.lastName.charAt(0)}
+        </Avatar>
         {/* <AccountCircle sx={{ color: 'black' }} /> */}
       </IconButton>
       <Menu
         id="menu-appbar"
         anchorEl={profileIconRef}
         anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
+          vertical: "bottom",
+          horizontal: "right",
         }}
         keepMounted
         transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
+          vertical: "top",
+          horizontal: "right",
         }}
         open={Boolean(profileIconRef)}
         onClose={handleCloseProfileMenu}
@@ -123,25 +137,27 @@ const AccountMenuItem = () => {
           paper: {
             elevation: 0,
             sx: {
-              overflow: 'visible',
-              filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+              overflow: "visible",
+              filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
               mt: 1.5,
-              '& .MuiAvatar-root': {
+              "& .MuiAvatar-root": {
                 width: 32,
                 height: 32,
                 ml: -0.5,
                 mr: 1,
-              }
+              },
             },
           },
         }}
       >
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          py: 1,
-        }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            py: 1,
+          }}
+        >
           <SelectStore
             handleStoreChange={handleStoreChange}
             selectedStore={selectedStore}
@@ -149,11 +165,17 @@ const AccountMenuItem = () => {
           />
         </Box>
         <Divider />
-        <MenuItem onClick={() => {
-          setProfileIconRef(null);
-          navigate("/password-reset");
-        }}><AccountCircle sx={{ marginRight: '1rem' }} /> Change password</MenuItem>
-        <MenuItem onClick={logoutHandler}><LogoutIcon sx={{ marginRight: '1rem' }} /> Logout</MenuItem>
+        <MenuItem
+          onClick={() => {
+            setProfileIconRef(null);
+            navigate("/password-reset");
+          }}
+        >
+          <AccountCircle sx={{ marginRight: "1rem" }} /> Change password
+        </MenuItem>
+        <MenuItem onClick={logoutHandler}>
+          <LogoutIcon sx={{ marginRight: "1rem" }} /> Logout
+        </MenuItem>
       </Menu>
     </div>
   );
