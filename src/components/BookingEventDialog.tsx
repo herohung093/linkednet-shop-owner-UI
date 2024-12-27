@@ -98,7 +98,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                   </label>
                 </fieldset>
                 <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                  <label className="w-[100px] text-left text-[15px] sm:text-right">
+                  <label className="w-[100px] text-left text-[15px]">
                     Created At
                   </label>
                   <label className="Input non-editable-label">
@@ -204,7 +204,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                 )}
                 {selectedEvent.data.customer.phone && (
                   <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                    <label className="w-[100px] text-left text-[15px] sm:text-right">
+                    <label className="w-[100px] text-left text-[15px]">
                       Phone
                     </label>
                     <Box display="flex" alignItems="center">
