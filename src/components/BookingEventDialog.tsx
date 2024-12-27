@@ -15,6 +15,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import CloseSharpIcon from "@mui/icons-material/CloseSharp";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { useNavigate } from "react-router";
+import { CheckCircle, Error, HourglassEmpty } from "@mui/icons-material";
 
 interface BookingEventDialogProps {
   isDialogOpen: boolean;
@@ -51,6 +52,17 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
   const handleEditClick = () => {
     if (selectedEvent && selectedEvent.data) {
       navigate("/edit-booking", { state: selectedEvent.data });
+    }
+  };
+
+  const renderCommunicationStatus = (status: string) => {
+    switch (status) {
+      case "SUCCESS":
+        return <CheckCircle style={{ color: "green" }} />;
+      case "Undelivered":
+        return <Error style={{ color: "red" }} />;
+      default:
+        return <HourglassEmpty style={{ color: "gray" }} />;
     }
   };
 
@@ -260,6 +272,27 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                       )
                     )}
                   </ul>
+                </div>
+              </fieldset>
+              <fieldset className="mb-[15px] flex flex-col gap-3">
+                <label className="text-left text-[15px]">
+                  SMS Communication:
+                </label>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "auto auto",
+                    marginLeft: "20px",
+                    gap: "5px",
+                    alignItems: "center",
+                  }}
+                >
+                  <span>Booking Acknowledgement:</span>
+                  {renderCommunicationStatus(selectedEvent.data.communication.BOOKING_ACK)}
+                  <span>First Booking Reminder:</span>
+                  {renderCommunicationStatus(selectedEvent.data.communication.FIRST_BOOKING_REMINDER)}
+                  <span>Final Booking Reminder:</span>
+                  {renderCommunicationStatus(selectedEvent.data.communication.FINAL_BOOKING_REMINDER)}
                 </div>
               </fieldset>
             </div>

@@ -50,6 +50,11 @@ declare interface Reservation {
   totalEstimatedTime: number;
   totalPrice: number;
   staff: Staff;
+  communication: {
+    FIRST_BOOKING_REMINDER: string;
+    FINAL_BOOKING_REMINDER: string;
+    BOOKING_ACK: string;
+  };
 }
 
 declare interface ProcessedEvent {
