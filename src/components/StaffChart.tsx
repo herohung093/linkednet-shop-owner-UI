@@ -11,16 +11,6 @@ const StaffChart: React.FC = () => {
   const isMd = useMediaQuery(theme.breakpoints.between("md", "lg"));
   const isLg = useMediaQuery(theme.breakpoints.up("lg"));
 
-  // const generateStaffMockData = () => {
-  //   return [
-  //     { name: 'Alice', bookings: 120 },
-  //     { name: 'Bob', bookings: 150 },
-  //     { name: 'Charlie', bookings: 80 },
-  //     { name: 'David', bookings: 100 },
-  //     { name: 'Eve', bookings: 90 },
-  //   ];
-  // };
-
   let chartWidth;
   if (isXs) {
     chartWidth = 300;
@@ -31,8 +21,6 @@ const StaffChart: React.FC = () => {
   } else if (isLg) {
     chartWidth = 600;
   }
-
-  // const staffData = generateStaffMockData();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,7 +52,7 @@ const StaffChart: React.FC = () => {
             borderColor: "primary.main",
           }}
         >
-          Staff On Fire &#128293;{" "}
+          Staff On Fire &#128293;{" 30 days"}
         </Typography>
         <Box
           flexGrow={1}
