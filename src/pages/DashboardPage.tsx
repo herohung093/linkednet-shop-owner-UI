@@ -6,6 +6,7 @@ import RevenueChart from "../components/RevenueChart";
 import UpComingBooking from "../components/UpComingBooking";
 import withAuth from "../components/HOC/withAuth";
 import WelcomeDialog from "../components/dialogs/WelcomeDialog";
+import TopCustomers from "../components/TopCustomers";
 
 const Dashboard: React.FC = () => {
   const storeConfigUuid = localStorage.getItem("storeUuid");
@@ -64,7 +65,7 @@ const Dashboard: React.FC = () => {
               >
                 Most Value Customers
               </Typography>
-              {/* Add analytics content here */}
+              <TopCustomers />
             </Paper>
           </Grid>
 
