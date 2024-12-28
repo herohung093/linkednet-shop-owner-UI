@@ -85,7 +85,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                   <label className="w-[100px] text-left text-[15px]">
                     Booking ID
                   </label>
-                  <label className="Input non-editable-label">
+                  <label className="Input ">
                     {selectedEvent.data.id}
                   </label>
                 </fieldset>
@@ -93,7 +93,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                   <label className="w-[100px] text-left text-[15px] sm:text-right">
                     Staff
                   </label>
-                  <label className="Input non-editable-label">
+                  <label className="Input ">
                     {selectedEvent.data.staff.nickname}
                   </label>
                 </fieldset>
@@ -101,7 +101,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                   <label className="w-[100px] text-left text-[15px]">
                     Created At
                   </label>
-                  <label className="Input non-editable-label">
+                  <label className="Input ">
                     {selectedEvent.data.createdTime}
                   </label>
                 </fieldset>
@@ -139,7 +139,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                 <label className="w-[100px] text-left text-[15px]">
                   Total Price
                 </label>
-                <label className="Input non-editable-label">
+                <label className="Input ">
                   ${selectedEvent.data.totalPrice}
                 </label>
               </fieldset>
@@ -186,7 +186,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                 <label className="w-[100px] text-left text-[15px]">
                   Customer
                 </label>
-                <label className="Input non-editable-label">
+                <label className="Input ">
                   {selectedEvent.data.customer.firstName}{" "}
                   {selectedEvent.data.customer.lastName}
                 </label>
@@ -197,7 +197,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     <label className="w-[100px] text-left text-[15px]">
                       Email
                     </label>
-                    <label className="Input non-editable-label">
+                    <label className="Input ">
                       {selectedEvent.data.customer.email}
                     </label>
                   </fieldset>
@@ -254,7 +254,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
               </div>
               <fieldset className="mb-[15px] flex items-center gap-3">
                 <label className="w-[100px] text-left text-[15px]">Note</label>
-                <label className="Input text-left break-words non-editable-label">
+                <label className="Input text-left break-words">
                   {selectedEvent.data.note}
                 </label>
               </fieldset>
