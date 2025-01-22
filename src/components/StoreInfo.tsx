@@ -8,7 +8,6 @@ import {
   Box,
   CircularProgress,
   FormControl,
-  FormControlLabel,
   IconButton,
   InputAdornment,
   InputLabel,
@@ -23,7 +22,7 @@ import {
 } from "@mui/material";
 import Link from "@mui/material/Link";
 import { TimePicker } from "@mui/x-date-pickers";
-import moment, { Moment } from "moment";
+import moment, { max } from "moment";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
@@ -52,6 +51,7 @@ type StoreInfo = {
   instagramLink: string;
   facebookLink: string;
   businessHoursList: BusinessHour[];
+  maxGuestsForGroupBooking: number;
 };
 
 const timeStringToMinutes = (timeString: string) => {
@@ -78,6 +78,19 @@ const schema = yup.object().shape({
   frontEndUrl: yup.string(),
   enableReservationConfirmation: yup.boolean().required(),
   enableInDayBooking: yup.boolean().required(),
+  maxGuestsForGroupBooking: yup
+    .number()
+    .positive("Must be a positive value")
+    .typeError("Please enter a number. The field cannot be left blank.")
+    .required("Max Guests for Group Booking is required")
+    .min(
+      1,
+      "Max guests for a single booking must be greater than 1 and less than 51"
+    )
+    .max(
+      50,
+      "Max guests for a single booking must be greater than 1 and less than 51"
+    ),
   businessHoursList: yup
     .array()
     .of(
@@ -141,6 +154,7 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
     facebookLink: "",
     enableReservationConfirmation: false,
     enableInDayBooking: true,
+    maxGuestsForGroupBooking: 1,
     businessHoursList: [
       {
         dayOfWeek: "MONDAY",
@@ -667,6 +681,56 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
 
           <div className="mb-4">
             <Controller
+              name="maxGuestsForGroupBooking"
+              control={control}
+              render={({ field }) => (
+                <FormControl
+                  variant="outlined"
+                  fullWidth
+                  error={!!errors.maxGuestsForGroupBooking}
+                  sx={getOutlinedInputStyles(
+                    dirtyFields,
+                    "maxGuestsForGroupBooking"
+                  )}
+                >
+                  <InputLabel htmlFor="maxGuestsForGroupBooking" required>
+                    Max Guests for Group Booking
+                  </InputLabel>
+                  <OutlinedInput
+                    {...field}
+                    id="maxGuestsForGroupBooking"
+                    required
+                    type="tel"
+                    inputMode="numeric"
+                    label="Max Guests for Group Booking"
+                    inputProps={{ maxLength: 2, minLength: 1, min: 1, max: 50 }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLInputElement;
+                      target.value = target.value.replace(/\D/g, "");
+                      field.onChange(target.value);
+                    }}
+                    endAdornment={
+                      <InputAdornment position="end">
+                        <Tooltip title="This is the maximum number of guests that can be booked in a single booking. If this number greater than the number of available staff for the date, no time slots will be available for booking.">
+                          <IconButton aria-label="maxGuestsHint" edge="end">
+                            <InfoOutlinedIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </InputAdornment>
+                    }
+                  />
+                  {errors.maxGuestsForGroupBooking && (
+                    <Typography color="error">
+                      {errors.maxGuestsForGroupBooking.message}
+                    </Typography>
+                  )}
+                </FormControl>
+              )}
+            />
+          </div>
+
+          <div className="mb-4">
+            <Controller
               name="enableInDayBooking"
               control={control}
               render={({ field }) => (
@@ -756,7 +820,9 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
                               field.value ? moment(field.value, "HH:mm") : null
                             }
                             onChange={(newValue) => {
-                              const formattedValue = newValue ? moment(newValue).format("HH:mm") : null;
+                              const formattedValue = newValue
+                                ? moment(newValue).format("HH:mm")
+                                : null;
                               field.onChange(formattedValue);
                               handleBusinessHourChange(
                                 businessHourItem.dayOfWeek,
@@ -792,7 +858,9 @@ const StoreInfo: React.FC<StoreInfoProps> = ({ storeUuid, submitType }) => {
                               field.value ? moment(field.value, "HH:mm") : null
                             }
                             onChange={(newValue) => {
-                              const formattedValue = newValue ? moment(newValue).format("HH:mm") : null;
+                              const formattedValue = newValue
+                                ? moment(newValue).format("HH:mm")
+                                : null;
                               field.onChange(formattedValue);
                               handleBusinessHourChange(
                                 businessHourItem.dayOfWeek,

@@ -6,16 +6,23 @@ import {
   Box,
   Button,
   Chip,
+  Divider,
+  Grid,
   IconButton,
   Link,
+  List,
+  ListItem,
+  ListItemText,
   Snackbar,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseSharpIcon from "@mui/icons-material/CloseSharp";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { useNavigate } from "react-router";
 import { CheckCircle, Error, HourglassEmpty } from "@mui/icons-material";
+import { getEndTimeForFirstGuest } from "../utils/ReservationUtils";
 
 interface BookingEventDialogProps {
   isDialogOpen: boolean;
@@ -85,17 +92,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                   <label className="w-[100px] text-left text-[15px]">
                     Booking ID
                   </label>
-                  <label className="Input ">
-                    {selectedEvent.data.id}
-                  </label>
-                </fieldset>
-                <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                  <label className="w-[100px] text-left text-[15px] sm:text-right">
-                    Staff
-                  </label>
-                  <label className="Input ">
-                    {selectedEvent.data.staff.nickname}
-                  </label>
+                  <label className="Input ">{selectedEvent.data.id}</label>
                 </fieldset>
                 <fieldset className="flex items-center gap-3 w-full sm:w-auto">
                   <label className="w-[100px] text-left text-[15px]">
@@ -128,8 +125,8 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     }}
                   >
                     {selectedEvent.data.bookingTime.split(" ")[1]} -{" "}
-                    {selectedEvent.data.endTime.split(" ")[1]} (
-                    {selectedEvent.data.totalEstimatedTime} mins)
+                    {getEndTimeForFirstGuest(selectedEvent.data).split(" ")[1]}{" "}
+                    ({selectedEvent.data.guests[0]?.totalEstimatedTime} mins)
                     <EditIcon fontSize="medium" className="ml-1" />
                   </IconButton>
                 </div>
@@ -258,21 +255,67 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                   {selectedEvent.data.note}
                 </label>
               </fieldset>
-              <fieldset className="mb-[15px] flex items-center gap-3">
+              <fieldset className="mb-[15px] flex gap-3">
                 <label className="w-[100px] text-left text-[15px]">
-                  Service Items
+                  Guests Details
                 </label>
-                <div className="bg-gray-100 p-3 rounded-md w-full">
-                  <ul className="list-disc pl-5">
-                    {selectedEvent.data.serviceItems.map(
-                      (item, index: number) => (
-                        <li key={index}>
-                          {item.serviceName} - ({item.estimatedTime} mins)
-                        </li>
-                      )
-                    )}
-                  </ul>
-                </div>
+                <Grid container direction="column">
+                  {selectedEvent.data.guests.map((guest) => (
+                    <Grid item key={guest.name + guest.id}>
+                      <Box>
+                        {/* Guest Header */}
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                        >
+                          <Typography variant="body1">
+                            {guest.name === "Me"
+                              ? selectedEvent.data.customer.firstName
+                              : guest.name || "Guest"}{" "}
+                            - {guest.totalEstimatedTime} mins
+                          </Typography>
+                        </Box>
+
+                        <List sx={{ paddingTop: 0, paddingBottom: 0 }}>
+                          {/* Guest Services */}
+                          {guest.guestServices?.map((guestService) => (
+                            <React.Fragment
+                              key={guest.name + guestService.serviceItem.id}
+                            >
+                              <ListItem
+                                sx={{ paddingTop: 0, paddingBottom: 0 }}
+                              >
+                                <ListItemText
+                                  primary={
+                                    <Box
+                                      display="flex"
+                                      justifyContent="space-between"
+                                      width="100%"
+                                    >
+                                      <Typography variant="body2">
+                                        {guestService.serviceItem.serviceName}{" "}
+                                        {guestService.staff &&
+                                          `(${guestService.staff.nickname})`}
+                                      </Typography>
+                                      <Typography variant="caption">
+                                        $
+                                        {guestService.serviceItem.servicePrice.toFixed(
+                                          2
+                                        )}
+                                      </Typography>
+                                    </Box>
+                                  }
+                                />
+                              </ListItem>
+                            </React.Fragment>
+                          ))}
+                        </List>
+                        <Divider sx={{ my: 1 }} />
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
               </fieldset>
               <fieldset className="mb-[15px] flex flex-col gap-3">
                 <label className="text-left text-[15px]">
@@ -288,11 +331,17 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                   }}
                 >
                   <span>Booking Acknowledgement:</span>
-                  {renderCommunicationStatus(selectedEvent.data.communication.BOOKING_ACK)}
+                  {renderCommunicationStatus(
+                    selectedEvent?.data?.communication?.BOOKING_ACK
+                  )}
                   <span>First Booking Reminder:</span>
-                  {renderCommunicationStatus(selectedEvent.data.communication.FIRST_BOOKING_REMINDER)}
+                  {renderCommunicationStatus(
+                    selectedEvent?.data?.communication?.FIRST_BOOKING_REMINDER
+                  )}
                   <span>Final Booking Reminder:</span>
-                  {renderCommunicationStatus(selectedEvent.data.communication.FINAL_BOOKING_REMINDER)}
+                  {renderCommunicationStatus(
+                    selectedEvent?.data?.communication?.FINAL_BOOKING_REMINDER
+                  )}
                 </div>
               </fieldset>
             </div>

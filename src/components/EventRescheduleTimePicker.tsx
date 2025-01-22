@@ -8,6 +8,7 @@ import { axiosWithToken } from "../utils/axios.tsx";
 import EventTimeButton from "./EventTimeButton.tsx";
 import * as RadixSelect from "@radix-ui/react-select";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
+import { getStaffDetailsForReservation, assignStaffForFirstGuest, assignStaffForGuests } from "../utils/ReservationUtils.ts";
 
 interface EventRescheduleTimePickerProps {
   reservation: Reservation;
@@ -33,9 +34,10 @@ const EventRescheduleTimePicker: React.FC<EventRescheduleTimePickerProps> = ({
     moment(reservation.bookingTime, "DD/MM/YYYY HH:mm")
   );
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(
-    reservation.staff
+    getStaffDetailsForReservation(reservation) || null
   );
   const [availableStaff, setAvailableStaff] = useState<Staff[]>([]);
+  const [allStaff, setAllStaff] = useState<Staff[]>([]);
   const [availableTimes, setAvailableTimes] = useState<TimeSlot[]>();
   const [loading, setLoading] = useState(false);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(
@@ -77,7 +79,7 @@ const EventRescheduleTimePicker: React.FC<EventRescheduleTimePickerProps> = ({
     const currentHour = moment().hour();
     if (!originalAvailableTimes) return [];
 
-    return Object.entries(originalAvailableTimes)
+    var availableTimeslots =  Object.entries(originalAvailableTimes)
       .map(([time, staffs]) => ({
         time,
         staffs,
@@ -88,6 +90,11 @@ const EventRescheduleTimePicker: React.FC<EventRescheduleTimePickerProps> = ({
           ? hour >= currentHour + 1
           : true;
       });
+
+      if (reservation.guests.length > 1) {
+        availableTimeslots = availableTimeslots.filter(({ staffs }) => staffs.length >= reservation.guests.length);
+      }
+      return availableTimeslots;
   };
 
   const anyStaff: Staff = {
@@ -108,7 +115,15 @@ const EventRescheduleTimePicker: React.FC<EventRescheduleTimePickerProps> = ({
   const fetchAllStaff = async () => {
     try {
       const response = await axiosWithToken.get(`staff/?isOnlyActive=true`);
-      setAvailableStaff([anyStaff, ...response.data]);
+      // if the booking is group booking, only show Any staff
+      if (reservation.guests.length > 1 ) {
+        setAvailableStaff([anyStaff]);
+      } else {
+        
+        setAvailableStaff([anyStaff, ...response.data]);
+      }
+      // keep all staff to get the information of the staff
+      setAllStaff([anyStaff, ...response.data]);
     } catch (error) {
       console.error("Error fetching staff availability:", error);
     }
@@ -136,28 +151,36 @@ const EventRescheduleTimePicker: React.FC<EventRescheduleTimePickerProps> = ({
 
   const handleTimeSelect = (time: TimeSlot) => {
     setSelectedTimeSlot(time);
-    if (selectedStaff && selectedDate) {
-      let staff = selectedStaff;
-      // if selected staff is Any, get random staff from the return list
+    if (!selectedStaff || !selectedDate) return;
+  
+    let staff = selectedStaff;
+    if (reservation.guests.length === 1) {
+      // if the booking is for one guest, and staff any, random get a staff
       if (selectedStaff.id === 0) {
-        const filterStaff = getStaffById(
-          time.staffs[Math.floor(Math.random() * time.staffs.length)]
-        );
-        if (filterStaff) {
-          staff = filterStaff;
+        const randomStaffId = time.staffs[Math.floor(Math.random() * time.staffs.length)];
+        const randomStaff = getStaffById(randomStaffId);
+        if (randomStaff) {
+          staff = randomStaff;
         }
       }
-      const updatedReservation: Reservation = {
-        ...reservation,
-        staff: staff,
-        bookingTime: `${selectedDate.format(dateFormat)} ${time.time}`,
-      };
-      onUpdateReservation(updatedReservation);
+      assignStaffForFirstGuest(reservation, staff);
+    } else {
+      // if the booking is group booking, assign all staffs to the guests
+      const staffList = time.staffs
+        .map((staffId) => getStaffById(staffId))
+        .filter((s): s is Staff => s !== undefined);
+      assignStaffForGuests(reservation, staffList);
     }
+  
+    const updatedReservation: Reservation = {
+      ...reservation,
+      bookingTime: `${selectedDate.format(dateFormat)} ${time.time}`,
+    };
+    onUpdateReservation(updatedReservation);
   };
 
   const getStaffById = (staffId: number): Staff | undefined => {
-    return availableStaff.find((staff) => staff.id === staffId);
+    return allStaff.find((staff) => staff.id === staffId);
   };
 
   return (

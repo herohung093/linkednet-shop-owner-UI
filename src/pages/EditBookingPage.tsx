@@ -12,6 +12,11 @@ import {
   DialogActions,
   Button,
   CircularProgress,
+  Grid,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -21,6 +26,7 @@ import EventRescheduleTimePicker from "../components/EventRescheduleTimePicker";
 import moment from "moment";
 import { axiosWithToken } from "../utils/axios";
 import LoadingButton from "@mui/lab/LoadingButton";
+import { getEndTimeForFirstGuest } from "../utils/ReservationUtils";
 
 const EditBookingPage: React.FC = () => {
   const location = useLocation();
@@ -107,15 +113,7 @@ const EditBookingPage: React.FC = () => {
                     </label>
                   </fieldset>
                   <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                    <label className="w-[100px] text-left text-[15px] sm:text-right">
-                      Staff
-                    </label>
-                    <label className="Input non-editable-label">
-                      {updatedReservation.staff.nickname}
-                    </label>
-                  </fieldset>
-                  <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                    <label className="w-[100px] text-left text-[15px] sm:text-right">
+                    <label className="w-[100px] text-left text-[15px]">
                       Created At
                     </label>
                     <label className="Input non-editable-label">
@@ -145,8 +143,8 @@ const EditBookingPage: React.FC = () => {
                       }}
                     >
                       {updatedReservation.bookingTime.split(" ")[1]} -{" "}
-                      {updatedReservation.endTime.split(" ")[1]} (
-                      {updatedReservation.totalEstimatedTime} mins)
+                      {getEndTimeForFirstGuest(updatedReservation).split(" ")[1]} (
+                      {updatedReservation.guests[0]?.totalEstimatedTime} mins)
                       <EditIcon fontSize="medium" className="ml-1" />
                     </IconButton>
                   </div>
@@ -190,7 +188,7 @@ const EditBookingPage: React.FC = () => {
                   )}
                   {updatedReservation.customer.phone && (
                     <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                      <label className="w-[100px] text-left text-[15px] sm:text-right">
+                      <label className="w-[100px] text-left text-[15px]">
                         Phone
                       </label>
                       <label className="Input non-editable-label">
@@ -225,21 +223,67 @@ const EditBookingPage: React.FC = () => {
                     {updatedReservation.note}
                   </label>
                 </fieldset>
-                <fieldset className="mb-[15px] flex items-center gap-3">
-                  <label className="w-[100px] text-left text-[15px]">
-                    Service Items
-                  </label>
-                  <div className="bg-gray-100 p-3 rounded-md w-full">
-                    <ul className="list-disc pl-5">
-                      {updatedReservation.serviceItems.map(
-                        (item, index: number) => (
-                          <li key={index}>
-                            {item.serviceName} - ({item.estimatedTime} mins)
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </div>
+                <fieldset className="mb-[15px] flex gap-3">
+                <label className="w-[100px] text-left text-[15px]">
+                  Guests Details
+                </label>
+                  <Grid container direction="column">
+                  {updatedReservation.guests.map((guest) => (
+                    <Grid item key={guest.name + guest.id}>
+                      <Box>
+                        {/* Guest Header */}
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                        >
+                          <Typography variant="body1">
+                            {guest.name === "Me"
+                              ? updatedReservation.customer.firstName
+                              : guest.name || "Guest"}{" "}
+                            - {guest.totalEstimatedTime} mins
+                          </Typography>
+                        </Box>
+
+                        <List sx={{ paddingTop: 0, paddingBottom: 0 }}>
+                          {/* Guest Services */}
+                          {guest.guestServices?.map((guestService) => (
+                            <React.Fragment
+                              key={guest.name + guestService.serviceItem.id}
+                            >
+                              <ListItem
+                                sx={{ paddingTop: 0, paddingBottom: 0 }}
+                              >
+                                <ListItemText
+                                  primary={
+                                    <Box
+                                      display="flex"
+                                      justifyContent="space-between"
+                                      width="100%"
+                                    >
+                                      <Typography variant="body2">
+                                        {guestService.serviceItem.serviceName}{" "}
+                                        {guestService.staff &&
+                                          `(${guestService.staff.nickname})`}
+                                      </Typography>
+                                      <Typography variant="caption">
+                                        $
+                                        {guestService.serviceItem.servicePrice.toFixed(
+                                          2
+                                        )}
+                                      </Typography>
+                                    </Box>
+                                  }
+                                />
+                              </ListItem>
+                            </React.Fragment>
+                          ))}
+                        </List>
+                        <Divider sx={{ my: 1 }} />
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
                 </fieldset>
               </div>
             )}

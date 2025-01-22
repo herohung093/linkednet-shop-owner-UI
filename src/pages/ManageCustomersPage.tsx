@@ -121,8 +121,8 @@ const ManageCustomersPage: React.FC = () => {
       field: "createdAt",
       headerName: "Created At",
       width: 150,
-      valueFormatter: (params: { value: any }) =>
-        moment(params.value).format("DD-MM-YYYY"),
+      valueFormatter: (params: string) =>
+        moment(params).format("DD-MM-YYYY"),
     },
     {
       field: "actions",
@@ -160,8 +160,8 @@ const ManageCustomersPage: React.FC = () => {
       field: "createdAt",
       headerName: "Created At",
       flex: 1,
-      valueFormatter: (params: { value: any }) =>
-        moment(params.value).format("DD-MM-YYYY"),
+      valueFormatter: (params: string) =>
+        moment(params).format("DD-MM-YYYY"),
     },
     {
       field: "actions",

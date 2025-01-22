@@ -301,3 +301,11 @@
 .notification-item:hover {
   background-color: #f5f5f5;
 }
+
+.cell-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 100%;
+}

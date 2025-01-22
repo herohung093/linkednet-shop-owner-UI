@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Box, Typography, CircularProgress } from "@mui/material";
+import { Box, Typography, CircularProgress, Tooltip } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { axiosWithToken } from "../utils/axios";
 import moment from "moment";
 import ResponsiveBox from "./ResponsiveBox";
 import DataGridNoRowsOverlay from "./DataGridNoRowsOverlay";
 import BookingEventDialog from "./BookingEventDialog";
+import { getEndTimeForFirstGuest, getGuestInfoAsString } from "../utils/ReservationUtils";
 
 const CustomerBookingsHistory: React.FC = () => {
   const { customerId: urlCustomerId } = useParams<{ customerId: string }>();
@@ -101,17 +102,18 @@ const CustomerBookingsHistory: React.FC = () => {
       sortComparator: (v1, v2) => Number(v1) - Number(v2),
     },
     {
-      field: "staff",
-      headerName: "Staff",
-      width: 150,
-      valueGetter: (params: Staff) => params.nickname,
-    },
-    {
-      field: "serviceItems",
-      headerName: "Services",
-      width: 300,
-      valueGetter: (params: ServiceItem[]) =>
-        params.map((item: any) => item.serviceName).join(", "),
+      field: "guests",
+      headerName: "Guests Booking Details", 
+      width: 400,
+      renderCell: (params) => {
+        const guests: Guest[] = params.row.guests;
+        const fullText = guests.map(getGuestInfoAsString).join("\n");
+        return (
+          <Tooltip title={<pre>{fullText}</pre>} arrow>
+            <span className="cell-truncate">{fullText}</span>
+          </Tooltip>
+        );
+      },
     },
     {
       field: "note",
@@ -126,7 +128,7 @@ const CustomerBookingsHistory: React.FC = () => {
         event_id: reservation.id,
         title: reservation.customer.firstName,
         start: new Date(reservation.bookingTime),
-        end: new Date(reservation.endTime),
+        end: new Date(getEndTimeForFirstGuest(reservation)),
         data: reservation,
       };
     } else return null;

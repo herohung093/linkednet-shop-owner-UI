@@ -4,6 +4,7 @@ import BookingEventListItem from "./BookingEventListItem"; // Adjust the import 
 import { parse } from "date-fns";
 import { axiosWithToken } from "../utils/axios";
 import BookingEventDialog from "./BookingEventDialog";
+import { getEndTimeForFirstGuest } from "../utils/ReservationUtils";
 
 const UpComingBooking: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -85,9 +86,9 @@ const UpComingBooking: React.FC = () => {
   ): ReservationEvent[] => {
     return reservations.map((reservation) => ({
       event_id: reservation.id,
-      title: reservation.staff.nickname,
+      title: reservation.customer.firstName,
       start: parseStringToDate(reservation.bookingTime), // Convert string to Date
-      end: parseStringToDate(reservation.endTime), // Convert string to Date
+      end: parseStringToDate(getEndTimeForFirstGuest(reservation)), // Convert string to Date
       data: reservation,
     }));
   };

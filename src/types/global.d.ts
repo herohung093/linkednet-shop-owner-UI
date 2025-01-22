@@ -26,6 +26,7 @@ declare interface Store {
   enableReservationConfirmation: boolean;
   enableInDayBooking: boolean;
   automaticApproved: boolean;
+  maxGuestsForGroupBooking: number;
 }
 
 declare interface ServiceItem {
@@ -38,6 +39,19 @@ declare interface ServiceItem {
   displayOrder: number;
 }
 
+declare interface Guest {
+  id: number | null;
+  name: string;
+  guestServices: GuestService[] | null;
+  totalPrice: number;
+  totalEstimatedTime: number;
+}
+
+declare interface GuestService {
+  serviceItem: ServiceItem;
+  staff: Staff | null;
+}
+
 declare interface Reservation {
   id: number;
   customer: Customer;
@@ -46,10 +60,9 @@ declare interface Reservation {
   endTime: string;
   createdTime: string;
   status: string;
-  serviceItems: ServiceItem[];
   totalEstimatedTime: number;
   totalPrice: number;
-  staff: Staff;
+  guests: Guest[];
   communication: {
     FIRST_BOOKING_REMINDER: string;
     FINAL_BOOKING_REMINDER: string;

@@ -26,7 +26,7 @@ const StaffChart: React.FC = () => {
     const fetchData = async () => {
       try {
         const response = await axiosWithToken.get(
-          "/dashboard/totalBookingByStaff30Days"
+          "/dashboard/totalServeByStaff30Days"
         );
         const formattedData = response.data;
         setStaffData(formattedData);
@@ -70,11 +70,11 @@ const StaffChart: React.FC = () => {
               {
                 data: staffData.map(
                   (
-                    staff: { nickName: string; totalReservation: number },
+                    staff: { nickName: string; totalServe: number },
                     index
                   ) => ({
                     id: index,
-                    value: staff.totalReservation,
+                    value: staff.totalServe,
                     label: staff.nickName,
                   })
                 ),

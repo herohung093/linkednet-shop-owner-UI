@@ -10,19 +10,29 @@ import {
   Avatar,
 } from "@mui/material";
 import moment from "moment";
+import { getEndTimeForFirstGuest } from "../utils/ReservationUtils";
+import PersonIcon from "@mui/icons-material/Person";
+import GroupsIcon from "@mui/icons-material/Groups";
 
 interface BookingEventListItemProps {
   event: {
     event_id: number;
     title: string;
     data: {
-      status: string;
+      id: number;
+      customer: Customer;
+      note: string;
       bookingTime: string;
       endTime: string;
+      createdTime: string;
+      status: string;
+      totalEstimatedTime: number;
       totalPrice: number;
-      customer: {
-        firstName: string;
-        phone: string;
+      guests: Guest[];
+      communication: {
+        FIRST_BOOKING_REMINDER: string;
+        FINAL_BOOKING_REMINDER: string;
+        BOOKING_ACK: string;
       };
     };
   };
@@ -61,7 +71,13 @@ const BookingEventListItem: React.FC<BookingEventListItemProps> = ({
                   width: 20,
                   height: 20,
                 }}
-              />
+              >
+                {event.data.guests.length === 1 ? (
+                  <PersonIcon fontSize="small" />
+                ) : (
+                  <GroupsIcon fontSize="small" />
+                )}
+              </Avatar>
               {displayDate && (
                 <Typography variant="body2" sx={{ marginLeft: "8px" }}>
                   {moment(
@@ -89,7 +105,7 @@ const BookingEventListItem: React.FC<BookingEventListItemProps> = ({
                 <Typography variant="body2" color="textSecondary" align="right">
                   {event.data.bookingTime.split(" ")[1] +
                     " - " +
-                    event.data.endTime.split(" ")[1] +
+                    getEndTimeForFirstGuest(event.data).split(" ")[1] +
                     " ($" +
                     event.data.totalPrice +
                     ")"}

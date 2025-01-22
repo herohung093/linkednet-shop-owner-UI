@@ -19,6 +19,7 @@ import BookingEventListItem from "../components/BookingEventListItem";
 import BookingEventDialog from "../components/BookingEventDialog";
 import withAuth from "../components/HOC/withAuth";
 import CreateReservationDialog from "../components/CreateReservationDialog";
+import { getEndTimeForFirstGuest } from "../utils/ReservationUtils";
 
 interface FetchReservationsParams {
   startDate: string; //dd/MM/yyyy
@@ -107,9 +108,9 @@ const ManageReservationsPage: React.FC = () => {
   ): ReservationEvent[] => {
     return reservations.map((reservation) => ({
       event_id: reservation.id,
-      title: reservation.staff.nickname,
+      title: reservation.customer.firstName,
       start: parseStringToDate(reservation.bookingTime), // Convert string to Date
-      end: parseStringToDate(reservation.endTime), // Convert string to Date
+      end: parseStringToDate(getEndTimeForFirstGuest(reservation)), // Convert string to Date
       data: reservation,
     }));
   };
