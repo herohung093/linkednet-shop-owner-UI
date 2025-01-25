@@ -67,7 +67,6 @@ const schemaValidation = yup.object({
 });
 
 const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
-
   const [day, month, year] = staff.dateOfBirth.split("/");
   const {
     register,
@@ -107,7 +106,6 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
     setFormData({ ...formData, workingDays: newWorkingDays });
   };
 
-  
   const onSubmitHandler = async (values: any) => {
     const payload = {
       ...formData,
@@ -115,7 +113,6 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
       dateOfBirth: formatDate(values.dateOfBirth),
       workingDays: formData.workingDays.join(","),
     };
-   
 
     try {
       const response = await axiosWithToken.post("/staff/", payload);
@@ -253,14 +250,7 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
                 <button
                   type="submit"
                   onClick={handleSubmit(onSubmitHandler)}
-                  className={` hover:bg-blue-500 focus:shadow-blue-700 inline-flex h-[35px] w-[135px] items-center justify-center rounded-md px-[15px] font-medium leading-none focus:shadow-[0_0_0_2px] focus:outline-none                                         
-                     ${
-                       !isValid
-                         ? "bg-slate-500 text-white"
-                         : "bg-blue-700 text-white"
-                     }  
-                  `}
-                  disabled={!isValid}
+                  className={` hover:bg-blue-500 focus:shadow-blue-700 inline-flex h-[35px] w-[135px] items-center justify-center rounded-md px-[15px] font-medium leading-none focus:shadow-[0_0_0_2px] focus:outline-none bg-blue-700 text-white`}
                 >
                   {isSubmitting ? (
                     <CustomLoading />
