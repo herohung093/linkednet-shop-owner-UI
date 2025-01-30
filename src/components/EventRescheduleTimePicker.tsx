@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, FormControl, Grid, Skeleton } from "@mui/material";
+import { Box, Typography, FormControl, Grid, Skeleton, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
@@ -43,6 +43,7 @@ const EventRescheduleTimePicker: React.FC<EventRescheduleTimePickerProps> = ({
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(
     null
   );
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     if (selectedStaff && selectedStaff.id !== null && selectedDate) {
@@ -169,6 +170,12 @@ const EventRescheduleTimePicker: React.FC<EventRescheduleTimePickerProps> = ({
       const staffList = time.staffs
         .map((staffId) => getStaffById(staffId))
         .filter((s): s is Staff => s !== undefined);
+
+      if (staffList.length < reservation.guests.length) {
+        setIsDialogOpen(true);
+        return;
+      }
+
       assignStaffForGuests(reservation, staffList);
     }
   
@@ -292,6 +299,15 @@ const EventRescheduleTimePicker: React.FC<EventRescheduleTimePickerProps> = ({
             </Grid>
           </Box>
         )}
+        <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
+          <DialogTitle>Not Enough Staff</DialogTitle>
+          <DialogContent>
+            There are not enough staff members available for the selected time.
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsDialogOpen(false)}>OK</Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </LocalizationProvider>
   );

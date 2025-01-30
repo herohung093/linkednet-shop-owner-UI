@@ -31,7 +31,7 @@ import { parse, format } from "date-fns";
   };
 
   export const assignStaffForGuests = (reservation: Reservation, staffList: Staff[]) => {
-    if (reservation.guests.length !== staffList.length) {
+    if (reservation.guests.length > staffList.length) {
       throw new Error("The number of guests and staff must be the same.");
     }
   
