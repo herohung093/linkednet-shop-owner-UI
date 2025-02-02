@@ -53,6 +53,18 @@ import { parse, format } from "date-fns";
     return `${guestName} [${services}]`;
   }
 
+  export const getFirstGuestServiceStaff = (
+    reservation: Reservation
+  ): string => {
+    return reservation.guests
+      .map((guest) =>
+        guest.guestServices && guest.guestServices[0]?.staff
+          ? `${guest.guestServices[0].staff.nickname}`
+          : "No Staff"
+      )
+      .join(", ");
+  };
+
   export const anyStaff = {
     id: 0,
     firstName: "Anyone",

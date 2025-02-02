@@ -10,7 +10,7 @@ import {
   Avatar,
 } from "@mui/material";
 import moment from "moment";
-import { getEndTimeForFirstGuest } from "../utils/ReservationUtils";
+import { getEndTimeForFirstGuest, getFirstGuestServiceStaff } from "../utils/ReservationUtils";
 import PersonIcon from "@mui/icons-material/Person";
 import GroupsIcon from "@mui/icons-material/Groups";
 
@@ -98,7 +98,7 @@ const BookingEventListItem: React.FC<BookingEventListItemProps> = ({
             }}
           >
             <ListItemText
-              primary={<Typography variant="body1">{event.title}</Typography>}
+              primary={<Typography variant="body1">{getFirstGuestServiceStaff(event.data)}</Typography>}
             />
             <ListItemText
               primary={
