@@ -115,6 +115,7 @@ declare interface UserDetails {
   createdAt: string;
   stripeCustomerId: string;
   authProvider: string;
+  trialEndDate: string;
 }
 
 declare module 'sockjs-client/dist/sockjs' {

@@ -114,11 +114,10 @@ const UpdatePaymentPage: React.FC = () => {
         </div>
       </Elements>
       <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Missing Payment Details</DialogTitle>
+        <DialogTitle>Your Trial Period Has Ended</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Your account is missing payment details. Please add your payment
-            information to continue.
+          Your trial has ended. To keep your shop running smoothly and continue receiving bookings, please update your payment details. We're here to help if you need any assistance! 
           </DialogContentText>
         </DialogContent>
         <DialogActions>

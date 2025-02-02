@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import { axiosWithToken } from "../utils/axios";
 import { useDispatch } from "react-redux";
 import { setUserDetails } from "../redux toolkit/userDetailsSlice";
+import moment from "moment";
 
 const useAuthResonse = () => {
   const navigate = useNavigate();
@@ -23,12 +24,13 @@ const useAuthResonse = () => {
       throw new Error("Failed to fetch user details.");
     }
 
-    if (!userDetailsResponse.data.stripeCustomerId) {
+    // Check trialEndDate against the current date
+    const trialEnd = moment(userDetailsResponse.data.trialEndDate, "dd/mm/yyyy hh:mm:ss");
+    if (!userDetailsResponse.data.stripeCustomerId && trialEnd.isSameOrBefore(moment())) {
       navigate("/update-payment-details");
     } else {
       navigate("/dashboard");
     }
-
   };
 
   return authenticateAndRedirect;
