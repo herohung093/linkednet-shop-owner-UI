@@ -6,6 +6,7 @@ import {
   createBrowserRouter,
   Navigate,
   RouterProvider,
+  useRouteError,
 } from "react-router-dom";
 import StaffsPage from "./pages/StaffsPage.tsx";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -24,12 +25,12 @@ import EditBookingPage from "./pages/EditBookingPage.tsx";
 import ManageCustomersPage from "./pages/ManageCustomersPage.tsx";
 import CustomerBookingsHistory from "./components/CustomerBookingsHistory.tsx";
 import UpdatePaymentPage from "./pages/UpdatePaymentPage.tsx";
-// import { useEffect } from "react";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Main />, // Use Main layout
+    element: <Main />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         path: "dashboard",
@@ -108,24 +109,25 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-
-  // This effect will remove the storeUuid from localStorage when the user closes the tab
-  // useEffect(() => {
-  //   const handleBeforeUnload = () => {
-  //     localStorage.removeItem('storeUuid');
-  //   };
-
-  //   window.addEventListener('beforeunload', handleBeforeUnload);
-  //   return () => {
-  //     window.removeEventListener('beforeunload', handleBeforeUnload);
-  //   };
-  // }, []);
   
   return (
     <GoogleOAuthProvider clientId={googleOAuthConfig.clientId}>
       <RouterProvider router={router} />
     </GoogleOAuthProvider>
   );
+}
+
+function RouteErrorBoundary() {
+  const error = useRouteError();
+  return <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+    {/* <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" /> */}
+    <h1 className="text-xl font-semibold text-gray-900 mb-2">Oops! Something went wrong</h1>
+    <p className="text-gray-600 mb-4">
+      We're sorry, but something unexpected happened. Please try refreshing the page.
+    </p>
+  </div>
+</div>;
 }
 
 export default App;

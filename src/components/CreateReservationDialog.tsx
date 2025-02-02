@@ -8,14 +8,17 @@ import {
   TextField,
   MenuItem,
   Autocomplete,
-  Typography,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { axiosWithToken } from "../utils/axios";
 import moment from "moment";
 import LoadingButton from "@mui/lab/LoadingButton";
 import ActionResultDialog from "./dialogs/ActionResultDialog";
+import { RootState } from "../redux toolkit/store";
+import { useSelector } from "react-redux";
+import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 
 interface CreateReservationDialogProps {
   isCreateDialogOpen: boolean;
@@ -30,8 +33,8 @@ interface FormData {
   phone: string;
   note: string;
   selectedStaff: string;
-  selectedServices: ServiceItem[];
   selectedAvailability: string;
+  guests: Guest[];
 }
 
 const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
@@ -47,13 +50,40 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     setValue,
     formState: { errors },
     reset,
-  } = useForm<FormData>();
+  } = useForm<FormData>({
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      phone: "",
+      note: "",
+      selectedAvailability: "",
+      guests: [
+        {
+          id: null,
+          name: "Guest 1",
+          guestServices: null,
+          totalPrice: 0,
+          totalEstimatedTime: 0,
+        },
+      ],
+    },
+  });
+
+  const {
+    fields: guestFields,
+    append: appendGuest,
+    remove,
+  } = useFieldArray({
+    control,
+    name: "guests",
+  });
+
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [servicesList, setServicesList] = useState<ServiceItem[]>([]);
   const [staffAvailability, setStaffAvailability] = useState<
     { time: string; staffs: number[] }[]
   >([]);
-  const [estimatedTime, setEstimatedTime] = useState<number>(0);
+  // const [estimatedTime, setEstimatedTime] = useState<number>(0);
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [actionResultOpen, setActionResultOpen] = useState<boolean>(false);
   const [actionResultMessage, setActionResultMessage] = useState<string>("");
@@ -62,8 +92,10 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   >("success");
 
   const selectedStaff = watch("selectedStaff");
-  const selectedServices = watch("selectedServices");
   const selectedAvailability = watch("selectedAvailability");
+  const storeConfig = useSelector(
+    (state: RootState) => state.storesList?.storesList?.[0]
+  );
 
   // Fetch staff and services data
   useEffect(() => {
@@ -106,6 +138,13 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   }, []);
 
   useEffect(() => {
+    // if the dialog is open on refresh, close it
+    if (isCreateDialogOpen) {
+      handleCreateDialogClose();
+    }
+  }, []); // empty dependency array so it only runs once on component mount
+
+  useEffect(() => {
     if (selectedDate && selectedStaff) {
       const fetchStaffAvailability = async () => {
         try {
@@ -135,15 +174,28 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     }
   }, [selectedDate, selectedStaff, isCreateDialogOpen]);
 
+  // useEffect(() => {
+  //   // Calculate total estimated time by summing each guest's services
+  //   const guestsData = watch("guests");
+  //   if (!guestsData) return;
+  //   const total = guestsData.reduce((sum: number, g: Guest) => {
+  //     if (!g.guestServices) return sum;
+  //     return (
+  //       sum +
+  //       g.guestServices.reduce(
+  //         (acc, gs) => acc + gs.serviceItem.estimatedTime,
+  //         0
+  //       )
+  //     );
+  //   }, 0);
+  //   setEstimatedTime(total);
+  // }, [watch("guests")]);
+
   useEffect(() => {
-    // Calculate the estimated time
-    const totalEstimatedTime =
-      selectedServices?.reduce(
-        (total, service) => total + service.estimatedTime,
-        0
-      ) || 0;
-    setEstimatedTime(totalEstimatedTime);
-  }, [selectedServices]);
+    if (guestFields.length > 1) {
+      setValue("selectedStaff", "0"); // 0 represents "Any"
+    }
+  }, [guestFields.length, setValue]);
 
   const findAvailabilityByTime = (time: string) => {
     return staffAvailability.find((availability) => availability.time === time);
@@ -154,16 +206,23 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     return staffIds[randomIndex];
   };
 
+  const validateGuestServices = (guests: Guest[]): boolean => {
+    return guests.every(
+      (guest) => guest.guestServices && guest.guestServices.length > 0
+    );
+  };
+
   const onSubmit = async (data: FormData) => {
     if (
       !selectedDate ||
-      !data.selectedStaff ||
       !data.selectedAvailability ||
-      data.selectedServices.length === 0 ||
       !data.firstName ||
-      !data.phone.match(/^04\d{8}$/)
+      !data.phone.match(/^04\d{8}$/) ||
+      !validateGuestServices(data.guests)
     ) {
-      alert("Please fill all fields correctly");
+      alert(
+        "Please fill all fields correctly and ensure each guest has at least one service."
+      );
       return;
     }
     setIsCreating(true);
@@ -174,7 +233,49 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
         data.selectedAvailability
       );
       if (matchedAvailability) {
-        staffId = getRandomStaffId(matchedAvailability.staffs).toString();
+        if (data.guests.length == 1) {
+          staffId = getRandomStaffId(matchedAvailability.staffs).toString();
+          data.guests[0].guestServices?.forEach((guestService) => {
+            guestService.staff = staffList.find(
+              (staff) => staff.id === parseInt(staffId)
+            ) || {
+              id: parseInt(staffId),
+              firstName: "",
+              lastName: "",
+              nickname: "",
+              phone: "",
+              skillLevel: 1,
+              dateOfBirth: "",
+              rate: 1,
+              workingDays: "",
+              storeUuid: "",
+              tenantUuid: "",
+              isActive: true,
+            };
+          });
+        } else {
+          data.guests.forEach((guest, index) => {
+            const staffId = matchedAvailability.staffs[index];
+            if (guest.guestServices) {
+              guest.guestServices.forEach((guestService) => {
+                guestService.staff = {
+                  id: staffId,
+                  firstName: "",
+                  lastName: "",
+                  nickname: "",
+                  phone: "",
+                  skillLevel: 1,
+                  dateOfBirth: "",
+                  rate: 1,
+                  workingDays: "",
+                  storeUuid: "",
+                  tenantUuid: "",
+                  isActive: true,
+                };
+              });
+            }
+          });
+        }
       }
     }
 
@@ -183,18 +284,25 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
       bookingTime: `${selectedDate.format(
         "DD/MM/YYYY"
       )} ${selectedAvailability}`,
-      staff: {
-        id: staffId,
-      },
-      serviceItems: data.selectedServices.map((service) => ({
-        id: service.id,
-      })),
+
       note: data.note,
       customer: {
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone,
       },
+      guests: data.guests.map((g) => ({
+        id: null,
+        name: g.name,
+        guestServices: g.guestServices
+          ? g.guestServices.map((gs) => ({
+              serviceItem: gs.serviceItem,
+              staff: gs.staff,
+            }))
+          : null,
+        totalPrice: 0,
+        totalEstimatedTime: 0,
+      })),
     };
 
     try {
@@ -212,6 +320,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     } finally {
       setActionResultOpen(true);
       setIsCreating(false);
+      handleClose();
     }
   };
 
@@ -223,8 +332,16 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
       phone: "",
       note: "",
       selectedStaff: "0",
-      selectedServices: [],
       selectedAvailability: "",
+      guests: [
+        {
+          id: null,
+          name: "Guest 1",
+          guestServices: null,
+          totalPrice: 0,
+          totalEstimatedTime: 0,
+        },
+      ],
     });
   };
 
@@ -309,84 +426,153 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
               />
             )}
           />
+          <div
+            style={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}
+          >
+            <Button
+              disabled={
+                guestFields.length >= (storeConfig?.maxGuestsForGroupBooking ?? 1)
+              }
+              onClick={() => {
+                if (
+                  guestFields.length < (storeConfig?.maxGuestsForGroupBooking ?? 1)
+                ) {
+                  appendGuest({
+                    id: null,
+                    name: `Guest ${guestFields.length + 1}`,
+                    guestServices: null,
+                    totalPrice: 0,
+                    totalEstimatedTime: 0,
+                  });
+                }
+              }}
+            >
+              + Add More Guest
+            </Button>
+          </div>
+          {guestFields.map((field, index) => (
+            <div
+              key={field.id}
+              style={{ display: "flex", alignItems: "center" }}
+            >
+              <div style={{ flex: 1 }}>
+                <Controller
+                  name={`guests.${index}.guestServices`}
+                  control={control}
+                  defaultValue={null}
+                  rules={{
+                    validate: (value) =>
+                      (value && value.length > 0) ||
+                      "At least one service must be selected",
+                  }}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Autocomplete
+                        {...field}
+                        multiple
+                        options={servicesList
+                          .filter((service) =>
+                            field.value
+                              ? !field.value.some(
+                                  (selected: GuestService) =>
+                                    selected.serviceItem.id === service.id
+                                )
+                              : true
+                          )
+                          .sort((a, b) =>
+                            a.serviceName.localeCompare(b.serviceName)
+                          )}
+                        getOptionLabel={(option) => option.serviceName}
+                        value={
+                          field.value
+                            ? field.value.map(
+                                (gs: GuestService) => gs.serviceItem
+                              )
+                            : []
+                        }
+                        onChange={(_, newValue) => {
+                          const formatted = newValue.map((svc: ServiceItem) => {
+                            // match the service from servicesList by id
+                            const matchedService = servicesList.find(
+                              (s) => s.id === svc.id
+                            );
+                            return {
+                              serviceItem: matchedService ?? svc,
+                              staff: 0,
+                            };
+                          });
+                          field.onChange(formatted);
+                        }}
+                        isOptionEqualToValue={(option, value) =>
+                          option.id === value.id
+                        }
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label={`Select Services for ${guestFields[index].name}`}
+                            margin="normal"
+                            fullWidth
+                            error={!!fieldState.error}
+                            helperText={
+                              fieldState.error ? fieldState.error.message : ""
+                            }
+                          />
+                        )}
+                      />
+                    </>
+                  )}
+                />
+              </div>
+              {guestFields.length > 1 && index > 0 && (
+                <IconButton
+                  onClick={() => remove(index)}
+                  edge="end"
+                  style={{ marginLeft: 8 }}
+                >
+                  <RemoveCircleIcon style={{ color: "red" }} />
+                </IconButton>
+              )}
+            </div>
+          ))}
           <Controller
             name="selectedStaff"
             control={control}
             defaultValue="0"
             rules={{ required: "Staff selection is required" }}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                select
-                label="Select Staff"
-                fullWidth
-                margin="normal"
-                error={!!errors.selectedStaff}
-                helperText={
-                  errors.selectedStaff ? errors.selectedStaff.message : ""
-                }
-                SelectProps={{
-                  MenuProps: {
-                    PaperProps: {
-                      style: {
-                        maxHeight: 48 * 10, // 48px is the default item height
-                      },
+            render={({ field }) => {
+              const filteredStaff =
+                guestFields.length > 1
+                  ? staffList.filter((staff) => staff.nickname === "Any")
+                  : staffList;
+              return (
+                <TextField
+                  {...field}
+                  select
+                  label="Select Staff"
+                  fullWidth
+                  margin="normal"
+                  error={!!errors.selectedStaff}
+                  helperText={
+                    errors.selectedStaff ? errors.selectedStaff.message : ""
+                  }
+                  SelectProps={{
+                    MenuProps: {
+                      PaperProps: { style: { maxHeight: 48 * 10 } },
                     },
-                  },
-                }}
-              >
-                {staffList
-                  .slice()
-                  .sort((a, b) => a.nickname.localeCompare(b.nickname))
-                  .map((staff) => (
-                    <MenuItem key={staff.id} value={staff.id ?? ""}>
-                      {staff.nickname}
-                    </MenuItem>
-                  ))}
-              </TextField>
-            )}
+                  }}
+                >
+                  {filteredStaff
+                    .slice()
+                    .sort((a, b) => a.nickname.localeCompare(b.nickname))
+                    .map((staff) => (
+                      <MenuItem key={staff.id} value={staff.id ?? ""}>
+                        {staff.nickname}
+                      </MenuItem>
+                    ))}
+                </TextField>
+              );
+            }}
           />
-          <Controller
-            name="selectedServices"
-            control={control}
-            defaultValue={[]}
-            rules={{ required: "At least one service must be selected" }}
-            render={({ field }) => (
-              <Autocomplete
-                {...field}
-                multiple
-                options={servicesList
-                  .filter(
-                    (service) =>
-                      !selectedServices?.some(
-                        (selected) => selected.id === service.id
-                      )
-                  )
-                  .sort((a, b) => a.serviceName.localeCompare(b.serviceName))}
-                getOptionLabel={(option) => option.serviceName}
-                onChange={(event, newValue) =>
-                  setValue("selectedServices", newValue)
-                }
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Select Services"
-                    margin="normal"
-                    fullWidth
-                    error={!!errors.selectedServices}
-                    helperText={
-                      errors.selectedServices
-                        ? errors.selectedServices.message
-                        : ""
-                    }
-                  />
-                )}
-              />
-            )}
-          />
-          <Typography variant="body2" sx={{ marginTop: "8px" }}>
-            Estimated Time: {estimatedTime} minutes
-          </Typography>
           <Controller
             name="selectedAvailability"
             control={control}
@@ -419,7 +605,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
                 {staffAvailability
                   .filter(
                     (availabilityItem) =>
-                      availabilityItem.staffs.length > 0 &&
+                      availabilityItem.staffs.length >= guestFields.length &&
                       (selectedStaff === "0" ||
                         availabilityItem.staffs.includes(
                           parseInt(selectedStaff)
@@ -507,3 +693,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
 };
 
 export default CreateReservationDialog;
+function dispatch(arg0: any) {
+  throw new Error("Function not implemented.");
+}
+

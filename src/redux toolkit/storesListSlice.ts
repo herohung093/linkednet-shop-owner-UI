@@ -12,6 +12,7 @@ interface Store {
   frontEndUrl: string;
   enableReservationConfirmation: boolean;
   automaticApproved: boolean;
+  maxGuestsForGroupBooking: number;
 }
 interface StoresState {
   storesList: Store[];
