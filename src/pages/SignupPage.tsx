@@ -33,23 +33,23 @@ const SignUpPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState(false);
-  const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_API_KEY);
+  // const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_API_KEY);
   const [isPaymentMethodAdded, setIsPaymentMethodAdded] = useState(false);
   const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null);
-  const [cardDetails, setCardDetails] = useState<{ last4: string; expMonth: number; expYear: number } | null>(null);
+  // const [cardDetails, setCardDetails] = useState<{ last4: string; expMonth: number; expYear: number } | null>(null);
 
-  const handlePaymentSuccess = (paymentMethod: PaymentMethod) => {
-    setPaymentMethodId(paymentMethod.id);
-    setIsPaymentMethodAdded(true);
+  // const handlePaymentSuccess = (paymentMethod: PaymentMethod) => {
+  //   setPaymentMethodId(paymentMethod.id);
+  //   setIsPaymentMethodAdded(true);
 
-    if (paymentMethod.card) {
-      setCardDetails({
-        last4: paymentMethod.card.last4,
-        expMonth: paymentMethod.card.exp_month,
-        expYear: paymentMethod.card.exp_year,
-      });
-    }
-  };
+  //   if (paymentMethod.card) {
+  //     setCardDetails({
+  //       last4: paymentMethod.card.last4,
+  //       expMonth: paymentMethod.card.exp_month,
+  //       expYear: paymentMethod.card.exp_year,
+  //     });
+  //   }
+  // };
 
   const navigate = useNavigate();
   const {
@@ -61,10 +61,10 @@ const SignUpPage: React.FC = () => {
   const password = watch("password");
 
   const onSubmit = async (formData: RegisterForm) => {
-    if (!isPaymentMethodAdded) {
-      alert("Please complete and save the payment details!");
-      return;
-    }
+    // if (!isPaymentMethodAdded) {
+    //   alert("Please complete and save the payment details!");
+    //   return;
+    // }
 
     setLoading(true);
 
@@ -73,7 +73,7 @@ const SignUpPage: React.FC = () => {
       lastName: formData.lastName,
       email: formData.email,
       password: formData.password,
-      stripePaymentMethodId: paymentMethodId,
+      // stripePaymentMethodId: paymentMethodId,
     };
 
     try {
@@ -366,7 +366,7 @@ const appearance = {
                 )}
               />
             </div>
-            <div className="mb-6">
+            {/* <div className="mb-6">
               <Elements stripe={stripePromise} options={{ appearance }}>
                 <div>
                   {paymentMethodId && cardDetails ? (
@@ -382,7 +382,7 @@ const appearance = {
                   )}
                 </div>
               </Elements>
-            </div>
+            </div> */}
             <div className={`mb-4 text-red-700 ${!error && "hidden"} `}>
               {errorMessage}
             </div>
