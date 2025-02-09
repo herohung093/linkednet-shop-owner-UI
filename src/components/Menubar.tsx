@@ -70,6 +70,13 @@ const MenubarDemo = () => {
     setOpenMenu("Manage Stores");
   };
 
+  const handleManagePromotionsClick = (
+    event: React.MouseEvent<HTMLElement>
+  ) => {
+    setAnchorEl(event.currentTarget);
+    setOpenMenu("Manage Promotions");
+  };
+
   const handleClose = () => {
     setAnchorEl(null);
     setOpenMenu(null);
@@ -87,6 +94,11 @@ const MenubarDemo = () => {
     { label: "Store Settings", path: "/store-settings" },
   ];
 
+  const managePromotionsMenuItems: MenuItemProps[] = [
+    { label: "Create Promotion", path: "/create-promotion" },
+    { label: "Promotions", path: "/manage-promotions" },
+  ];
+
   const mainMenuItems: MenuItemProps[] = [
     { label: "Home", path: "/dashboard" },
     { label: "Manage Stores", children: storeMenuItems },
@@ -94,11 +106,12 @@ const MenubarDemo = () => {
     { label: "Services", path: "/services" },
     { label: "Manage Bookings", path: "/manage-bookings" },
     { label: "Manage Customers", path: "/manage-customers" },
+    { label: "Manage Promotions", children: managePromotionsMenuItems },
   ];
 
   // Define paths where specific menu items should be hidden
   const hiddenPaths = {
-    updatePayment: ['/update-payment-details'],
+    updatePayment: ["/update-payment-details"],
   };
 
   function HideOnScroll(props: Props) {
@@ -314,6 +327,46 @@ const MenubarDemo = () => {
                     >
                       Manage Customer
                     </Button>
+                    <div>
+                      <Button
+                        id="manage-store-menu"
+                        onClick={handleManagePromotionsClick}
+                        sx={mainMenuStyle}
+                      >
+                        Manage Promotions
+                      </Button>
+                      <Menu
+                        id="manage-promotions-menu"
+                        aria-labelledby="manage-promotions-button"
+                        anchorEl={anchorEl}
+                        keepMounted
+                        open={openMenu === "Manage Promotions"}
+                        onClose={handleClose}
+                        anchorOrigin={{
+                          vertical: "bottom",
+                          horizontal: "left",
+                        }}
+                        transformOrigin={{
+                          vertical: "top",
+                          horizontal: "left",
+                        }}
+                        MenuListProps={{
+                          "aria-labelledby": "basic-button",
+                        }}
+                      >
+                        {managePromotionsMenuItems.map((item, index) => (
+                          <MenuItem
+                            key={index}
+                            onClick={() => {
+                              handleClose();
+                              item.path && navigate(item.path);
+                            }}
+                          >
+                            {item.label}
+                          </MenuItem>
+                        ))}
+                      </Menu>
+                    </div>
                   </Box>
                 )}
                 <Box sx={{ display: "flex", gap: "0.5rem" }}>

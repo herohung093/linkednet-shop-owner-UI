@@ -118,6 +118,17 @@ declare interface UserDetails {
   trialEndDate: string;
 }
 
+declare interface PromotionCampaign {
+  id: number;
+  campaignName: string;
+  promotionCode: string;
+  promotionMessage: string;
+  messageSendTime: Date;
+  customers: Customer[];
+  paymentIntentId: string;
+  status: string;
+}
+
 declare module 'sockjs-client/dist/sockjs' {
   import SockJS from '@types/sockjs-client';
 

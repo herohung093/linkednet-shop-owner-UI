@@ -25,6 +25,10 @@ import EditBookingPage from "./pages/EditBookingPage.tsx";
 import ManageCustomersPage from "./pages/ManageCustomersPage.tsx";
 import CustomerBookingsHistory from "./components/CustomerBookingsHistory.tsx";
 import UpdatePaymentPage from "./pages/UpdatePaymentPage.tsx";
+import CreatePromotionPage from "./pages/CreatePromotionPage.tsx";
+import PaymentSuccess from "./pages/PaymentSuccess.tsx";
+import PaymentCancel from "./pages/PaymentCancel.tsx";
+import ManagePromotionsPage from "./pages/ManagePromotionsPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -95,6 +99,23 @@ const router = createBrowserRouter([
       {
         path: "update-payment-details",
         element: <UpdatePaymentPage />,
+      },
+      {
+        path: "create-promotion",
+        element: <CreatePromotionPage />,
+      },
+
+      {
+        path: "manage-promotions",
+        element: <ManagePromotionsPage />,
+      },
+      {
+        path: "/payment/success",
+        element: <PaymentSuccess />
+      },
+      {
+        path: "/payment/cancel",
+        element: <PaymentCancel />
       },
       {
         path: "404",
