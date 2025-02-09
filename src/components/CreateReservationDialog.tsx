@@ -192,9 +192,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   // }, [watch("guests")]);
 
   useEffect(() => {
-    if (guestFields.length > 1) {
-      setValue("selectedStaff", "0"); // 0 represents "Any"
-    }
+    setValue("selectedStaff", "0"); // 0 represents "Any"
   }, [guestFields.length, setValue]);
 
   const findAvailabilityByTime = (time: string) => {
@@ -228,6 +226,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     setIsCreating(true);
 
     let staffId = data.selectedStaff;
+    // group booking always has staffId = 0
     if (staffId === "0") {
       const matchedAvailability = findAvailabilityByTime(
         data.selectedAvailability
@@ -277,6 +276,30 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
           });
         }
       }
+    } else {
+      // single booking
+      data.guests.forEach((guest) => {
+        if (guest.guestServices) {
+          guest.guestServices.forEach((guestService) => {
+            guestService.staff = staffList.find(
+              (staff) => staff.id === parseInt(staffId)
+            ) || {
+              id: parseInt(staffId),
+              firstName: "",
+              lastName: "",
+              nickname: "",
+              phone: "",
+              skillLevel: 1,
+              dateOfBirth: "",
+              rate: 1,
+              workingDays: "",
+              storeUuid: "",
+              tenantUuid: "",
+              isActive: true,
+            };
+          });
+        }
+      });
     }
 
     const newReservation = {
@@ -431,11 +454,13 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
           >
             <Button
               disabled={
-                guestFields.length >= (storeConfig?.maxGuestsForGroupBooking ?? 1)
+                guestFields.length >=
+                (storeConfig?.maxGuestsForGroupBooking ?? 1)
               }
               onClick={() => {
                 if (
-                  guestFields.length < (storeConfig?.maxGuestsForGroupBooking ?? 1)
+                  guestFields.length <
+                  (storeConfig?.maxGuestsForGroupBooking ?? 1)
                 ) {
                   appendGuest({
                     id: null,
@@ -696,4 +721,3 @@ export default CreateReservationDialog;
 function dispatch(arg0: any) {
   throw new Error("Function not implemented.");
 }
-
