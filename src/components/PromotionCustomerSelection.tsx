@@ -77,6 +77,7 @@ export default function PromotionCustomerSelection({
   const [customersData, setCustomersData] = React.useState<Customer[]>([]);
   const [totalCustomers, setTotalCustomers] = React.useState(0);
   const [allCustomers, setAllCustomers] = React.useState<Customer[]>([]);
+  const [loadingAllCustomers, setLoadingAllCustomers] = React.useState(false);
 
   React.useEffect(() => {
     fetchCustomers(availablePage);
@@ -100,20 +101,32 @@ export default function PromotionCustomerSelection({
     }
   };
 
-  const fetchAllCustomers = async () => {
-    const firstPage = await axiosWithToken.get("/customer/search", {
-      params: { page: 0, size: ITEMS_PER_PAGE, sort: "id,DESC", filterBlacklisted: true, searchString: "" },
-    });
-    const totalPageCount = Math.ceil(firstPage.data.totalElements / ITEMS_PER_PAGE);
-    let accumulated: Customer[] = firstPage.data.content;
-
-    for (let p = 1; p < totalPageCount; p++) {
-      const res = await axiosWithToken.get("/customer/search", {
-        params: { page: p, size: ITEMS_PER_PAGE, sort: "id,DESC", filterBlacklisted: true, searchString: "" },
+  const fetchAllCustomers = async (): Promise<Customer[]> => {
+    setLoadingAllCustomers(true);
+    try {
+      const firstPage = await axiosWithToken.get("/customer/search", {
+        params: { page: 0, size: ITEMS_PER_PAGE, sort: "id,DESC", filterBlacklisted: true, searchString: "" },
       });
-      accumulated = [...accumulated, ...res.data.content];
+      const totalPageCount = Math.ceil(firstPage.data.totalElements / ITEMS_PER_PAGE);
+      let accumulated: Customer[] = firstPage.data.content;
+
+      const pagePromises = [];
+      for (let p = 1; p < totalPageCount; p++) {
+        pagePromises.push(axiosWithToken.get("/customer/search", {
+          params: { page: p, size: ITEMS_PER_PAGE, sort: "id,DESC", filterBlacklisted: true, searchString: "" },
+        }));
+      }
+
+      const results = await Promise.all(pagePromises);
+      for (const res of results) {
+        accumulated = [...accumulated, ...res.data.content];
+      }
+
+      setAllCustomers(accumulated);
+      return accumulated;
+    } finally {
+      setLoadingAllCustomers(false);
     }
-    setAllCustomers(accumulated);
   };
 
   const filteredCustomers = customersData.filter(
@@ -140,14 +153,24 @@ export default function PromotionCustomerSelection({
   };
 
   const addAllCustomers = async () => {
-    await fetchAllCustomers();
+    if (allCustomers.length > 0) {
+      // Create a Set of selected customer IDs for faster lookup
+      const selectedCustomerIds = new Set(selectedCustomers.map((c) => c.id));
+      // Filter allCustomers to include only those not already selected
+      const newCustomers = allCustomers.filter(
+        (c) => !selectedCustomerIds.has(c.id)
+      );
+      onCustomerSelect([...selectedCustomers, ...newCustomers]);
+      return;
+    }
 
+    const fetchedCustomers = await fetchAllCustomers();
     // Create a Set of selected customer IDs for faster lookup
     const selectedCustomerIds = new Set(selectedCustomers.map((c) => c.id));
-
     // Filter allCustomers to include only those not already selected
-    const newCustomers = allCustomers.filter((c) => !selectedCustomerIds.has(c.id));
-
+    const newCustomers = fetchedCustomers.filter(
+      (c) => !selectedCustomerIds.has(c.id)
+    );
     onCustomerSelect([...selectedCustomers, ...newCustomers]);
   };
 
@@ -191,11 +214,20 @@ export default function PromotionCustomerSelection({
                 </div>
                 <button
                   onClick={addAllCustomers}
-                  disabled={filteredCustomers.length === 0}
+                  disabled={filteredCustomers.length === 0 || loadingAllCustomers}
                   className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
                 >
                   <UserPlus size={16} />
                   <span>Add All</span>
+                  {loadingAllCustomers && (
+                    <svg className="animate-spin h-5 w-5 text-blue-600" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10"
+                        stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 
+                        0 12h4z"></path>
+                    </svg>
+                  )}
                 </button>
               </div>
               <div className="mt-2 relative">
