@@ -28,13 +28,22 @@ function Pagination({
   currentPage,
   totalPages,
   onPageChange,
-}: PaginationProps) {
+  totalItems, // Added totalItems prop
+}: PaginationProps & { totalItems: number }) { // Updated PaginationProps interface
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
       <div className="flex items-center">
         <p className="text-sm text-gray-700">
-          Page <span className="font-medium">{currentPage}</span> of{" "}
-          <span className="font-medium">{totalPages}</span>
+          Showing{" "}
+          <span className="font-medium">
+            {(currentPage - 1) * ITEMS_PER_PAGE + 1}
+          </span>
+          {" to "}
+          <span className="font-medium">
+            {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}
+          </span>
+          {" of "}
+          <span className="font-medium">{totalItems}</span> Customers
         </p>
       </div>
       <div className="flex space-x-2">
@@ -67,6 +76,7 @@ export default function PromotionCustomerSelection({
   const [selectedPage, setSelectedPage] = React.useState(1);
   const [customersData, setCustomersData] = React.useState<Customer[]>([]);
   const [totalCustomers, setTotalCustomers] = React.useState(0);
+  const [allCustomers, setAllCustomers] = React.useState<Customer[]>([]);
 
   React.useEffect(() => {
     fetchCustomers(availablePage);
@@ -88,6 +98,22 @@ export default function PromotionCustomerSelection({
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const fetchAllCustomers = async () => {
+    const firstPage = await axiosWithToken.get("/customer/search", {
+      params: { page: 0, size: ITEMS_PER_PAGE, sort: "id,DESC", filterBlacklisted: true, searchString: "" },
+    });
+    const totalPageCount = Math.ceil(firstPage.data.totalElements / ITEMS_PER_PAGE);
+    let accumulated: Customer[] = firstPage.data.content;
+
+    for (let p = 1; p < totalPageCount; p++) {
+      const res = await axiosWithToken.get("/customer/search", {
+        params: { page: p, size: ITEMS_PER_PAGE, sort: "id,DESC", filterBlacklisted: true, searchString: "" },
+      });
+      accumulated = [...accumulated, ...res.data.content];
+    }
+    setAllCustomers(accumulated);
   };
 
   const filteredCustomers = customersData.filter(
@@ -113,8 +139,16 @@ export default function PromotionCustomerSelection({
     onCustomerSelect(selectedCustomers.filter((c) => c.id !== customer.id));
   };
 
-  const addAllCustomers = () => {
-    onCustomerSelect([...selectedCustomers, ...filteredCustomers]);
+  const addAllCustomers = async () => {
+    await fetchAllCustomers();
+
+    // Create a Set of selected customer IDs for faster lookup
+    const selectedCustomerIds = new Set(selectedCustomers.map((c) => c.id));
+
+    // Filter allCustomers to include only those not already selected
+    const newCustomers = allCustomers.filter((c) => !selectedCustomerIds.has(c.id));
+
+    onCustomerSelect([...selectedCustomers, ...newCustomers]);
   };
 
   const removeAllCustomers = () => {
@@ -129,10 +163,6 @@ export default function PromotionCustomerSelection({
   const getTotalPages = (totalItems: number) =>
     Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-  const paginatedAvailableCustomers = paginateCustomers(
-    filteredCustomers,
-    availablePage
-  );
   const paginatedSelectedCustomers = paginateCustomers(
     filteredSelectedCustomers,
     selectedPage
@@ -189,7 +219,7 @@ export default function PromotionCustomerSelection({
                   No customers available
                 </div>
               ) : (
-                paginatedAvailableCustomers.map((customer) => (
+                filteredCustomers.map((customer) => (
                   <div
                     key={customer.id}
                     className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
@@ -212,14 +242,15 @@ export default function PromotionCustomerSelection({
                   </div>
                 ))
               )}
-              {filteredCustomers.length > 0 && (
-                <Pagination
-                  currentPage={availablePage}
-                  totalPages={getTotalPages(totalCustomers)}
-                  onPageChange={setAvailablePage}
-                />
-              )}
             </div>
+            {filteredCustomers.length > 0 && (
+              <Pagination
+                currentPage={availablePage}
+                totalPages={getTotalPages(totalCustomers)}
+                onPageChange={setAvailablePage}
+                totalItems={totalCustomers} // Passing totalItems prop
+              />
+            )}
           </div>
         </div>
 
@@ -288,14 +319,15 @@ export default function PromotionCustomerSelection({
                   </div>
                 ))
               )}
-              {filteredSelectedCustomers.length > 0 && (
-                <Pagination
-                  currentPage={selectedPage}
-                  totalPages={getTotalPages(filteredSelectedCustomers.length)}
-                  onPageChange={setSelectedPage}
-                />
-              )}
             </div>
+            {filteredSelectedCustomers.length > 0 && (
+              <Pagination
+                currentPage={selectedPage}
+                totalPages={getTotalPages(filteredSelectedCustomers.length)}
+                onPageChange={setSelectedPage}
+                totalItems={filteredSelectedCustomers.length} // Passing totalItems
+              />
+            )}
           </div>
         </div>
       </div>
