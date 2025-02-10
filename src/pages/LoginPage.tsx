@@ -4,7 +4,6 @@ import ForgotPasswordDialog from "../components/ForgotPasswordDialog";
 import { useNavigate } from "react-router-dom";
 import CustomGoogleLoginButton from "../components/CustomGoogleLoginButton";
 import useAuthResonse from "../hooks/useAuthResponse";
-
 import { useDispatch } from "react-redux";
 import { setStoresList } from "../redux toolkit/storesListSlice";
 import { axiosInstance } from "../utils/axios";
@@ -16,8 +15,8 @@ import { CircularProgress } from "@mui/material";
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<unknown>(null);
-  const [errorMessage, setErrormessage] = useState<string>("");
+  const [error, setError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -67,7 +66,6 @@ const LoginPage: React.FC = () => {
 
       if (response.status === 200) {
         const storeListSorted = response?.data?.storeConfig.sort(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (a: any, b: any) => a.id - b.id
         );
         if (storeListSorted[0]) {
@@ -83,126 +81,108 @@ const LoginPage: React.FC = () => {
         throw new Error("Failed to submit booking.");
       }
       setLoading(false);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       setError(true);
       setLoading(false);
       if (error?.response?.status === 461) {
-        setErrormessage(
+        setErrorMessage(
           "User email has not been activated. Please check your email to activate your account."
         );
       } else {
-        setErrormessage("Invalid username or password");
+        setErrorMessage("Invalid username or password");
       }
     }
   };
 
   return (
-    <div className="relative lg:grid lg:grid-cols-2">
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="text-2xl text-slate-900 -mt-20 mb-10">
-          {t("loginPage.page.title")}
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-3">
-          <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label
-                className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="email"
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              />
-            </div>
-            <div className="mb-6">
-              <label
-                className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="password"
-              >
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-slate-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              />
-            </div>
-            <div className={`mb-4 text-red-700 ${!error && "hidden"} `}>
-              {errorMessage}
-            </div>
-            <LoadingButton
-              type="submit"
-              variant="contained" // Use 'contained' to have a solid background color
-              className="w-full flex justify-center items-center h-[40px] focus:outline-none focus:shadow-outline"
-              loading={loading}
-              loadingIndicator={
-                <CircularProgress style={{ color: "white" }} size={24} />
-              }
-              sx={{
-                marginBottom: "1rem",
-                backgroundColor: "black",
-                color: "white",
-                textTransform: "none", // Keep the text casing as it is
-                "&:hover": {
-                  backgroundColor: "black", // Keep the same background color on hover
-                },
-              }}
-            >
-              Login
-            </LoadingButton>
-            <div className="w-full">
-              <CustomGoogleLoginButton
-                updateLoading={setLoading}
-                className="py-2 px-3 border rounded shadow appearance-none text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              />
-            </div>
-            <div className="mt-5 cursor-pointer">
-              <ForgotPasswordDialog />
-            </div>
-          </form>
-        </div>
-        <div className="flex flex-col items-center justify-between mt-4 ">
-          <div className="mt-4">Or</div>
-          <button
-            onClick={() => navigate("/signup")}
-            className=" mt-4 w-full flex justify-center items-center h-[40px] bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-600">
+      <div className="text-4xl text-white font-bold mb-8">
+        {t("loginPage.page.title")}
+      </div>
+      <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md mx-6">
+        <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Login</h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="email">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="password">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+              required
+            />
+          </div>
+          <div className={`text-red-600 text-sm ${!error && "hidden"}`}>
+            {errorMessage}
+          </div>
+          <LoadingButton
+            type="submit"
+            variant="contained"
+            fullWidth
+            loading={loading}
+            loadingIndicator={<CircularProgress style={{ color: "white" }} size={24} />}
+            sx={{
+              py: 2,
+              backgroundColor: "black",
+              color: "white",
+              textTransform: "none",
+              "&:hover": {
+                backgroundColor: "rgba(0, 0, 0, 0.8)",
+              },
+            }}
           >
-            Join Us Now
-          </button>
-        </div>
-        <div className="flex justify-between w-full px-4 m-4">
+            Login
+          </LoadingButton>
+          <div className="w-full">
+            <CustomGoogleLoginButton
+              updateLoading={setLoading}
+              className="py-2 px-3 border rounded-lg shadow-md hover:shadow-lg transition-shadow"
+            />
+          </div>
+          <div className="mt-4 text-center">
+            <ForgotPasswordDialog />
+          </div>
+        </form>
+      </div>
+      <div className="flex flex-col items-center mt-6 space-y-4">
+        <div className="text-white">Or</div>
+        <button
+          onClick={() => navigate("/signup")}
+          className="w-64 py-3 bg-white text-blue-600 font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
+        >
+          Join Us Now
+        </button>
+      </div>
+      <div className="flex justify-between w-full px-6 mt-8 text-white text-sm">
         <div>
-          <button onClick={() => changeLanguage('en')} className="mr-2">
+          <button onClick={() => changeLanguage('en')} className="mr-4 hover:text-blue-200">
             English
           </button>
-          <button onClick={() => changeLanguage('vi')}>
+          <button onClick={() => changeLanguage('vi')} className="hover:text-blue-200">
             Tiếng Việt
           </button>
         </div>
-        <div className="flex space-x-4">
-          <a href="/login" className="text-blue-500">Language</a>
-          <a href="/login" className="text-blue-500">Support</a>
-          <a href="/login" className="text-blue-500">Privacy Policy</a>
+        <div className="flex space-x-6">
+          <a href="/login" className="hover:text-blue-200">Language</a>
+          <a href="/login" className="hover:text-blue-200">Support</a>
+          <a href="/login" className="hover:text-blue-200">Privacy Policy</a>
         </div>
-      </div>
-      </div>
-      <div>
-        <img
-          src="https://media.istockphoto.com/id/618331956/photo/staying-connected.jpg?s=1024x1024&w=is&k=20&c=bim23K-awtDZLZRJacck6To1s0-Dua_tVnpa6pcLRk8="
-          alt="shop-owner"
-          className="object-cover w-full h-full hidden lg:block"
-        />
       </div>
     </div>
   );
