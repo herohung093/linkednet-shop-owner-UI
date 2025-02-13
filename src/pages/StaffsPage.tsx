@@ -43,7 +43,7 @@ const StaffsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
-  const [filter, setFilter] = useState<string>("true");
+  const [filter, setFilter] = useState<string>("false");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const theme = useTheme();
