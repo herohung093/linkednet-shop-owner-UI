@@ -1,25 +1,35 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import { axiosWithToken } from "../utils/axios";
 import { parse } from "date-fns";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
 import { useMediaQuery } from "react-responsive";
-import { Typography, Box, List, Paper, CardContent } from "@mui/material";
-import Badge from "@mui/material/Badge";
+import {
+  Typography,
+  Box,
+  List,
+  Paper,
+  Container,
+  useTheme,
+  Fade,
+  Divider,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { PickersDay, PickersDayProps } from "@mui/x-date-pickers/PickersDay";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
-import { Fab } from "@mui/material";
-import AddIcon from '@mui/icons-material/Add';
+import { Fab, Badge } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import moment from "moment";
 import BookingEventListItem from "../components/BookingEventListItem";
 import BookingEventDialog from "../components/BookingEventDialog";
 import withAuth from "../components/HOC/withAuth";
 import CreateReservationDialog from "../components/CreateReservationDialog";
 import { getEndTimeForFirstGuest } from "../utils/ReservationUtils";
+import { CalendarToday, Event } from "@mui/icons-material";
 
 interface FetchReservationsParams {
   startDate: string; //dd/MM/yyyy
@@ -29,19 +39,14 @@ interface FetchReservationsParams {
 const ManageReservationsPage: React.FC = () => {
   const [events, setEvents] = useState<ProcessedEvent[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<ProcessedEvent[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<ProcessedEvent | null>(
-    null
-  );
+  const [selectedEvent, setSelectedEvent] = useState<ProcessedEvent | null>(null);
   const [isStatusModified, setIsStatusModified] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
-  const [selectedDate, setSelectedDate] = useState<moment.Moment | null>(
-    moment()
-  );
+  const [selectedDate, setSelectedDate] = useState<moment.Moment | null>(moment());
   const [isLoading, setIsLoading] = React.useState(false);
-    useState<Reservation | null>(null);
-
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const theme = useTheme();
 
   const handleEventClick = (event: any) => {
     setSelectedEvent(event as ReservationEvent);
@@ -60,13 +65,10 @@ const ManageReservationsPage: React.FC = () => {
     try {
       const response = await axiosWithToken.get<Reservation[]>(
         "/reservation/byTimeFrame",
-        {
-          params,
-        }
+        { params }
       );
       const processedEvents = await convertToProcessedEvents(response.data);
       setEvents(processedEvents);
-
       return response.data;
     } catch (error) {
       console.error("Error fetching reservations:", error);
@@ -81,17 +83,14 @@ const ManageReservationsPage: React.FC = () => {
   );
 
   useEffect(() => {
-    let startDate = moment().startOf("month").format("DD/MM/YYYY").toString();
-    let endDate = moment().endOf("month").format("DD/MM/YYYY").toString();
+    const startDate = moment().startOf("month").format("DD/MM/YYYY");
+    const endDate = moment().endOf("month").format("DD/MM/YYYY");
+    
     const fetchData = async () => {
       try {
-        const data = await fetchReservations({
-          startDate: startDate,
-          endDate: endDate,
-        });
+        const data = await fetchReservations({ startDate, endDate });
         const processedEvents = await convertToProcessedEvents(data);
         setEvents(processedEvents);
-        // load event for initial date
         dateCalendarHandleDateChange(moment(), processedEvents);
       } catch (error) {
         console.error("Failed to fetch reservations", error);
@@ -99,9 +98,7 @@ const ManageReservationsPage: React.FC = () => {
     };
 
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStoreId]);
-
 
   const convertToProcessedEvents = (
     reservations: Reservation[]
@@ -109,8 +106,8 @@ const ManageReservationsPage: React.FC = () => {
     return reservations.map((reservation) => ({
       event_id: reservation.id,
       title: reservation.customer.firstName,
-      start: parseStringToDate(reservation.bookingTime), // Convert string to Date
-      end: parseStringToDate(getEndTimeForFirstGuest(reservation)), // Convert string to Date
+      start: parseStringToDate(reservation.bookingTime),
+      end: parseStringToDate(getEndTimeForFirstGuest(reservation)),
       data: reservation,
     }));
   };
@@ -125,7 +122,6 @@ const ManageReservationsPage: React.FC = () => {
         },
       });
     }
-
     setIsStatusModified(selectedEvent?.data.status !== e);
   };
 
@@ -142,11 +138,17 @@ const ManageReservationsPage: React.FC = () => {
     });
 
     setEvents(updatedEvents);
-    setFilteredEvents(
-      updatedEvents.filter((event) =>
-        moment(event.start).isSame(selectedDate, "day")
-      )
-    );
+    
+    // Sort filtered events by booking time
+    const updatedFilteredEvents = updatedEvents
+      .filter((event) => moment(event.start).isSame(selectedDate, "day"))
+      .sort((a, b) => {
+        const timeA = moment(a.data.bookingTime, "DD/MM/YYYY HH:mm");
+        const timeB = moment(b.data.bookingTime, "DD/MM/YYYY HH:mm");
+        return timeA.diff(timeB);
+      });
+
+    setFilteredEvents(updatedFilteredEvents);
   };
 
   const updateReservationEvent = async (selectedEvent: ReservationEvent) => {
@@ -156,27 +158,19 @@ const ManageReservationsPage: React.FC = () => {
     if (!response.data) {
       throw new Error("Failed to update reservation event");
     }
-
-    // Update the corresponding event in the events array
     updateEventData(response);
   };
 
   const handleMonthChange = (date: moment.Moment) => {
-    const startDate = date.startOf("month").format("DD/MM/YYYY").toString();
-    const endDate = date.endOf("month").format("DD/MM/YYYY").toString();
-
-    const requestParams: FetchReservationsParams = {
-      startDate: startDate,
-      endDate: endDate,
-    };
-    fetchReservations(requestParams);
+    const startDate = date.startOf("month").format("DD/MM/YYYY");
+    const endDate = date.endOf("month").format("DD/MM/YYYY");
+    fetchReservations({ startDate, endDate });
   };
 
   function EventsDay(
     props: PickersDayProps<moment.Moment> & { highlightedDays?: number[] }
   ) {
     const { highlightedDays = [], day, outsideCurrentMonth, ...other } = props;
-
     const eventsOfTheDay = events.filter((event) =>
       moment(event.start).isSame(day, "day")
     );
@@ -186,7 +180,7 @@ const ManageReservationsPage: React.FC = () => {
       <Badge
         key={props.day.toString()}
         overlap="circular"
-        color="success"
+        color="primary"
         badgeContent={isSelected ? eventsOfTheDay.length : undefined}
       >
         <PickersDay
@@ -214,13 +208,12 @@ const ManageReservationsPage: React.FC = () => {
           .filter((event) => moment(event.start).isSame(date, "day"))
           .sort((a, b) => moment(a.start).diff(moment(b.start)));
       }
-
       setFilteredEvents(filtered);
     } else {
       setFilteredEvents([]);
     }
   };
-  
+
   const getStatusBackgroundColorForAvata = (status: string) => {
     switch (status) {
       case "CONFIRMED":
@@ -243,212 +236,139 @@ const ManageReservationsPage: React.FC = () => {
   };
 
   const handleReservationCreated = async () => {
-    let startDate = moment().startOf("month").format("DD/MM/YYYY").toString();
-    let endDate = moment().endOf("month").format("DD/MM/YYYY").toString();
-    const data = await fetchReservations({
-      startDate: startDate,
-      endDate: endDate,
-    });
+    const startDate = moment().startOf("month").format("DD/MM/YYYY");
+    const endDate = moment().endOf("month").format("DD/MM/YYYY");
+    const data = await fetchReservations({ startDate, endDate });
     const processedEvents = await convertToProcessedEvents(data);
     setEvents(processedEvents);
     dateCalendarHandleDateChange(selectedDate, processedEvents);
   };
 
   return (
-    <div>
-      <div className="mx-2 ">
-        {isMobile ? (
-          <Box sx={{ width: "100%" }}>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                paddingLeft: "1rem",
-              }}
-            >
-              <Typography variant="h6" sx={{ textAlign: "center" }}>
-                Manage Bookings
-              </Typography>
-            </Box>
-            <Paper
-              elevation={3}
-              sx={{
-                borderRadius: "10px",
-                marginLeft: "10px",
-                marginRight: "10px",
-              }}
-            >
-              <LocalizationProvider
-                dateAdapter={AdapterMoment}
-                adapterLocale={moment.locale.toString()}
-              >
-                <DateCalendar
-                  value={selectedDate}
-                  loading={isLoading}
-                  onMonthChange={handleMonthChange}
-                  // @ts-ignore
-                  onChange={(newValue) =>
-                    dateCalendarHandleDateChange(newValue)
-                  }
-                  renderLoading={() => <DayCalendarSkeleton />}
-                  slots={{
-                    day: EventsDay,
-                  }}
-                  sx={{ maxWidth: "290px" }}
-                />
-              </LocalizationProvider>
-            </Paper>
-            <Box sx={{ maxHeight: "calc(100vh - 400px)", overflowY: "auto" }}>
-              {filteredEvents.length > 0 ? (
+    <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 4 } }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
+          Manage Bookings
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary">
+          View and manage your salon's appointments
+        </Typography>
+      </Box>
+
+      <Box sx={{ display: "flex", gap: 3, flexDirection: { xs: "column", md: "row" } }}>
+        {/* Calendar Section */}
+        <Paper
+          elevation={2}
+          sx={{
+            flex: { md: "0 0 350px" },
+            p: 2,
+            borderRadius: 2,
+            height: "fit-content",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}>
+            <CalendarToday color="primary" />
+            <Typography variant="h6" fontWeight="medium">
+              Select Date
+            </Typography>
+          </Box>
+          <LocalizationProvider dateAdapter={AdapterMoment}>
+            <DateCalendar
+              value={selectedDate}
+              loading={isLoading}
+              onMonthChange={handleMonthChange}
+              onChange={(newValue) => dateCalendarHandleDateChange(newValue)}
+              renderLoading={() => <DayCalendarSkeleton />}
+              slots={{ day: EventsDay }}
+              sx={{ width: "100%" }}
+            />
+          </LocalizationProvider>
+        </Paper>
+
+        {/* Bookings List Section */}
+        <Paper
+          elevation={2}
+          sx={{
+            flex: 1,
+            p: 2,
+            borderRadius: 2,
+            height: { md: "calc(100vh - 200px)" },
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}>
+            <Event color="primary" />
+            <Typography variant="h6" fontWeight="medium">
+              {selectedDate
+                ? `Bookings for ${selectedDate.format("dddd, MMMM D, YYYY")}`
+                : "Select a date to view bookings"}
+            </Typography>
+          </Box>
+
+          <Divider sx={{ mb: 2 }} />
+
+          <Box sx={{ flex: 1, overflow: "auto" }}>
+            {isLoading ? (
+              <Box sx={{ p: 4, textAlign: "center" }}>
+                <Typography color="text.secondary">Loading bookings...</Typography>
+              </Box>
+            ) : filteredEvents.length > 0 ? (
+              <Fade in>
                 <List>
                   {filteredEvents.map((event) => (
-                    <React.Fragment key={event.event_id}>
-                      <BookingEventListItem
-                        event={event}
-                        handleEventClick={handleEventClick}
-                        getStatusBackgroundColorForAvata={
-                          getStatusBackgroundColorForAvata
-                        }
-                      />
-                    </React.Fragment>
+                    <BookingEventListItem
+                      key={event.event_id}
+                      event={event}
+                      handleEventClick={handleEventClick}
+                      getStatusBackgroundColorForAvata={getStatusBackgroundColorForAvata}
+                    />
                   ))}
                 </List>
-              ) : (
-                <Typography
-                  variant="h6"
-                  align="center"
-                  sx={{ marginTop: "20px" }}
-                >
-                  No bookings for the day
+              </Fade>
+            ) : (
+              <Box sx={{ p: 4, textAlign: "center" }}>
+                <Typography color="text.secondary">
+                  No bookings for this date
                 </Typography>
-              )}
-            </Box>
+              </Box>
+            )}
           </Box>
-        ) : (
-          <div>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                paddingLeft: "1rem",
-              }}
-            >
-              <Typography
-                variant="h5"
-                sx={{ textAlign: "center", margin: "1rem 0" }}
-              >
-                Manage Bookings
-              </Typography>
-            </Box>
-            <Box
-              pt={1}
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "flex-start",
-                gap: "1rem",
-              }}
-            >
-              {/* Select Date */}
-              <Box
-                order={1}
-                flexGrow={1}
-                sx={{ paddingLeft: "1rem", maxWidth: { lg: "30%" } }}
-              >
-                <Paper elevation={3} sx={{ borderRadius: "20px" }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      Select Date
-                    </Typography>
-                    <LocalizationProvider
-                      dateAdapter={AdapterMoment}
-                      adapterLocale={moment.locale.toString()}
-                    >
-                      <DateCalendar
-                        value={selectedDate}
-                        loading={isLoading}
-                        onMonthChange={handleMonthChange}
-                        // @ts-ignore
-                        onChange={(newValue) =>
-                          dateCalendarHandleDateChange(newValue)
-                        }
-                        renderLoading={() => <DayCalendarSkeleton />}
-                        slots={{
-                          day: EventsDay,
-                        }}
-                      />
-                    </LocalizationProvider>
-                  </CardContent>
-                </Paper>
-              </Box>
+        </Paper>
+      </Box>
 
-              <Box order={2} flexGrow={5} sx={{ maxWidth: { lg: "30%" } }}>
-                <Paper
-                  elevation={3}
-                  sx={{
-                    height: "80vh",
-                    maxHeight: "calc(100vh - 350px)",
-                    overflowY: "auto",
-                    borderRadius: "20px",
-                  }}
-                >
-                  {filteredEvents.length > 0 ? (
-                    <List>
-                      {filteredEvents.map((event) => (
-                        <React.Fragment key={event.event_id}>
-                          <BookingEventListItem
-                            event={event}
-                            handleEventClick={handleEventClick}
-                            getStatusBackgroundColorForAvata={
-                              getStatusBackgroundColorForAvata
-                            }
-                          />
-                        </React.Fragment>
-                      ))}
-                    </List>
-                  ) : (
-                    <Typography
-                      variant="h5"
-                      align="center"
-                      sx={{ marginTop: "5rem" }}
-                    >
-                      No bookings for the day
-                    </Typography>
-                  )}
-                </Paper>
-              </Box>
-                          </Box>
-          </div>
-        )}
-        <BookingEventDialog
-          isDialogOpen={isDialogOpen}
-          setIsDialogOpen={setIsDialogOpen}
-          selectedEvent={selectedEvent}
-          handleStatusChange={handleStatusChange}
-          handleSubmit={handleSubmit}
-          isStatusModified={isStatusModified}
-        />
-      </div>
-      <Fab
-      color="primary"
-      aria-label="add"
-      style={{
-        position: 'fixed',
-        bottom: 16,
-        right: 16,
-      }}
-      onClick={handleCreateBooking}
-    >
-      <AddIcon />
-    </Fab>
+      <BookingEventDialog
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+        selectedEvent={selectedEvent}
+        handleStatusChange={handleStatusChange}
+        handleSubmit={handleSubmit}
+        isStatusModified={isStatusModified}
+      />
 
-    <CreateReservationDialog
-      isCreateDialogOpen={isCreateDialogOpen}
-      handleCreateDialogClose={handleCreateDialogClose}
-      selectedDate={selectedDate}
-      onReservationCreated={handleReservationCreated}
-    />
-    </div>
+      <Tooltip title="Create New Booking">
+        <Fab
+          color="primary"
+          aria-label="add"
+          onClick={handleCreateBooking}
+          sx={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+          }}
+        >
+          <AddIcon />
+        </Fab>
+      </Tooltip>
+
+      <CreateReservationDialog
+        isCreateDialogOpen={isCreateDialogOpen}
+        handleCreateDialogClose={handleCreateDialogClose}
+        selectedDate={selectedDate}
+        onReservationCreated={handleReservationCreated}
+      />
+    </Container>
   );
 };
 

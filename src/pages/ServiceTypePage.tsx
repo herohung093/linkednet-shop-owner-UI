@@ -1,16 +1,39 @@
+import React, { useCallback, useEffect, useState } from "react";
 import AddCategoryDialog from "../components/AddCategoryDialog";
 import EditCategoryDialog from "../components/EditCategoryDialog";
-import CustomLoading from "../components/Loading";
-import { axiosWithToken } from "../utils/axios";
-import { useCallback, useEffect, useState } from "react";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ServiceDialog from "../components/ServiceDialog";
-import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
+import { axiosWithToken } from "../utils/axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
 import withAuth from "../components/HOC/withAuth";
 import ErrorOverlayComponent from "../components/ErrorOverlayComponent";
+import {
+  Box,
+  Container,
+  Paper,
+  Typography,
+  FormControl,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
+  Collapse,
+  Chip,
+  IconButton,
+  Fade,
+  useTheme,
+  useMediaQuery,
+  Divider,
+  Button,
+} from "@mui/material";
+import {
+  KeyboardArrowDown,
+  KeyboardArrowUp,
+  Add as AddIcon,
+  Edit as EditIcon,
+  AccessTime as AccessTimeIcon,
+  AttachMoney as AttachMoneyIcon,
+  Sort as SortIcon,
+} from "@mui/icons-material";
 
 interface ServiceType {
   id: number;
@@ -24,23 +47,79 @@ interface ServiceType {
   serviceItems: ServiceItem[];
 }
 
+interface ExpandableDescriptionProps {
+  description: string;
+  maxLength?: number;
+}
+
+const ExpandableDescription: React.FC<ExpandableDescriptionProps> = ({
+  description,
+  maxLength = 100,
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const shouldShowButton = description.length > maxLength;
+  const displayText =
+    !isExpanded && shouldShowButton
+      ? `${description.slice(0, maxLength)}...`
+      : description;
+
+  return (
+    <Box>
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={{
+          mt: 0.5,
+          whiteSpace: "pre-wrap",
+          transition: "all 0.3s ease",
+        }}
+      >
+        {displayText}
+      </Typography>
+      {shouldShowButton && (
+        <Button
+          onClick={() => setIsExpanded(!isExpanded)}
+          size="small"
+          sx={{
+            mt: 0.5,
+            p: 0,
+            minWidth: "auto",
+            textTransform: "none",
+            color: "primary.main",
+            "&:hover": {
+              background: "none",
+              textDecoration: "underline",
+            },
+          }}
+        >
+          {isExpanded ? "Show Less" : "Show More"}
+        </Button>
+      )}
+    </Box>
+  );
+};
+
 const ServiceTypePage: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [updateTrigger, setUpdateTrigger] = useState<boolean>(false);
   const [serviceType, setServiceType] = useState<ServiceType[]>([]);
-  const [visibleServiceType, setVisibleServiceType] = useState<number | null>(
-    null
+  const [expandedTypes, setExpandedTypes] = useState<{
+    [key: number]: boolean;
+  }>({});
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const selectedStoreId = useSelector(
+    (state: RootState) => state.selectedStore.storeUuid
   );
-  const sortedServiceType = serviceType.sort((a, b) => a.id - b.id);
 
   const fetchCategories = useCallback(async () => {
-    // AuthCheck()
     setLoading(true);
     try {
       const response = await axiosWithToken.get<ServiceType[]>(`/serviceType/`);
-
       setServiceType(response.data);
       setError(null);
     } catch (error) {
@@ -49,137 +128,330 @@ const ServiceTypePage: React.FC = () => {
       setLoading(false);
     }
   }, []);
-  const selectedStoreId = useSelector(
-    (state: RootState) => state.selectedStore.storeUuid
-  );
 
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories, updateTrigger, selectedStoreId]);
 
-  if (loading) return <CustomLoading />;
-  if (error) {
-    return (<ErrorOverlayComponent/>
-    );
-  }
-
   const handleUpdate = () => {
     setUpdateTrigger(!updateTrigger);
   };
 
-  const toggleServiceVisibility = (id: number) => {
-    setVisibleServiceType((prevVisibleServiceType) =>
-      prevVisibleServiceType === id ? null : id
-    );
+  const toggleExpand = (typeId: number) => {
+    setExpandedTypes((prev) => ({
+      ...prev,
+      [typeId]: !prev[typeId],
+    }));
   };
 
   const handleFilterChange = (event: SelectChangeEvent<string>) => {
     setFilterStatus(event.target.value);
   };
 
-  const filteredServiceType = sortedServiceType.filter((service) =>
-    filterStatus === "all"
-      ? true
-      : filterStatus === "active"
-      ? service.active
-      : !service.active
-  );
+  const filteredServiceTypes = serviceType
+    .filter((type) =>
+      filterStatus === "all"
+        ? true
+        : filterStatus === "active"
+        ? type.active
+        : !type.active
+    )
+    .sort((a, b) => a.displayOrder - b.displayOrder);
+
+  if (error) {
+    return <ErrorOverlayComponent />;
+  }
 
   return (
-    <div className="p-4 md:w-[80%] mx-auto max-w-[1024px]">
-      <div className="mb-6 flex sm:justify-between justify-center items-center">
-        <div className="hidden sm:block"></div>
-        <div className="mb-6 flex justify-end sm:gap-x-8 ">
-          <Select
-            value={filterStatus}
-            onChange={handleFilterChange}
-            className="w-[110px] sm:w-[130px] h-[38px]"
+    <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
+      <Paper
+        elevation={3}
+        sx={{
+          p: { xs: 2, sm: 3 },
+          mb: 4,
+          borderRadius: 2,
+          background: theme.palette.background.paper,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 2,
+            mb: 3,
+          }}
+        >
+          <Typography
+            variant={isMobile ? "h5" : "h4"}
+            component="h1"
+            sx={{ fontWeight: "bold" }}
           >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="active">Active</MenuItem>
-            <MenuItem value="inactive">Inactive</MenuItem>
-          </Select>
-          <AddCategoryDialog onUpdate={handleUpdate} />
-        </div>
-      </div>
+            Service Categories
+          </Typography>
 
-      {filteredServiceType
-      .sort((a, b) => a.displayOrder - b.displayOrder)
-      .map((serviceType) => (
-        <div key={serviceType.id} className="mb-6 border-b border-black">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-md font-bold">{serviceType.type}</h3>
-            <div className="flex gap-5 justify-center items-center">
-              {visibleServiceType === serviceType.id ? (
-                <ArrowDropUpIcon
-                  className="cursor-pointer"
-                  onClick={() => toggleServiceVisibility(serviceType.id)}
-                />
-              ) : (
-                <ArrowDropDownIcon
-                  className="cursor-pointer"
-                  onClick={() => toggleServiceVisibility(serviceType.id)}
-                />
-              )}
-              <ServiceDialog
-                typeName={serviceType.type}
-                mode="add"
-                onUpdate={handleUpdate}
-                typeId={serviceType.id}
-              />
-              <EditCategoryDialog
-                serviceType={serviceType}
-                onUpdate={handleUpdate}
-              />
-            </div>
-          </div>
-          {visibleServiceType === serviceType.id && (
-            <div className="ml-4">
-              {serviceType.serviceItems
-              .sort((a, b) => a.displayOrder - b.displayOrder)
-              .map((serviceItem, index) => (
-                <div
-                  key={serviceItem.id}
-                  className={`mb-2 flex justify-between items-center  ${
-                    index < serviceType.serviceItems.length - 1
-                      ? "border-b "
-                      : ""
-                  }`}
+          <Box
+            sx={{
+              display: "flex",
+              gap: 2,
+              flexWrap: "wrap",
+            }}
+          >
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <Select
+                value={filterStatus}
+                onChange={handleFilterChange}
+                displayEmpty
+                variant="outlined"
+                startAdornment={<SortIcon sx={{ mr: 1 }} />}
+              >
+                <MenuItem value="all">All Status</MenuItem>
+                <MenuItem value="active">Active</MenuItem>
+                <MenuItem value="inactive">Inactive</MenuItem>
+              </Select>
+            </FormControl>
+            <AddCategoryDialog onUpdate={handleUpdate} />
+          </Box>
+        </Box>
+
+        <Box sx={{ mt: 3 }}>
+          {filteredServiceTypes.map((type) => (
+            <Fade in key={type.id}>
+              <Paper
+                elevation={1}
+                sx={{
+                  mb: 2,
+                  overflow: "hidden",
+                  borderRadius: 2,
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderLeft: `4px solid ${
+                    type.active
+                      ? theme.palette.success.main
+                      : theme.palette.grey[500]
+                  }`,
+                }}
+              >
+                <Box
+                  sx={{
+                    p: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    backgroundColor: type.active
+                      ? "rgba(76, 175, 80, 0.04)"
+                      : "rgba(0, 0, 0, 0.04)",
+                  }}
                 >
-                  <div className="">
-                    <h4 className="text-sm font-semibold">
-                      {serviceItem.serviceName}
-                    </h4>
-                    <p className="text-sm mx-3">
-                      {serviceItem.serviceDescription}
-                    </p>
-                    <p className="text-sm mx-3">
-                      Price: ${serviceItem.servicePrice.toFixed(2)}
-                    </p>
-                    <p className="text-sm mx-3">
-                      Estimated Time: {serviceItem.estimatedTime} mins
-                    </p>
-                    <p className="text-sm mx-3">
-                      Display Order: {serviceItem.displayOrder}
-                    </p>
-                    <p className="text-sm mx-3">
-                      Active: {serviceItem.active ? "Yes" : "No"}
-                    </p>
-                  </div>
-                  <ServiceDialog
-                    mode="edit"
-                    typeName={serviceType.type}
-                    typeId={serviceType.id}
-                    serviceItem={serviceItem}
-                    onUpdate={handleUpdate}
-                  />
-                </div>
-              ))}
-            </div>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      minWidth: 0,
+                      flex: 1,
+                      mr: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        minWidth: 0,
+                        width: "100%",
+                      }}
+                    >
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: "medium",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          minWidth: { xs: "100px", sm: "150px" },
+                          maxWidth: { xs: "150px", sm: "200px" },
+                        }}
+                      >
+                        {type.type}
+                      </Typography>
+
+                      <Chip
+                        label={`Level ${type.levelType}`}
+                        size="small"
+                        variant="outlined"
+                        sx={{
+                          minWidth: "80px",
+                          flexShrink: 0,
+                        }}
+                      />
+                    </Box>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <ServiceDialog
+                      typeName={type.type}
+                      mode="add"
+                      onUpdate={handleUpdate}
+                      typeId={type.id}
+                    />
+                    <EditCategoryDialog
+                      serviceType={type}
+                      onUpdate={handleUpdate}
+                    />
+                    <IconButton
+                      onClick={() => toggleExpand(type.id)}
+                      size="small"
+                    >
+                      {expandedTypes[type.id] ? (
+                        <KeyboardArrowUp />
+                      ) : (
+                        <KeyboardArrowDown />
+                      )}
+                    </IconButton>
+                  </Box>
+                </Box>
+
+                <Collapse in={expandedTypes[type.id]}>
+                  <Box sx={{ p: 2 }}>
+                    {type.serviceItems
+                      .sort((a, b) => a.displayOrder - b.displayOrder)
+                      .map((service, index) => (
+                        <React.Fragment key={service.id}>
+                          <Paper
+                            elevation={0}
+                            sx={{ 
+                              py: 2,
+                              backgroundColor: !service.active ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
+                              position: 'relative',
+                              pr: 10,
+                            }}
+                          >
+                            <Box sx={{ 
+                              display: "flex", 
+                              justifyContent: "space-between",
+                              alignItems: "flex-start",
+                              mb: 1,
+                              opacity: service.active ? 1 : 0.7,
+                              filter: !service.active ? 'grayscale(30%)' : 'none',
+                              transition: 'all 0.2s ease-in-out',
+                              position: 'relative',
+                            }}>
+                              <Box sx={{ flex: 1, mr: 2 }}>
+                                <Typography 
+                                  variant="subtitle1" 
+                                  sx={{ 
+                                    fontWeight: "medium",
+                                    textDecoration: !service.active ? 'line-through' : 'none',
+                                    color: !service.active ? 'text.secondary' : 'text.primary'
+                                  }}
+                                >
+                                  {service.serviceName}
+                                </Typography>
+                                <ExpandableDescription 
+                                  description={service.serviceDescription} 
+                                  maxLength={100}
+                                />
+                              </Box>
+                              <Box sx={{ 
+                                position: 'absolute',
+                                right: -48,
+                                top: 0,
+                              }}>
+                                <ServiceDialog
+                                  mode="edit"
+                                  typeName={type.type}
+                                  typeId={type.id}
+                                  serviceItem={service}
+                                  onUpdate={handleUpdate}
+                                />
+                              </Box>
+                            </Box>
+
+                            <Box sx={{ 
+                              display: "flex", 
+                              gap: 3,
+                              mt: 1,
+                              opacity: service.active ? 1 : 0.7
+                            }}>
+                              <Box sx={{ 
+                                display: "flex", 
+                                alignItems: "center",
+                                gap: 0.5,
+                                color: !service.active ? 'text.disabled' : 'text.secondary'
+                              }}>
+                                <AttachMoneyIcon fontSize="small" />
+                                <Typography variant="body2">
+                                  {service.servicePrice.toFixed(2)}
+                                </Typography>
+                              </Box>
+                              <Box sx={{ 
+                                display: "flex", 
+                                alignItems: "center",
+                                gap: 0.5,
+                                color: !service.active ? 'text.disabled' : 'text.secondary'
+                              }}>
+                                <AccessTimeIcon fontSize="small" />
+                                <Typography variant="body2">
+                                  {service.estimatedTime} mins
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </Paper>
+                          {index < type.serviceItems.length - 1 && (
+                            <Divider />
+                          )}
+                        </React.Fragment>
+                      ))}
+                    {type.serviceItems.length === 0 && (
+                      <Box
+                        sx={{
+                          py: 4,
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          flexDirection: "column",
+                          gap: 2,
+                          color: "text.secondary",
+                        }}
+                      >
+                        <AddIcon fontSize="large" />
+                        <Typography>No services added yet</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Collapse>
+              </Paper>
+            </Fade>
+          ))}
+
+          {filteredServiceTypes.length === 0 && (
+            <Box
+              sx={{
+                py: 8,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "column",
+                gap: 2,
+                color: "text.secondary",
+              }}
+            >
+              <Typography variant="h6">No service categories found</Typography>
+              <Typography variant="body2">
+                Start by adding a new service category
+              </Typography>
+            </Box>
           )}
-        </div>
-      ))}
-    </div>
+        </Box>
+      </Paper>
+    </Container>
   );
 };
 

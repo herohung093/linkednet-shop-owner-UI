@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import React, { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import SwitchActive from "./SwitchActive";
 import { axiosWithToken } from "../utils/axios";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import StaffField from "./StaffField";
 import WorkingDayRadio from "./WorkingDayRadio";
 import SkillLevelRadio from "./SkillLevelRadio";
@@ -17,6 +15,8 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import CustomLoading from "./Loading";
 import NumericInput from "./NumericInput";
+import { Paper, Avatar, Box, Typography, Chip, Fade } from "@mui/material";
+import { Phone, Mail, Star, CalendarToday } from "@mui/icons-material";
 
 type FormData = {
   firstName: string;
@@ -126,35 +126,139 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
       console.error("Error submitting", error);
     }
   };
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  const renderStaffCard = () => {
+    const workingDaysMap = {
+      1: "Mon",
+      2: "Tue", 
+      3: "Wed",
+      4: "Thu",
+      5: "Fri",
+      6: "Sat",
+      7: "Sun"
+    };
+
+    const workingDaysList = formData.workingDays
+      .filter((day: number) => workingDaysMap.hasOwnProperty(day))
+      .sort((a: number, b: number) => a - b)
+      .map((day: number) => workingDaysMap[day as keyof typeof workingDaysMap]);
+
+    return (
+      <Fade in={true}>
+        <Paper
+          elevation={2}
+          sx={{
+            p: 3,
+            height: "100%",
+            borderRadius: "16px",
+            transition: "transform 0.2s, box-shadow 0.2s",
+            "&:hover": {
+              transform: "translateY(-4px)",
+              boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
+            },
+            cursor: "pointer",
+            position: "relative",
+            borderLeft: "4px solid",
+            borderColor: staff.isActive ? "#4CAF50" : "#9e9e9e", // Green for active, Grey for inactive
+            backgroundColor: staff.isActive 
+              ? "rgba(76, 175, 80, 0.04)"  // Very light green background for active
+              : "rgba(158, 158, 158, 0.04)", // Very light grey background for inactive
+          }}
+          onClick={() => setOpen(true)}
+        >
+
+          <Typography variant="h6" align="center" gutterBottom>
+            {staff.nickname}
+          </Typography>
+
+          <Typography
+            variant="body2"
+            align="center"
+            color="textSecondary"
+            gutterBottom
+          >
+            {staff.firstName} {staff.lastName}
+          </Typography>
+
+          <Box sx={{ mt: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                mb: 1,
+              }}
+            >
+              <Phone fontSize="small" color="action" />
+              <Typography variant="body2">{staff.phone}</Typography>
+            </Box>
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                mb: 1,
+              }}
+            >
+              <Star fontSize="small" color="action" />
+              <Typography variant="body2">Level {staff.skillLevel}</Typography>
+            </Box>
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 1,
+                mb: 1,
+              }}
+            >
+              <CalendarToday fontSize="small" color="action" sx={{ mt: 0.5 }} />
+              <Box>
+                <Typography variant="body2" color="textSecondary" gutterBottom>
+                  Working Days:
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                    {workingDaysList.map((day: string, index: number) => (
+                    <Chip
+                      key={index}
+                      label={day}
+                      size="small"
+                      variant="outlined"
+                      sx={{
+                      height: "20px",
+                      fontSize: "0.75rem",
+                      backgroundColor: "rgba(0, 0, 0, 0.04)",
+                      }}
+                    />
+                    ))}
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        </Paper>
+      </Fade>
+    );
+  };
+
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <div>
-          {type === "add" && <div className="btn-primary">Add</div>}
-          {type === "edit" && (
-            <div
-              key={staff.id}
-              className={`sm:p-4 mb-10 border-2 rounded-lg shadow-md py-2 flex flex-col justify-between w-[160px] sm:w-[200px] mx-auto items-center cursor-pointer ${
-                !staff.isActive && "bg-slate-300"
-              }`}
-            >
-              <div className="text-base xs:text-sm font-semibold flex flex-col justify-center gap-2 mb-2 items-center">
-                <AccountCircleIcon />
-                {staff.firstName}
-              </div>
-              <div className="text-gray-600 mb-4 px-8 text-base flex flex-col items-center justify-center gap-x-2">
-                <div>Nickname:</div>
-                <div>{staff.nickname}</div>
-              </div>
-            </div>
-          )}
-        </div>
+        {type === "add" ? (
+          <button className="btn-primary w-full">Add Staff</button>
+        ) : (
+          renderStaffCard()
+        )}
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="overlay-dialog data-[state=open]:animate-overlayShow " />
         <Dialog.Content className="data-[state=open]:animate-contentShow content-dialog">
           <Dialog.Title className="text-slate-700 m-0 text-[17px] font-medium mb-5">
-            Edit staff profile
+            {type === "add" ? "Add New Staff" : "Edit Staff Profile"}
           </Dialog.Title>
           <form onSubmit={handleSubmit(onSubmitHandler)}>
             <StaffField
@@ -250,7 +354,12 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
                 <button
                   type="submit"
                   onClick={handleSubmit(onSubmitHandler)}
-                  className={` hover:bg-blue-500 focus:shadow-blue-700 inline-flex h-[35px] w-[135px] items-center justify-center rounded-md px-[15px] font-medium leading-none focus:shadow-[0_0_0_2px] focus:outline-none bg-blue-700 text-white`}
+                  className={`hover:bg-blue-500 focus:shadow-blue-700 inline-flex h-[35px] w-[135px] items-center justify-center rounded-md px-[15px] font-medium leading-none focus:shadow-[0_0_0_2px] focus:outline-none ${
+                    !isValid
+                      ? "bg-slate-500 text-white"
+                      : "bg-slate-950 text-white"
+                  }`}
+                  disabled={!isValid}
                 >
                   {isSubmitting ? (
                     <CustomLoading />

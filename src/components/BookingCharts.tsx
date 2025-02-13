@@ -2,31 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Paper, Typography, Box, useMediaQuery, useTheme } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { axiosWithToken } from "../utils/axios";
-
-// const generateMockData = () => {
-//     const months = [
-//         'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-//     ];
-
-//     const currentYear = new Date().getFullYear();
-//     const previousYear = currentYear - 1;
-
-//     const data = [];
-//     const startMonthIndex = new Date().getMonth() - 2; // Start from 15 months ago
-
-//     for (let i = 0; i < 15; i++) {
-//         const monthIndex = (startMonthIndex + i) % 12;
-//         const year = (startMonthIndex + i) < 12 ? previousYear : currentYear;
-//         data.push({
-//             name: `${months[monthIndex]} ${year}`,
-//             bookings: Math.floor(Math.random() * 100) + 1 // Random bookings between 1 and 100
-//         });
-//     }
-
-//     return data;
-// };
-
-// const data = generateMockData();
+import { CalendarDays } from "lucide-react";
 
 const BookingChart: React.FC = () => {
   const theme = useTheme();
@@ -35,6 +11,7 @@ const BookingChart: React.FC = () => {
   const isMd = useMediaQuery(theme.breakpoints.between("md", "lg"));
   const isLg = useMediaQuery(theme.breakpoints.up("lg"));
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   let chartWidth;
   if (isXs) {
@@ -49,10 +26,9 @@ const BookingChart: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const response = await axiosWithToken(
-          "/dashboard/bookingCountsLast16Months"
-        );
+        const response = await axiosWithToken("/dashboard/bookingCountsLast16Months");
         const formattedData = response.data.map(
           (item: { monthLabel: string; reservationCount: number }) => ({
             name: item.monthLabel,
@@ -62,6 +38,8 @@ const BookingChart: React.FC = () => {
         setData(formattedData);
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -70,39 +48,97 @@ const BookingChart: React.FC = () => {
 
   return (
     <Box>
-      <Paper elevation={3} sx={{ padding: "16px", height: "100%" }}>
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: "bold",
-            color: "primary.main",
-            marginTop: "5px",
-            textTransform: "uppercase",
-            borderBottom: "2px solid",
-            borderColor: "primary.main",
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          padding: "24px",
+          height: "100%",
+          borderRadius: "16px",
+          background: "linear-gradient(to right bottom, #ffffff, #f8f9fa)",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)"
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", marginBottom: 3 }}>
+          <CalendarDays size={24} className="text-blue-600 mr-2" />
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              color: "#1a237e",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px"
+            }}
+          >
+            Monthly Booking Summary
+          </Typography>
+        </Box>
+
+        <Box 
+          sx={{ 
+            width: "100%", 
+            height: 400,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
           }}
         >
-          Monthly booking summary
-        </Typography>
-        <Box sx={{ width: "100%", height: 400 }}>
-          <BarChart
-            xAxis={[
-              {
+          {loading ? (
+            <Box sx={{ 
+              display: "flex", 
+              flexDirection: "column", 
+              alignItems: "center",
+              gap: 2 
+            }}>
+              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <Typography variant="body2" color="textSecondary">
+                Loading chart data...
+              </Typography>
+            </Box>
+          ) : data.length > 0 ? (
+            <BarChart
+              xAxis={[{
                 dataKey: "name",
                 label: "Month",
                 scaleType: "band",
-              },
-            ]}
-            series={[
-              {
+                tickLabelStyle: {
+                  angle: 45,
+                  textAnchor: 'start',
+                  fontSize: 12
+                }
+              }]}
+              series={[{
                 dataKey: "bookings",
                 label: "Bookings",
-              },
-            ]}
-            width={chartWidth}
-            height={400}
-            dataset={data}
-          />
+                color: "#3f51b5",
+                highlightScope: {
+                  highlighted: 'item',
+                  faded: 'global'
+                },
+              }]}
+              width={chartWidth}
+              height={400}
+              dataset={data}
+              sx={{
+                "& .MuiChartsAxis-line": {
+                  stroke: "#9e9e9e"
+                },
+                "& .MuiChartsAxis-tick": {
+                  stroke: "#9e9e9e"
+                },
+                "& .MuiChartsAxis-tickLabel": {
+                  fill: "#616161"
+                },
+                "& .MuiChartsAxis-label": {
+                  fill: "#424242",
+                  fontWeight: 500
+                }
+              }}
+            />
+          ) : (
+            <Typography variant="body1" color="textSecondary">
+              No booking data available
+            </Typography>
+          )}
         </Box>
       </Paper>
     </Box>

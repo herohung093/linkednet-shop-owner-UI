@@ -29,6 +29,7 @@ import CreatePromotionPage from "./pages/CreatePromotionPage.tsx";
 import PaymentSuccess from "./pages/PaymentSuccess.tsx";
 import PaymentCancel from "./pages/PaymentCancel.tsx";
 import ManagePromotionsPage from "./pages/ManagePromotionsPage.tsx";
+import useFetchUserDetailsOnRefresh from "./hooks/useFetchUserDetailsOnRefresh";
 
 const router = createBrowserRouter([
   {
@@ -130,7 +131,8 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  
+  useFetchUserDetailsOnRefresh();
+
   return (
     <GoogleOAuthProvider clientId={googleOAuthConfig.clientId}>
       <RouterProvider router={router} />

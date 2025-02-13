@@ -1,5 +1,20 @@
-import  { useEffect, useState, useCallback } from "react";
-import CustomLoading from "../components/Loading";
+import { useEffect, useState, useCallback } from "react";
+import {
+  Box,
+  Typography,
+  Grid,
+  Paper,
+  InputAdornment,
+  TextField,
+  FormControl,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
+  Container,
+  Fade,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import Staff from "../components/Staff";
 import { axiosInstance } from "../utils/axios";
@@ -31,6 +46,12 @@ const StaffsPage: React.FC = () => {
   const [filter, setFilter] = useState<string>("true");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const selectedStoreId = useSelector(
+    (state: RootState) => state.selectedStore.storeUuid
+  );
 
   const fetchStaffs = useCallback(async () => {
     setLoading(true);
@@ -45,20 +66,17 @@ const StaffsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
-  const selectedStoreId = useSelector(
-    (state: RootState) => state.selectedStore.storeUuid
-  );
+  }, []);
 
   useEffect(() => {
     fetchStaffs();
-  }, [updateTrigger,selectedStoreId]);
+  }, [updateTrigger, selectedStoreId, fetchStaffs]);
 
   const handleUpdate = () => {
     setUpdateTrigger(!updateTrigger);
   };
 
-  const handleFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleFilterChange = (event: SelectChangeEvent<string>) => {
     setFilter(event.target.value);
   };
 
@@ -67,15 +85,13 @@ const StaffsPage: React.FC = () => {
   };
 
   const filteredStaffs = staffs.filter((staff) => {
-    if (filter === "true" && !staff.isActive) return false;
-    if (
-      searchTerm &&
-      !`${staff.firstName} ${staff.lastName} ${staff.nickname}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    )
-      return false;
-    return true;
+    const matchesFilter = filter === "true" ? staff.isActive : true;
+    const matchesSearch = searchTerm
+      ? `${staff.firstName} ${staff.lastName} ${staff.nickname}`
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
+      : true;
+    return matchesFilter && matchesSearch;
   });
 
   const sortedStaffArray = filteredStaffs.sort(
@@ -83,7 +99,7 @@ const StaffsPage: React.FC = () => {
   );
 
   if (error) {
-    return <ErrorOverlayComponent/>;
+    return <ErrorOverlayComponent />;
   }
 
   const emptyForm: Staff = {
@@ -102,70 +118,137 @@ const StaffsPage: React.FC = () => {
   };
 
   return (
-    <div className="xl:w-[90%] 2xl:w-[80%] mx-auto">
-      <div className="flex justify-center lg:justify-between items-center my-4">
-        <div className="hidden lg:text-xl font-bold sm:mx-16 lg:flex items-end gap-x-2">
-          Team members
-          <div className="border-2 rounded-full flex justify-center items-end w-8 h-8 border-slate-950">
-            {sortedStaffArray.length}
-          </div>
-        </div>
-        <div className="flex items-center sm:mx-14">
-          <div className="hidden sm:flex items-center mx-2 relative">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="px-5 pl-[9px] pr-[38px] bg-white rounded-lg border-2 shadow-md font-bold flex items-center h-[35px] focus:outline-none"
-              placeholder="Search staff"
-            />
-            <SearchIcon className="cursor-pointer absolute right-[10px]" />
-          </div>
-
-          <select
-            onChange={handleFilterChange}
-            className="cursor-pointer  bg-white rounded-lg border-2 shadow-md font-bold flex items-center h-[35px]"
-            value={filter}
+    <Container maxWidth="xl" disableGutters={isMobile}>
+      <Box sx={{ py: { xs: 2, sm: 4 } }}>
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: { xs: 2, sm: 3 }, 
+            mb: { xs: 2, sm: 4 }, 
+            borderRadius: { xs: 0, sm: 2 },
+            ...(isMobile && { boxShadow: 'none' })
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: { xs: 1.5, sm: 2 },
+              mb: { xs: 1.5, sm: 3 },
+            }}
           >
-            <option value="true" className="rounded-md">
-              Active Staffs
-            </option>
-            <option value="false">All Staffs</option>
-          </select>
-          <Staff type="add" staff={emptyForm} onUpdate={handleUpdate} />
-        </div>
-      </div>
-      <div className="sm:hidden flex items-center justify-center">
-        <div className="flex relative">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="px-5 pl-[20px] bg-white rounded-lg border-2 shadow-md font-bold flex items-center h-[50px] focus:outline-none mx-auto"
-            placeholder="Search staff"
-          />
-          <SearchIcon className="cursor-pointer absolute right-3 top-[25%]" />
-        </div>
-      </div>
-      <CustomLoading />
-      <div className="flex justify-center items-center mb-4"></div>
-      {loading ? (
-        <div className="flex justify-center items-center mt-[20%]">
-          {/* <Spinner size={"3"} /> */}
-        </div>
-      ) : (
-        <div className="grid 2xl:grid-cols-5 xl:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-4">
-          {sortedStaffArray.map((staff) => (
-            <Staff
-              type="edit"
-              key={staff.id}
-              staff={staff}
-              onUpdate={handleUpdate}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+            <Typography 
+              variant={isMobile ? "h5" : "h4"} 
+              component="h1" 
+              sx={{ 
+                fontWeight: "bold",
+                fontSize: { xs: '1.25rem', sm: '2rem' }
+              }}
+            >
+              Team Members ({sortedStaffArray.length})
+            </Typography>
+            
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 1.5,
+              }}
+            >
+              <TextField
+                fullWidth
+                value={searchTerm}
+                onChange={handleSearchChange}
+                placeholder="Search staff..."
+                variant="outlined"
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 1.5,
+                flexDirection: { xs: 'row', sm: 'row' },
+                width: '100%'
+              }}>
+                <FormControl 
+                  size="small" 
+                  sx={{ 
+                    flexGrow: 1,
+                    maxWidth: { xs: '50%', sm: 200 }
+                  }}
+                >
+                  <Select value={filter} onChange={handleFilterChange}>
+                    <MenuItem value="true">Active Staff</MenuItem>
+                    <MenuItem value="false">All Staff</MenuItem>
+                  </Select>
+                </FormControl>
+                
+                <Box sx={{ flexGrow: { xs: 1, sm: 0 } }}>
+                  <Staff type="add" staff={emptyForm} onUpdate={handleUpdate} />
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        </Paper>
+
+        <Fade in={!loading}>
+          <Grid 
+            container 
+            spacing={isMobile ? 1 : 3}
+            sx={{ px: { xs: 1, sm: 0 } }}
+          >
+            {sortedStaffArray.map((staff) => (
+              <Grid item xs={6} sm={6} md={4} lg={3} key={staff.id}>
+                <Staff type="edit" staff={staff} onUpdate={handleUpdate} />
+              </Grid>
+            ))}
+          </Grid>
+        </Fade>
+
+        {loading && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              minHeight: "30vh",
+            }}
+          >
+            <Typography 
+              variant={isMobile ? "body1" : "h6"} 
+              color="text.secondary"
+            >
+              Loading staff members...
+            </Typography>
+          </Box>
+        )}
+
+        {!loading && sortedStaffArray.length === 0 && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              minHeight: "30vh",
+            }}
+          >
+            <Typography 
+              variant={isMobile ? "body1" : "h6"} 
+              color="text.secondary"
+            >
+              No staff members found
+            </Typography>
+          </Box>
+        )}
+      </Box>
+    </Container>
   );
 };
 

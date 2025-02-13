@@ -96,8 +96,14 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-600">
-      <div className="text-4xl text-white font-bold mb-8">
-        {t("loginPage.page.title")}
+      <div className="relative text-center mb-12">
+        <h1 className="text-5xl font-extrabold text-white tracking-tight">
+          <span className="inline-block transform hover:scale-105 transition-transform duration-200">
+            {t("loginPage.page.title")}
+          </span>
+        </h1>
+        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-white rounded-full opacity-75"></div>
+        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-blue-300 rounded-full animate-pulse"></div>
       </div>
       <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md mx-6">
         <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Login</h2>
@@ -179,9 +185,8 @@ const LoginPage: React.FC = () => {
           </button>
         </div>
         <div className="flex space-x-6">
-          <a href="/login" className="hover:text-blue-200">Language</a>
-          <a href="/login" className="hover:text-blue-200">Support</a>
-          <a href="/login" className="hover:text-blue-200">Privacy Policy</a>
+          <a href="https://linkednet.com.au/support" className="hover:text-blue-200">Support</a>
+          <a href="https://linkednet.com.au/privacy" className="hover:text-blue-200">Privacy Policy</a>
         </div>
       </div>
     </div>

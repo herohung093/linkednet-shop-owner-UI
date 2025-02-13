@@ -65,6 +65,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
   const renderCommunicationStatus = (status: string) => {
     switch (status) {
       case "SUCCESS":
+      case "Delivered":
         return <CheckCircle style={{ color: "green" }} />;
       case "Undelivered":
         return <Error style={{ color: "red" }} />;

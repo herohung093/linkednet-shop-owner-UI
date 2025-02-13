@@ -2,6 +2,7 @@ import { Box, Paper, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { useEffect, useState } from "react";
 import { axiosWithToken } from "../utils/axios";
+import { Flame, Users } from "lucide-react";
 
 const StaffChart: React.FC = () => {
   const [staffData, setStaffData] = useState([]);
@@ -41,19 +42,38 @@ const StaffChart: React.FC = () => {
   return (
     <Box>
       <Paper elevation={3} sx={{ padding: "16px", height: "100%" }}>
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: "bold",
-            color: "primary.main",
-            marginTop: "5px",
-            textTransform: "uppercase",
-            borderBottom: "2px solid",
-            borderColor: "primary.main",
-          }}
-        >
-          Staff On Fire &#128293;{" 30 days"}
-        </Typography>
+      <Box sx={{ 
+          display: "flex", 
+          alignItems: "center", 
+          marginBottom: 3,
+          flexWrap: "wrap"
+        }}>
+          <Users size={24} className="text-purple-600 mr-2" />
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              color: "#1a237e",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              fontSize: { xs: '0.9rem', sm: '1rem' }
+            }}
+          >
+            Staff Performance
+            <Box 
+              component="span" 
+              sx={{ 
+                display: "inline-flex",
+                alignItems: "center",
+                ml: 1,
+                color: "#ff6b6b"
+              }}
+            >
+              <Flame size={20} className="ml-1" />
+              Last 30 Days
+            </Box>
+          </Typography>
+        </Box>
         <Box
           flexGrow={1}
           sx={{

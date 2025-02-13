@@ -2,6 +2,7 @@ import { Box, Paper, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { axiosWithToken } from "../utils/axios";
 import { useEffect, useState } from "react";
+import { DollarSign } from "lucide-react";
 
 const RevenueChart: React.FC = () => {
   const [data, setData] = useState([]);
@@ -30,24 +31,6 @@ const RevenueChart: React.FC = () => {
 
   const currentYear = new Date().getFullYear();
   const previousYear = currentYear - 1;
-
-  // const generateMockData = () => {
-  //     const months = [
-  //         'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-  //     ];
-
-  //     const data = [];
-  //     for (let i = 0; i < months.length; i++) {
-  //         data.push({
-  //             month: months[i],
-  //             [`revenue_${previousYear}`]: Math.floor(Math.random() * 10000) + 1000, // Random revenue between 1000 and 10000
-  //             [`revenue_${currentYear}`]: Math.floor(Math.random() * 10000) + 1000, // Random revenue between 1000 and 10000
-  //         });
-  //     }
-  //     return data;
-  // };
-
-  // const data = generateMockData();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,19 +64,20 @@ const RevenueChart: React.FC = () => {
   return (
     <Box>
       <Paper elevation={3} sx={{ padding: "16px", height: "100%" }}>
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: "bold",
-            color: "primary.main",
-            marginTop: "5px",
-            textTransform: "uppercase",
-            borderBottom: "2px solid",
-            borderColor: "primary.main",
-          }}
-        >
-          Monthly Revenue
-        </Typography>
+      <Box sx={{ display: "flex", alignItems: "center", marginBottom: 3 }}>
+          <DollarSign size={24} className="text-green-600 mr-2" />
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              color: "#1a237e",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px"
+            }}
+          >
+            Monthly Revenue Comparison
+          </Typography>
+        </Box>
         <LineChart
           xAxis={[
             {

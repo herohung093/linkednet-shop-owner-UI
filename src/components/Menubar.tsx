@@ -205,7 +205,6 @@ const MenubarDemo = () => {
                     display: { xs: "flex", md: "none" },
                   }}
                 >
-                  {!hiddenPaths.updatePayment.includes(location.pathname) && (
                     <Box>
                       <IconButton
                         onClick={toggleDrawer}
@@ -217,7 +216,6 @@ const MenubarDemo = () => {
                         <MenuIcon sx={{ color: "black" }} />
                       </IconButton>
                     </Box>
-                  )}
                   <Box sx={{ display: "flex", gap: "0.5rem" }}>
                     <NotificationIcon />
                     <AccountMenuItem />
@@ -243,7 +241,6 @@ const MenubarDemo = () => {
                   justifyContent: "space-between",
                 }}
               >
-                {!hiddenPaths.updatePayment.includes(location.pathname) && (
                   <Box
                     sx={{
                       display: "flex",
@@ -368,7 +365,6 @@ const MenubarDemo = () => {
                       </Menu>
                     </div>
                   </Box>
-                )}
                 <Box sx={{ display: "flex", gap: "0.5rem" }}>
                   <NotificationIcon />
                   <AccountMenuItem />

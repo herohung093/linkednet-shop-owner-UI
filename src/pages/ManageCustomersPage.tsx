@@ -214,6 +214,8 @@ const ManageCustomersPage: React.FC = () => {
       setValue("searchString", savedState.searchString);
       setValue("filterBlacklisted", savedState.filterBlacklisted);
       fetchCustomers(savedState.page, savedState.pageSize);
+    } else {
+      fetchCustomers(page, pageSize);
     }
   }, []);
 

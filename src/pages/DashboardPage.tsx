@@ -30,41 +30,13 @@ const Dashboard: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Paper elevation={3} sx={{ padding: "16px", height: "100%" }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: "bold",
-                  color: "primary.main",
-                  marginTop: "5px",
-                  textTransform: "uppercase",
-                  borderBottom: "2px solid",
-                  borderColor: "primary.main",
-                }}
-              >
-                Up Coming Bookings
-              </Typography>
-              <Box sx={{ marginTop: "1rem" }}>
-                <UpComingBooking />
-              </Box>
-            </Paper>
+            <Box>
+              <UpComingBooking />
+            </Box>
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Paper elevation={3} sx={{ padding: "16px", height: "100%" }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: "bold",
-                  color: "primary.main",
-                  marginTop: "5px",
-                  textTransform: "uppercase",
-                  borderBottom: "2px solid",
-                  borderColor: "primary.main",
-                }}
-              >
-                Most Value Customers
-              </Typography>
+            <Paper elevation={3} sx={{ height: "100%" }}>
               <TopCustomers />
             </Paper>
           </Grid>
