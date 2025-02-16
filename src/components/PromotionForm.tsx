@@ -1,5 +1,5 @@
 import React from "react";
-import { CalendarClock, MessageSquare, Tag } from "lucide-react";
+import { CalendarDays, MessageSquare, Tag } from "lucide-react";
 import {
   promotionSchema,
   PROMOTION_CONSTRAINTS,
@@ -29,7 +29,6 @@ export default function PromotionForm({
     e.preventDefault();
 
     try {
-      // Validate all fields
       promotionSchema.parse(promotion);
       setValidationErrors({});
       onSubmit();
@@ -68,22 +67,26 @@ export default function PromotionForm({
     });
   };
 
-  const getMinDate = () => {
-    const date = new Date();
-    date.setDate(date.getDate() + PROMOTION_CONSTRAINTS.MIN_DAYS_AHEAD);
-    return date;
-  };
-
-  const isValidDate = (date: Date) => {
-    return date >= getMinDate();
-  };
-
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = moment(e.target.value).toDate();
+    const selectedDate = e.target.value;
+    // Set time to 10:00 AM on the selected date
+    const dateWithTime = moment(selectedDate).set({
+      hour: PROMOTION_CONSTRAINTS.DEFAULT_SEND_HOUR,
+      minute: PROMOTION_CONSTRAINTS.DEFAULT_SEND_MINUTE,
+      second: 0,
+      millisecond: 0
+    }).toDate();
+
     onPromotionChange({
       ...promotion,
-      messageSendTime: selectedDate,
+      messageSendTime: dateWithTime,
     });
+  };
+
+  const getMinDate = () => {
+    const date = moment().add(PROMOTION_CONSTRAINTS.MIN_DAYS_AHEAD, 'days')
+      .format('YYYY-MM-DD');
+    return date;
   };
 
   const isFormValid = () => {
@@ -91,8 +94,7 @@ export default function PromotionForm({
       promotion.campaignName?.trim() &&
       promotion.promotionCode?.trim() &&
       promotion.promotionMessage?.trim() &&
-      promotion.messageSendTime &&
-      isValidDate(promotion.messageSendTime)
+      promotion.messageSendTime
     );
   };
 
@@ -168,7 +170,6 @@ export default function PromotionForm({
                 }`}
               placeholder="SUMMER24"
               maxLength={PROMOTION_CONSTRAINTS.PROMOTION_CODE.MAX_LENGTH}
-              pattern={PROMOTION_CONSTRAINTS.PROMOTION_CODE.PATTERN.source}
               style={{ textTransform: "uppercase" }}
             />
           </div>
@@ -213,36 +214,28 @@ export default function PromotionForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Send Time
+            Send Date
           </label>
           <div
             className="relative flex-1 cursor-pointer"
             onClick={(e) => {
-              const input = e.currentTarget.querySelector(
-                'input[type="datetime-local"]'
-              );
+              const input = e.currentTarget.querySelector('input[type="date"]');
               if (input) {
                 (input as HTMLInputElement).focus();
-                (
-                  input as HTMLInputElement & { showPicker?: () => void }
-                ).showPicker?.();
+                (input as HTMLInputElement & { showPicker?: () => void }).showPicker?.();
               }
             }}
           >
-            <CalendarClock
+            <CalendarDays
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
               size={20}
             />
             <input
-              aria-label="Send Time"
-              type="datetime-local"
-              value={
-                promotion.messageSendTime
-                  ? moment(promotion.messageSendTime).format("YYYY-MM-DDTHH:mm")
-                  : ""
-              }
+              aria-label="Send Date"
+              type="date"
+              value={promotion.messageSendTime ? moment(promotion.messageSendTime).format("YYYY-MM-DD") : ""}
               onChange={handleDateChange}
-              min={getMinDate().toISOString().slice(0, 16)}
+              min={getMinDate()}
               className={`w-full pl-10 pr-4 h-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer
                 ${
                   validationErrors.messageSendTime
@@ -253,8 +246,9 @@ export default function PromotionForm({
           </div>
           <div className="mt-1 text-sm">
             <p className="text-gray-500">
-              Schedule at least {PROMOTION_CONSTRAINTS.MIN_DAYS_AHEAD} days in
-              advance (minimum: {getMinDate().toLocaleDateString()})
+              Messages will be sent at {PROMOTION_CONSTRAINTS.DEFAULT_SEND_HOUR}:00 AM on the selected date.
+              Schedule at least {PROMOTION_CONSTRAINTS.MIN_DAYS_AHEAD} days in advance
+              (minimum: {moment().add(PROMOTION_CONSTRAINTS.MIN_DAYS_AHEAD, 'days').format('MMM D, YYYY')})
             </p>
             {validationErrors.messageSendTime && (
               <p className="mt-1 text-red-600">

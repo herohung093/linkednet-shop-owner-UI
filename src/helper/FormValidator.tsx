@@ -1,7 +1,6 @@
 import { z } from "zod";
+import moment from "moment";
 
-// Constants for validation
-// Zod schema for promotion validation
 interface PromotionConstraints {
   CAMPAIGN_NAME: {
     MIN_LENGTH: number;
@@ -11,13 +10,14 @@ interface PromotionConstraints {
   PROMOTION_CODE: {
     MIN_LENGTH: number;
     MAX_LENGTH: number;
-    PATTERN: RegExp;
   };
   PROMOTION_MESSAGE: {
     MIN_LENGTH: number;
     MAX_LENGTH: number;
   };
   MIN_DAYS_AHEAD: number;
+  DEFAULT_SEND_HOUR: number;
+  DEFAULT_SEND_MINUTE: number;
 }
 
 export const PROMOTION_CONSTRAINTS: PromotionConstraints = {
@@ -29,13 +29,14 @@ export const PROMOTION_CONSTRAINTS: PromotionConstraints = {
   PROMOTION_CODE: {
     MIN_LENGTH: 3,
     MAX_LENGTH: 20,
-    PATTERN: /^[A-Z0-9\-_]+$/,
   },
   PROMOTION_MESSAGE: {
     MIN_LENGTH: 10,
     MAX_LENGTH: 144,
   },
-  MIN_DAYS_AHEAD: 0,
+  MIN_DAYS_AHEAD: 1,
+  DEFAULT_SEND_HOUR: 10,
+  DEFAULT_SEND_MINUTE: 0,
 } as const;
 
 export const promotionSchema = z.object({
@@ -65,10 +66,6 @@ export const promotionSchema = z.object({
       PROMOTION_CONSTRAINTS.PROMOTION_CODE.MAX_LENGTH,
       "Promotion code cannot exceed 20 characters"
     )
-    .regex(
-      PROMOTION_CONSTRAINTS.PROMOTION_CODE.PATTERN,
-      "Promotion code can only contain uppercase letters, numbers, hyphens, and underscores"
-    )
     .trim()
     .transform((val) => val.toUpperCase()),
 
@@ -85,8 +82,13 @@ export const promotionSchema = z.object({
     .trim(),
 
   messageSendTime: z.date().refine((date) => {
-    const minDate = new Date();
-    minDate.setDate(minDate.getDate() + PROMOTION_CONSTRAINTS.MIN_DAYS_AHEAD);
-    return date >= minDate;
-  }, `Send time must be at least ${PROMOTION_CONSTRAINTS.MIN_DAYS_AHEAD} days in the future`),
+    const minDate = moment().add(PROMOTION_CONSTRAINTS.MIN_DAYS_AHEAD, 'days')
+      .set({
+        hour: PROMOTION_CONSTRAINTS.DEFAULT_SEND_HOUR,
+        minute: PROMOTION_CONSTRAINTS.DEFAULT_SEND_MINUTE,
+        second: 0,
+        millisecond: 0
+      });
+    return moment(date).isSameOrAfter(minDate, 'day');
+  }, `Send date must be at least ${PROMOTION_CONSTRAINTS.MIN_DAYS_AHEAD} days in the future`),
 });
