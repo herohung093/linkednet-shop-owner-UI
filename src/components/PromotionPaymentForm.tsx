@@ -107,13 +107,13 @@ export default function PromotionPaymentForm({ promotion }: Props) {
 
       if (response.status !== 201) {
         setPaymentProcessing(false);
-        setPaymentError("Failed to create promotion campaign. Any charges will be refunded.");
+        setPaymentError("Failed to create promotion campaign. Any charges will be refunded. " + response.data.message);
         return;
       }
       navigate("/payment/success");
     } catch (error) {
       setPaymentProcessing(false);
-      setPaymentError("Failed to create promotion campaign. Any charges will be refunded.");
+      setPaymentError("Failed to create promotion campaign. Any charges will be refunded. " + (error as Error).message);
     }
   };
 
