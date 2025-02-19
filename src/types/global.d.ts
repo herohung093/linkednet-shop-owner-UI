@@ -129,6 +129,14 @@ declare interface PromotionCampaign {
   status: string;
 }
 
+declare interface StoreClosedDate {
+  id: number;
+  reason: string;
+  closedStartDate: string;
+  closedEndDate: string;
+  storeConfig: Store;
+}
+
 declare module 'sockjs-client/dist/sockjs' {
   import SockJS from '@types/sockjs-client';
 

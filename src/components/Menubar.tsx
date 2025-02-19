@@ -90,8 +90,8 @@ const MenubarDemo = () => {
     ...(!storeConfigUuid
       ? [{ label: "Create Store", path: "/create-store" }]
       : []),
-    // { label: "Store Details", path: "/store-details" },
-    { label: "Store Settings", path: "/store-settings" },
+      { label: "Store Settings", path: "/store-settings" },
+      { label: "Store Closed Dates", path: "/manage-store-closed-dates" },
   ];
 
   const managePromotionsMenuItems: MenuItemProps[] = [

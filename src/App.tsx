@@ -30,6 +30,7 @@ import PaymentSuccess from "./pages/PaymentSuccess.tsx";
 import PaymentCancel from "./pages/PaymentCancel.tsx";
 import ManagePromotionsPage from "./pages/ManagePromotionsPage.tsx";
 import useFetchUserDetailsOnRefresh from "./hooks/useFetchUserDetailsOnRefresh";
+import ManageStoreClosedDatePage from "./pages/ManageStoreClosedDatePage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -44,6 +45,10 @@ const router = createBrowserRouter([
       {
         path: "store-settings",
         element: <StoreSettingPage />,
+      },
+      {
+        path:"manage-store-closed-dates",
+        element: <ManageStoreClosedDatePage />
       },
       {
         path: "services",

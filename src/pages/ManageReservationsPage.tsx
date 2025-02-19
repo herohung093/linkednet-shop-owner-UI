@@ -3,17 +3,14 @@ import { axiosWithToken } from "../utils/axios";
 import { parse } from "date-fns";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
-import { useMediaQuery } from "react-responsive";
 import {
   Typography,
   Box,
   List,
   Paper,
   Container,
-  useTheme,
   Fade,
   Divider,
-  IconButton,
   Tooltip,
 } from "@mui/material";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
@@ -42,11 +39,10 @@ const ManageReservationsPage: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<ProcessedEvent | null>(null);
   const [isStatusModified, setIsStatusModified] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const [selectedDate, setSelectedDate] = useState<moment.Moment | null>(moment());
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const theme = useTheme();
+  const [storeClosedDates, setStoreClosedDates] = useState<StoreClosedDate[]>([]);
 
   const handleEventClick = (event: any) => {
     setSelectedEvent(event as ReservationEvent);
@@ -78,6 +74,15 @@ const ManageReservationsPage: React.FC = () => {
     }
   };
 
+  const fetchStoreClosedDates = async (params: FetchReservationsParams) => {
+    const response = await axiosWithToken.get<StoreClosedDate[]>(
+      "/storeConfig/closedDate/byTimeFrame",
+      { params }
+    );
+    setStoreClosedDates(response.data);
+    return response.data;
+  };
+
   const selectedStoreId = useSelector(
     (state: RootState) => state.selectedStore.storeUuid
   );
@@ -85,15 +90,19 @@ const ManageReservationsPage: React.FC = () => {
   useEffect(() => {
     const startDate = moment().startOf("month").format("DD/MM/YYYY");
     const endDate = moment().endOf("month").format("DD/MM/YYYY");
-    
+
     const fetchData = async () => {
       try {
-        const data = await fetchReservations({ startDate, endDate });
-        const processedEvents = await convertToProcessedEvents(data);
+        const [reservationData, closedDateData] = await Promise.all([
+          fetchReservations({ startDate, endDate }),
+          fetchStoreClosedDates({ startDate, endDate }),
+        ]);
+        const processedEvents = await convertToProcessedEvents(reservationData);
         setEvents(processedEvents);
+        setStoreClosedDates(closedDateData);
         dateCalendarHandleDateChange(moment(), processedEvents);
       } catch (error) {
-        console.error("Failed to fetch reservations", error);
+        console.error("Failed to fetch data", error);
       }
     };
 
@@ -165,31 +174,46 @@ const ManageReservationsPage: React.FC = () => {
     const startDate = date.startOf("month").format("DD/MM/YYYY");
     const endDate = date.endOf("month").format("DD/MM/YYYY");
     fetchReservations({ startDate, endDate });
+    fetchStoreClosedDates({ startDate, endDate });
   };
+
+  function isDateClosed(day: moment.Moment, closedDates: StoreClosedDate[]): boolean {
+    return closedDates.some((closedDate) =>
+      day.isBetween(
+        moment(closedDate.closedStartDate, "DD/MM/YYYY"),
+        moment(closedDate.closedEndDate, "DD/MM/YYYY"),
+        "day",
+        "[]"
+      )
+    );
+  }
 
   function EventsDay(
     props: PickersDayProps<moment.Moment> & { highlightedDays?: number[] }
   ) {
     const { highlightedDays = [], day, outsideCurrentMonth, ...other } = props;
+    const isClosed = isDateClosed(day, storeClosedDates);
     const eventsOfTheDay = events.filter((event) =>
       moment(event.start).isSame(day, "day")
     );
     const isSelected = !props.outsideCurrentMonth;
-
-    return (
-      <Badge
-        key={props.day.toString()}
-        overlap="circular"
-        color="primary"
-        badgeContent={isSelected ? eventsOfTheDay.length : undefined}
-      >
-        <PickersDay
-          {...other}
-          outsideCurrentMonth={outsideCurrentMonth}
-          day={day}
-        />
-      </Badge>
-    );
+    
+      return (
+        <Badge
+          key={props.day.toString()}
+          overlap="circular"
+          color="primary"
+          badgeContent={isSelected ? eventsOfTheDay.length : undefined}
+        >
+          <PickersDay
+            {...other}
+            outsideCurrentMonth={outsideCurrentMonth}
+            day={day}
+            style={isClosed ? { backgroundColor: "rgba(255, 0, 0, 0.1)" } : {}}
+          />
+        </Badge>
+      );
+    
   }
 
   const dateCalendarHandleDateChange = (
@@ -236,12 +260,15 @@ const ManageReservationsPage: React.FC = () => {
   };
 
   const handleReservationCreated = async () => {
-    const startDate = moment().startOf("month").format("DD/MM/YYYY");
-    const endDate = moment().endOf("month").format("DD/MM/YYYY");
-    const data = await fetchReservations({ startDate, endDate });
-    const processedEvents = await convertToProcessedEvents(data);
-    setEvents(processedEvents);
-    dateCalendarHandleDateChange(selectedDate, processedEvents);
+    if (selectedDate) {
+      const startDate = selectedDate.startOf("month").format("DD/MM/YYYY");
+      const endDate = selectedDate.endOf("month").format("DD/MM/YYYY");
+      const data = await fetchReservations({ startDate, endDate });
+      fetchStoreClosedDates({ startDate, endDate });
+      const processedEvents = await convertToProcessedEvents(data);
+      setEvents(processedEvents);
+      dateCalendarHandleDateChange(selectedDate, processedEvents);
+    }
   };
 
   return (
@@ -272,6 +299,33 @@ const ManageReservationsPage: React.FC = () => {
               Select Date
             </Typography>
           </Box>
+
+          {/* Calendar Legend */}
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1, 
+              mb: 2,
+              p: 1,
+              bgcolor: 'grey.50',
+              borderRadius: 1
+            }}
+          >
+            <Box 
+              sx={{ 
+                width: 20, 
+                height: 20, 
+                bgcolor: 'rgba(255, 0, 0, 0.1)', 
+                border: '1px solid rgba(0, 0, 0, 0.1)',
+                borderRadius: 0.5
+              }} 
+            />
+            <Typography variant="body2" color="text.secondary">
+              Store Closed
+            </Typography>
+          </Box>
+
           <LocalizationProvider dateAdapter={AdapterMoment}>
             <DateCalendar
               value={selectedDate}
