@@ -16,6 +16,7 @@ import {
   AccountCircle as AccountIcon,
   CreditCard as PaymentIcon,
   KeyboardArrowDown as ArrowDownIcon,
+  Receipt as ReceiptIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router";
 import SelectStore from "./SelectStore";
@@ -113,6 +114,21 @@ const AccountMenuItem = () => {
     if (!userDetails?.trialEndDate) return false;
     const trialEnd = moment(userDetails.trialEndDate, "DD/MM/YYYY HH:mm:ss");
     return !userDetails.stripeCustomerId && trialEnd.isSameOrBefore(moment());
+  };
+
+  const handleInvoicePortal = async () => {
+    try {
+      if (userDetails?.stripeCustomerId) {
+        const response = await axiosWithToken.get(
+          `/payment/create-billing-portal-session?customerId=${userDetails.stripeCustomerId}`
+        );
+        if (response.data) {
+          window.location.href = response.data;
+        }
+      }
+    } catch (error) {
+      console.error("Error creating billing portal session:", error);
+    }
   };
 
   return (
@@ -245,6 +261,15 @@ const AccountMenuItem = () => {
             </Box>
           )}
         </MenuItem>
+
+        {userDetails?.stripeCustomerId && (
+          <MenuItem onClick={handleInvoicePortal}>
+            <ListItemIcon>
+              <ReceiptIcon fontSize="small" />
+            </ListItemIcon>
+            Invoice Portal
+          </MenuItem>
+        )}
 
         <MenuItem onClick={() => navigate("/password-reset")}>
           <ListItemIcon>
