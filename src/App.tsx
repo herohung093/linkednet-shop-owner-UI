@@ -47,8 +47,8 @@ const router = createBrowserRouter([
         element: <StoreSettingPage />,
       },
       {
-        path:"manage-store-closed-dates",
-        element: <ManageStoreClosedDatePage />
+        path: "manage-store-closed-dates",
+        element: <ManageStoreClosedDatePage />,
       },
       {
         path: "services",
@@ -60,11 +60,11 @@ const router = createBrowserRouter([
       },
       {
         path: "manage-bookings",
-        element: <ManageReservationsPage />
+        element: <ManageReservationsPage />,
       },
       {
         path: "manage-customers",
-        element: <ManageCustomersPage />
+        element: <ManageCustomersPage />,
       },
       {
         path: "customer-bookings-history/:customerId",
@@ -77,6 +77,17 @@ const router = createBrowserRouter([
       {
         path: "login",
         element: <LoginPage />,
+      },
+      {
+        path: "/",
+        element: <Main />,
+        errorElement: <RouteErrorBoundary />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/login" replace />,
+          },
+        ],
       },
       {
         path: "signup",
@@ -117,18 +128,18 @@ const router = createBrowserRouter([
       },
       {
         path: "/payment/success",
-        element: <PaymentSuccess />
+        element: <PaymentSuccess />,
       },
       {
         path: "/payment/cancel",
-        element: <PaymentCancel />
+        element: <PaymentCancel />,
       },
       {
         path: "404",
         element: <NotFoundPage />, // Add the NotFoundPage route
       },
       {
-        path: '*',
+        path: "*",
         element: <Navigate to="/404" replace />,
       },
     ],
@@ -147,15 +158,20 @@ function App() {
 
 function RouteErrorBoundary() {
   const error = useRouteError();
-  return <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-  <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
-    {/* <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" /> */}
-    <h1 className="text-xl font-semibold text-gray-900 mb-2">Oops! Something went wrong</h1>
-    <p className="text-gray-600 mb-4">
-      We're sorry, but something unexpected happened. Please try refreshing the page.
-    </p>
-  </div>
-</div>;
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+        {/* <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" /> */}
+        <h1 className="text-xl font-semibold text-gray-900 mb-2">
+          Oops! Something went wrong
+        </h1>
+        <p className="text-gray-600 mb-4">
+          We're sorry, but something unexpected happened. Please try refreshing
+          the page.
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export default App;
