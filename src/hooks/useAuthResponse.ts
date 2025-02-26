@@ -25,7 +25,7 @@ const useAuthResonse = () => {
     }
 
     // Check trialEndDate against the current date
-    const trialEnd = moment(userDetailsResponse.data.trialEndDate, "dd/mm/yyyy hh:mm:ss");
+    const trialEnd = moment(userDetailsResponse.data.trialEndDate, "DD/MM/YYYY HH:mm:ss");
     if (!userDetailsResponse.data.stripeCustomerId && trialEnd.isSameOrBefore(moment())) {
       navigate("/update-payment-details");
     } else {
