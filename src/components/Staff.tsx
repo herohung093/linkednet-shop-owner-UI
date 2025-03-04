@@ -73,6 +73,7 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
     handleSubmit,
     control,
     formState: { errors, isValid, isSubmitting },
+    reset,
   } = useForm<FormData>({
     resolver: yupResolver(schemaValidation),
     mode: "onChange",
@@ -93,6 +94,22 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
   });
 
   const [open, setOpen] = useState(false);
+
+  const resetForm = () => {
+    reset({
+      isActive: staff.isActive,
+      firstName: staff.firstName,
+      lastName: staff.lastName,
+      nickname: staff.nickname,
+      phone: staff.phone,
+      dateOfBirth: new Date(`${year}-${month}-${day}`),
+    });
+    setFormData({
+      ...staff,
+      workingDays: staff.workingDays.split(",").map((day) => parseInt(day, 10)),
+      dateOfBirth: createDateFromString(staff.dateOfBirth),
+    });
+  };
 
   const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -118,6 +135,7 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
       const response = await axiosWithToken.post("/staff/", payload);
       onUpdate();
       setOpen(false);
+      resetForm();
 
       if (response.status !== 201) {
         throw new Error("Failed to submit .");
@@ -246,7 +264,15 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
   };
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(val) => {
+        setOpen(val);
+        if (!val) {
+          resetForm();
+        }
+      }}
+    >
       <Dialog.Trigger asChild>
         {type === "add" ? (
           <button className="btn-primary w-full">Add Staff</button>

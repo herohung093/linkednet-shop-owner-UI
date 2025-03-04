@@ -54,6 +54,7 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
     handleSubmit,
     formState: { errors, isSubmitting },
     control,
+    reset,
   } = useForm<FormData>({
     resolver: yupResolver(schemaValidation),
     mode: "onChange",
@@ -63,6 +64,13 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
 
     },
   });
+
+  function handleDialogClose(newState: boolean) {
+    setOpen(newState);
+    if (!newState) {
+      reset();
+    }
+  }
 
   const onSubmit = async (data: FormData) => {
     const payload = {
@@ -76,6 +84,7 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
       const response = await axiosWithToken.post("/serviceType/", payload);
       onUpdate();
       setOpen(false);
+      reset();
 
       if (response.status !== 200) {
         throw new Error("Failed to add Type.");
@@ -86,7 +95,7 @@ const AddCategoryDialog: React.FC<DialogServiceType> = ({
   };
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root open={open} onOpenChange={handleDialogClose}>
       <Dialog.Trigger asChild>
         <button className="btn-primary w-44">
           {edit ? "Edit Service  Type" : "Create Service Type"}
