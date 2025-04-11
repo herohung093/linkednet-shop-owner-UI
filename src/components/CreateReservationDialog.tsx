@@ -37,12 +37,24 @@ interface FormData {
   guests: Guest[];
 }
 
+/**
+ * CreateReservationDialog Component
+ * 
+ * This component provides a dialog for creating new reservations/bookings.
+ * It allows users to:
+ * - Enter customer information or select from existing customers
+ * - Add multiple guests for group bookings
+ * - Select services for each guest
+ * - Choose staff and available time slots
+ * - Add notes for the reservation
+ */
 const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   isCreateDialogOpen,
   handleCreateDialogClose,
   selectedDate,
   onReservationCreated,
 }) => {
+  // Form handling with React Hook Form
   const {
     control,
     handleSubmit,
@@ -69,6 +81,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     },
   });
 
+  // Setup for managing multiple guests
   const {
     fields: guestFields,
     append: appendGuest,
@@ -78,12 +91,12 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     name: "guests",
   });
 
+  // State management
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [servicesList, setServicesList] = useState<ServiceItem[]>([]);
   const [staffAvailability, setStaffAvailability] = useState<
     { time: string; staffs: number[] }[]
   >([]);
-  // const [estimatedTime, setEstimatedTime] = useState<number>(0);
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [actionResultOpen, setActionResultOpen] = useState<boolean>(false);
   const [actionResultMessage, setActionResultMessage] = useState<string>("");
@@ -91,21 +104,63 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     "success" | "failure"
   >("success");
 
+  // Customer search state
+  const [customerResults, setCustomerResults] = useState<Customer[]>([]);
+  const [searchString, setSearchString] = useState("");
+  const [customerSearchTimer, setCustomerSearchTimer] = useState<NodeJS.Timeout | null>(null);
+
+  /**
+   * Highlights matching text in search results
+   * @param text - The text to be searched within (e.g., phone number)
+   * @param query - The search query to match and highlight
+   * @returns React element with highlighted matching text
+   */
+  const highlightMatch = (text: string, query: string) => {
+    if (!query || !text || query.length < 3) return <span>{text}</span>;
+    
+    // Escape special regex characters from the query
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'g');
+    
+    // If there's no match, return the original text
+    if (!text.match(regex)) return <span>{text}</span>;
+    
+    const parts = text.split(regex);
+    
+    return (
+      <>
+        {parts.map((part, i) => {
+          // If this part matches the whole query, make it bold
+          if (part === query) {
+            return <span key={i} style={{ fontWeight: 'bold' }}>{part}</span>;
+          }
+          return <span key={i}>{part}</span>;
+        })}
+      </>
+    );
+  };
+
+  // Watch form values for conditional logic
   const selectedStaff = watch("selectedStaff");
   const selectedAvailability = watch("selectedAvailability");
   const storeConfig = useSelector(
     (state: RootState) => state.storesList?.storesList?.[0]
   );
 
-  // Fetch staff and services data
+  // ========== EFFECTS ==========
+
+  /**
+   * Effect: Fetch initial staff and services data when component mounts
+   */
   useEffect(() => {
     const fetchStaffAndServices = async () => {
       try {
+        // Get active staff members
         const staffResponse = await axiosWithToken.get<Staff[]>("/staff/", {
           params: { isOnlyActive: true },
         });
 
-        // Add the new staff member
+        // Add "Any Professional" option for flexible bookings
         const anyStaffMember = {
           id: 0,
           firstName: "Any",
@@ -125,6 +180,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
 
         setStaffList(staffResponse.data);
 
+        // Get active services
         const servicesResponse = await axiosWithToken.get<ServiceItem[]>(
           "/service/active"
         );
@@ -137,6 +193,9 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     fetchStaffAndServices();
   }, []);
 
+  /**
+   * Effect: Prevent dialog from staying open on page refresh
+   */
   useEffect(() => {
     // if the dialog is open on refresh, close it
     if (isCreateDialogOpen) {
@@ -144,6 +203,9 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     }
   }, []); // empty dependency array so it only runs once on component mount
 
+  /**
+   * Effect: Fetch staff availability when date or selected staff changes
+   */
   useEffect(() => {
     if (selectedDate && selectedStaff) {
       const fetchStaffAvailability = async () => {
@@ -174,43 +236,84 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     }
   }, [selectedDate, selectedStaff, isCreateDialogOpen]);
 
-  // useEffect(() => {
-  //   // Calculate total estimated time by summing each guest's services
-  //   const guestsData = watch("guests");
-  //   if (!guestsData) return;
-  //   const total = guestsData.reduce((sum: number, g: Guest) => {
-  //     if (!g.guestServices) return sum;
-  //     return (
-  //       sum +
-  //       g.guestServices.reduce(
-  //         (acc, gs) => acc + gs.serviceItem.estimatedTime,
-  //         0
-  //       )
-  //     );
-  //   }, 0);
-  //   setEstimatedTime(total);
-  // }, [watch("guests")]);
+  /**
+   * Effect: Handle customer search with debouncing
+   * Only searches after user stops typing for 300ms and has entered at least 3 characters
+   */
+  useEffect(() => {
+    if (customerSearchTimer) {
+      clearTimeout(customerSearchTimer);
+    }
 
+    // Only search if at least 3 characters are entered
+    if (!searchString || searchString.length < 3) {
+      setCustomerResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const response = await axiosWithToken.get("/customer/search", {
+          params: {
+            page: 0,
+            size: 10,
+            sort: "id,DESC",
+            filterBlacklisted: false,
+            searchString: searchString,
+          },
+        });
+        setCustomerResults(response.data?.content || []);
+      } catch (error) {
+        console.error("Error searching customers:", error);
+      }
+    }, 300); // Debounce for 300ms
+    
+    setCustomerSearchTimer(timer);
+    return () => clearTimeout(timer);
+  }, [searchString]);
+
+  /**
+   * Effect: Reset staff selection to "Any" when guest count changes
+   * This is because staff assignments work differently for single vs. group bookings
+   */
   useEffect(() => {
     setValue("selectedStaff", "0"); // 0 represents "Any"
   }, [guestFields.length, setValue]);
 
+  // ========== HELPER FUNCTIONS ==========
+
+  /**
+   * Find availability object by time
+   */
   const findAvailabilityByTime = (time: string) => {
     return staffAvailability.find((availability) => availability.time === time);
   };
 
+  /**
+   * Get a random staff ID from available staff
+   * Used for "Any Professional" bookings
+   */
   const getRandomStaffId = (staffIds: number[]) => {
     const randomIndex = Math.floor(Math.random() * staffIds.length);
     return staffIds[randomIndex];
   };
 
+  /**
+   * Validate that all guests have at least one service selected
+   */
   const validateGuestServices = (guests: Guest[]): boolean => {
     return guests.every(
       (guest) => guest.guestServices && guest.guestServices.length > 0
     );
   };
 
+  // ========== FORM SUBMISSION ==========
+
+  /**
+   * Handle form submission to create a new reservation
+   */
   const onSubmit = async (data: FormData) => {
+    // Validate required fields and services
     if (
       !selectedDate ||
       !data.selectedAvailability ||
@@ -228,11 +331,13 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     let staffId = data.selectedStaff;
     // group booking always has staffId = 0
     if (staffId === "0") {
+      // For "Any Professional" bookings
       const matchedAvailability = findAvailabilityByTime(
         data.selectedAvailability
       );
       if (matchedAvailability) {
         if (data.guests.length == 1) {
+          // Single guest: assign random available staff
           staffId = getRandomStaffId(matchedAvailability.staffs).toString();
           data.guests[0].guestServices?.forEach((guestService) => {
             guestService.staff = staffList.find(
@@ -253,6 +358,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
             };
           });
         } else {
+          // Multiple guests: assign different staff to each guest
           data.guests.forEach((guest, index) => {
             const staffId = matchedAvailability.staffs[index];
             if (guest.guestServices) {
@@ -277,7 +383,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
         }
       }
     } else {
-      // single booking
+      // Specific staff booking: assign selected staff to all services. Single booking
       data.guests.forEach((guest) => {
         if (guest.guestServices) {
           guest.guestServices.forEach((guestService) => {
@@ -302,12 +408,12 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
       });
     }
 
+    // Prepare reservation data for API
     const newReservation = {
       date: selectedDate.format("DD/MM/YYYY"),
       bookingTime: `${selectedDate.format(
         "DD/MM/YYYY"
       )} ${selectedAvailability}`,
-
       note: data.note,
       customer: {
         firstName: data.firstName,
@@ -328,6 +434,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
       })),
     };
 
+    // Submit reservation to API
     try {
       await axiosWithToken.post("/reservation/", newReservation);
       setActionResultMessage("Booking created successfully!");
@@ -347,8 +454,13 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     }
   };
 
+  /**
+   * Close dialog and reset form
+   */
   const handleClose = () => {
     handleCreateDialogClose();
+    setCustomerResults([]);
+    setSearchString("");
     reset({
       firstName: "",
       lastName: "",
@@ -368,11 +480,13 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     });
   };
 
+  // ========== RENDER COMPONENT ==========
   return (
     <>
       <Dialog open={isCreateDialogOpen} onClose={handleClose}>
         <DialogTitle>Create Reservation</DialogTitle>
         <DialogContent>
+          {/* Date field (non-editable) */}
           <TextField
             label="Date"
             value={selectedDate ? selectedDate.format("DD/MM/YYYY") : ""}
@@ -380,6 +494,8 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
             margin="normal"
             disabled
           />
+          
+          {/* Customer information fields */}
           <Controller
             name="firstName"
             control={control}
@@ -412,6 +528,8 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
               />
             )}
           />
+          
+          {/* Phone field with customer search autocomplete */}
           <Controller
             name="phone"
             control={control}
@@ -430,28 +548,72 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
                 message: "Phone number must start with 04",
               },
             }}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Phone"
-                type="tel"
-                required
-                fullWidth
-                margin="normal"
-                error={!!errors.phone}
-                helperText={errors.phone ? errors.phone.message : ""}
-                inputProps={{ maxLength: 10 }}
-                onInput={(e) => {
-                  const target = e.target as HTMLInputElement;
-                  target.value = target.value.replace(/\D/g, "");
-                  field.onChange(target.value);
+            render={({ field, fieldState }) => (
+              <Autocomplete
+                freeSolo
+                options={customerResults}
+                getOptionLabel={(option) =>
+                  typeof option === "string" 
+                    ? option 
+                    : option.phone || ''  // Only return the phone for input display
+                }
+                renderOption={(props, option) => (
+                  <li {...props}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                      <span>
+                        {option.firstName} {option.lastName}
+                      </span>
+                      <span>
+                        {highlightMatch(option.phone || '', searchString)}
+                      </span>
+                    </div>
+                  </li>
+                )}
+                onInputChange={(event, value) => {
+                  field.onChange(value);
+                  setSearchString(value);
                 }}
+                onChange={(event, newValue) => {
+                  if (typeof newValue === 'object' && newValue !== null) {
+                    // Update all relevant fields with customer data
+                    field.onChange(newValue.phone || "");
+                    setValue("firstName", newValue.firstName || "");
+                    setValue("lastName", newValue.lastName || "");
+                    
+                    // Optionally clear the search results after selection
+                    setCustomerResults([]);
+                  } else {
+                    field.onChange(newValue || "");
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Phone"
+                    type="tel"
+                    required
+                    fullWidth
+                    margin="normal"
+                    error={!!fieldState.error}
+                    helperText={fieldState.error ? fieldState.error.message : ""}
+                    inputProps={{ 
+                      ...params.inputProps,
+                      maxLength: 10 
+                    }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLInputElement;
+                      target.value = target.value.replace(/\D/g, "");
+                      field.onChange(target.value);
+                      setSearchString(target.value);
+                    }}
+                  />
+                )}
               />
             )}
           />
-          <div
-            style={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}
-          >
+          
+          {/* Guest management */}
+          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}>
             <Button
               disabled={
                 guestFields.length >=
@@ -475,6 +637,8 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
               + Add More Guest
             </Button>
           </div>
+          
+          {/* Service selection for each guest */}
           {guestFields.map((field, index) => (
             <div
               key={field.id}
@@ -559,6 +723,8 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
               )}
             </div>
           ))}
+          
+          {/* Staff selection */}
           <Controller
             name="selectedStaff"
             control={control}
@@ -598,6 +764,8 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
               );
             }}
           />
+          
+          {/* Time slot selection */}
           <Controller
             name="selectedAvailability"
             control={control}
@@ -648,6 +816,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
             )}
           />
 
+          {/* Notes field */}
           <Controller
             name="note"
             control={control}
@@ -664,6 +833,8 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
             )}
           />
         </DialogContent>
+        
+        {/* Dialog actions */}
         <DialogActions>
           <Button
             variant="contained"
@@ -707,6 +878,8 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
           </LoadingButton>
         </DialogActions>
       </Dialog>
+      
+      {/* Result notification dialog */}
       <ActionResultDialog
         open={actionResultOpen}
         onClose={() => setActionResultOpen(false)}
