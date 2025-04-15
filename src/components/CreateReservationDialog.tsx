@@ -124,18 +124,22 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     
     // Escape special regex characters from the query
     const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escapedQuery})`, 'g');
+    // Add 'i' flag for case-insensitive matching
+    const regex = new RegExp(`(${escapedQuery})`, 'gi'); 
     
     // If there's no match, return the original text
-    if (!text.match(regex)) return <span>{text}</span>;
+    // Use test() for case-insensitive check
+    if (!regex.test(text)) return <span>{text}</span>; 
     
+    // Reset regex lastIndex before splitting
+    regex.lastIndex = 0; 
     const parts = text.split(regex);
     
     return (
       <>
         {parts.map((part, i) => {
-          // If this part matches the whole query, make it bold
-          if (part === query) {
+          // Check if the part matches the query case-insensitively
+          if (part.toLowerCase() === query.toLowerCase()) { 
             return <span key={i} style={{ fontWeight: 'bold' }}>{part}</span>;
           }
           return <span key={i}>{part}</span>;
@@ -731,6 +735,12 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
                         isOptionEqualToValue={(option, value) =>
                           option.id === value.id
                         }
+                        // Add renderOption for highlighting
+                        renderOption={(props, option, { inputValue }) => (
+                          <li {...props}>
+                            {highlightMatch(option.serviceName, inputValue)}
+                          </li>
+                        )}
                         renderInput={(params) => (
                           <TextField
                             {...params}
