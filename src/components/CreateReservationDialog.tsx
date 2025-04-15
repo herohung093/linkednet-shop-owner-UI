@@ -115,37 +115,33 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
 
   /**
    * Highlights matching text in search results
-   * @param text - The text to be searched within (e.g., phone number)
+   * @param text - The text to be searched within (e.g., phone number or service name)
    * @param query - The search query to match and highlight
    * @returns React element with highlighted matching text
    */
   const highlightMatch = (text: string, query: string) => {
-    if (!query || !text || query.length < 2) return <span>{text}</span>;
-    
+    if (!query || !text || query.length < 2) {
+      // Return plain text wrapped in a span if no query or text is too short
+      return <span>{text}</span>;
+    }
+
     // Escape special regex characters from the query
     const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    // Add 'i' flag for case-insensitive matching
-    const regex = new RegExp(`(${escapedQuery})`, 'gi'); 
-    
-    // If there's no match, return the original text
-    // Use test() for case-insensitive check
-    if (!regex.test(text)) return <span>{text}</span>; 
-    
-    // Reset regex lastIndex before splitting
-    regex.lastIndex = 0; 
-    const parts = text.split(regex);
-    
-    return (
-      <>
-        {parts.map((part, i) => {
-          // Check if the part matches the query case-insensitively
-          if (part.toLowerCase() === query.toLowerCase()) { 
-            return <span key={i} style={{ fontWeight: 'bold' }}>{part}</span>;
-          }
-          return <span key={i}>{part}</span>;
-        })}
-      </>
-    );
+    // Create a case-insensitive global regex to find all occurrences
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+
+    // Check if there's any match
+    if (!regex.test(text)) {
+      return <span>{text}</span>; // Return plain text if no match
+    }
+
+    // Replace matches with the same text wrapped in a bold span
+    // Using a span with inline style for boldness
+    const highlightedText = text.replace(regex, '<span style="font-weight: bold;">$1</span>');
+
+    // Use dangerouslySetInnerHTML to render the HTML string
+    // Wrap in a parent span to ensure it's treated as a single element by Autocomplete
+    return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
   };
 
   // Watch form values for conditional logic
@@ -700,6 +696,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
                         {...field}
                         multiple
                         options={servicesList
+                          // Filtering will be handled in filterOptions below
                           .filter((service) =>
                             field.value
                               ? !field.value.some(
@@ -735,9 +732,19 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
                         isOptionEqualToValue={(option, value) =>
                           option.id === value.id
                         }
-                        // Add renderOption for highlighting
+                        // Add custom filterOptions for word-start matching
+                        filterOptions={(options, { inputValue }) => {
+                          if (!inputValue) return options;
+                          const lowerInput = inputValue.trim().toLowerCase();
+                          return options.filter((option) => {
+                            // Use a regex to match word-starts but do not split the string
+                            const regex = new RegExp(`\\b${lowerInput}`, "i");
+                            return regex.test(option.serviceName);
+                          });
+                        }}
                         renderOption={(props, option, { inputValue }) => (
-                          <li {...props}>
+                          // Add whiteSpace style to the list item props
+                          <li {...props} style={{ ...props.style, whiteSpace: 'pre-wrap' }}>
                             {highlightMatch(option.serviceName, inputValue)}
                           </li>
                         )}
