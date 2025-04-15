@@ -120,7 +120,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
    * @returns React element with highlighted matching text
    */
   const highlightMatch = (text: string, query: string) => {
-    if (!query || !text || query.length < 3) return <span>{text}</span>;
+    if (!query || !text || query.length < 2) return <span>{text}</span>;
     
     // Escape special regex characters from the query
     const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
