@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import { ChevronDownIcon, CheckIcon } from "@radix-ui/react-icons";
@@ -42,8 +42,64 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
   isStatusModified,
 }) => {
   const navigate = useNavigate();
-
   const [copyPhoneNumberSuccess, setCopyPhoneNumberSuccess] = useState(false);
+
+  // State for draggable dialog
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [initialMousePos, setInitialMousePos] = useState({ x: 0, y: 0 });
+  // Ref points back to Dialog.Content
+  const dialogRef = useRef<HTMLDivElement>(null); 
+
+  // Reset position state when dialog opens
+  useEffect(() => {
+    if (isDialogOpen) {
+      setPosition({ x: 0, y: 0 }); 
+    }
+  }, [isDialogOpen]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Check if the drag handle (title) was clicked
+    if ((e.target as HTMLElement).closest('.dialog-title')) {
+      setIsDragging(true);
+      // Calculate initial mouse position relative to the element's current offset
+      setInitialMousePos({ x: e.clientX - position.x, y: e.clientY - position.y });
+      e.preventDefault(); 
+    }
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      setPosition({
+        x: e.clientX - initialMousePos.x,
+        y: e.clientY - initialMousePos.y
+      });
+      e.preventDefault(); 
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging) {
+      setIsDragging(false);
+    }
+  };
+
+  useEffect(() => {
+    // Add/remove listeners on the window
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    } else {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    }
+
+    // Cleanup listeners
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
 
   const handleCopyPhoneNumber = () => {
     if (selectedEvent && selectedEvent.data && selectedEvent.data.customer) {
@@ -77,14 +133,34 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
   return (
     <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <Dialog.Overlay className="overlay-dialog data-[state=open]:animate-overlayShow" />
+      {/* Apply drag logic directly to Dialog.Content */}
       <Dialog.Content
+        ref={dialogRef} // Attach ref here
         className="data-[state=open]:animate-contentShow content-dialog z-20"
         aria-describedby={undefined}
-        style={{ maxHeight: "80vh", overflowY: "auto" }}
+        style={{ 
+          maxHeight: "80vh", 
+          overflowY: "auto",
+          // Combine Radix's centering transform with our drag transform
+          // Note: Radix applies translate(-50%, -50%) via CSS class 'content-dialog'
+          // We add our drag offset to that.
+          transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`, 
+          cursor: isDragging ? "grabbing" : "auto",
+          // Apply transition only when not dragging
+          transition: isDragging ? "none" : "transform 0.1s ease",
+          // Ensure Radix's default top/left are applied (usually 50%)
+          // These should be handled by the 'content-dialog' class
+        }}
+        onMouseDown={handleMouseDown} // Attach mouse down handler here
       >
-        <Dialog.Title className="text-slate-700 m-0 text-[17px] font-medium mb-5">
+        {/* Remove the inner wrapper div */}
+        <Dialog.Title 
+          className="text-slate-700 m-0 text-[17px] font-medium mb-5 dialog-title" 
+          style={{ cursor: "grab", userSelect: 'none' }} 
+        >
           Booking Details
         </Dialog.Title>
+        {/* Keep the rest of the content directly inside Dialog.Content */}
         <div>
           {selectedEvent && (
             <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
@@ -398,6 +474,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
           <button
             className="absolute top-[10px] right-[10px] inline-flex h-[35px] w-[35px] appearance-none items-center justify-center rounded-full focus:shadow-[0_0_0_2px] focus:outline-none"
             aria-label="Close"
+            onMouseDown={(e) => e.stopPropagation()} 
           >
             <CloseSharpIcon />
           </button>
