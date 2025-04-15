@@ -178,6 +178,9 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     </Select.Viewport>
                   </Select.Content>
                 </Select.Root>
+                {selectedEvent.data.walkInBooking && (
+                  <Chip label="Walk-in" color="info" variant="outlined" size="small" />
+                )}
               </fieldset>
 
               <fieldset className="mb-[15px] flex items-center gap-3">

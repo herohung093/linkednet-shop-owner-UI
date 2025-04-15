@@ -63,6 +63,7 @@ declare interface Reservation {
   totalEstimatedTime: number;
   totalPrice: number;
   guests: Guest[];
+  walkInBooking: boolean;
   communication: {
     FIRST_BOOKING_REMINDER: string;
     FINAL_BOOKING_REMINDER: string;

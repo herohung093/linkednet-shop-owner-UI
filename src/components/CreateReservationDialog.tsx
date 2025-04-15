@@ -10,6 +10,8 @@ import {
   Autocomplete,
   CircularProgress,
   IconButton,
+  Checkbox, // Added Checkbox
+  FormControlLabel, // Added FormControlLabel
 } from "@mui/material";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { axiosWithToken } from "../utils/axios";
@@ -35,6 +37,7 @@ interface FormData {
   selectedStaff: string;
   selectedAvailability: string;
   guests: Guest[];
+  walkInBooking: boolean; // Added walkInBooking field
 }
 
 /**
@@ -78,6 +81,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
           totalEstimatedTime: 0,
         },
       ],
+      walkInBooking: true, // Set default value
     },
   });
 
@@ -143,6 +147,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   // Watch form values for conditional logic
   const selectedStaff = watch("selectedStaff");
   const selectedAvailability = watch("selectedAvailability");
+  const walkInBooking = watch("walkInBooking"); // Watch the walkInBooking field
   const storeConfig = useSelector(
     (state: RootState) => state.storesList?.storesList?.[0]
   );
@@ -314,16 +319,24 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
    */
   const onSubmit = async (data: FormData) => {
     // Validate required fields and services
+    const isPhoneRequired = !data.walkInBooking;
+    const isPhoneValid = isPhoneRequired ? data.phone.match(/^04\d{8}$/) : true;
+
     if (
       !selectedDate ||
       !data.selectedAvailability ||
       !data.firstName ||
-      !data.phone.match(/^04\d{8}$/) ||
+      (isPhoneRequired && !data.phone) || // Check phone only if required
+      !isPhoneValid || // Check phone format only if required
       !validateGuestServices(data.guests)
     ) {
-      alert(
-        "Please fill all fields correctly and ensure each guest has at least one service."
-      );
+      let errorMessage = "Please fill all required fields correctly and ensure each guest has at least one service.";
+      if (isPhoneRequired && !data.phone) {
+        errorMessage = "Phone number is required for non-walk-in bookings.";
+      } else if (isPhoneRequired && !isPhoneValid) {
+        errorMessage = "Phone number must be a valid 10-digit Australian mobile number starting with 04.";
+      }
+      alert(errorMessage);
       return;
     }
     setIsCreating(true);
@@ -432,6 +445,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
         totalPrice: 0,
         totalEstimatedTime: 0,
       })),
+      walkInBooking: data.walkInBooking, // Include walkInBooking in payload
     };
 
     // Submit reservation to API
@@ -477,6 +491,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
           totalEstimatedTime: 0,
         },
       ],
+      walkInBooking: true, // Reset walkInBooking on close
     });
   };
 
@@ -534,18 +549,21 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
             name="phone"
             control={control}
             rules={{
-              required: "Phone number is required",
-              maxLength: {
+              // Make required rule conditional
+              required: walkInBooking ? false : "Phone number is required",
+              // Make pattern rule conditional
+              pattern: walkInBooking ? undefined : {
+                value: /^04\d{8}$/,
+                message: "Phone number must start with 04 and be 10 digits",
+              },
+              // Keep length validation conditional as well, though pattern implies it
+              maxLength: walkInBooking ? undefined : {
                 value: 10,
                 message: "Phone number cannot exceed 10 digits",
               },
-              minLength: {
+              minLength: walkInBooking ? undefined : {
                 value: 10,
                 message: "Phone number must be at least 10 digits",
-              },
-              pattern: {
-                value: /^04\d{8}$/,
-                message: "Phone number must start with 04",
               },
             }}
             render={({ field, fieldState }) => (
@@ -591,7 +609,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
                     {...params}
                     label="Phone"
                     type="tel"
-                    required
+                    required={!walkInBooking} // Make required prop dynamic
                     fullWidth
                     margin="normal"
                     error={!!fieldState.error}
@@ -608,6 +626,24 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
                     }}
                   />
                 )}
+              />
+            )}
+          />
+
+          {/* Walk-in Booking Checkbox */}
+          <Controller
+            name="walkInBooking"
+            control={control}
+            render={({ field }) => (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    {...field}
+                    checked={field.value}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                  />
+                }
+                label="Once-off Booking (Walk-in)" // Updated label for clarity
               />
             )}
           />
