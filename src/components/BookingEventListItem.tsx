@@ -11,7 +11,7 @@ import {
   IconButton,
 } from "@mui/material";
 import moment from "moment";
-import { getEndTimeForFirstGuest, getFirstGuestServiceStaff } from "../utils/ReservationUtils";
+import { getEndTimeForFirstGuest, getFirstGuestServiceStaff, getGuestInfoAsString } from "../utils/ReservationUtils";
 import {
   Person as PersonIcon,
   Groups as GroupsIcon,
@@ -175,6 +175,19 @@ const BookingEventListItem: React.FC<BookingEventListItemProps> = ({
                   ${event.data.totalPrice}
                 </Typography>
               </Box>
+            </Box>
+            {/* Show guest services */}
+            <Box sx={{ mt: 0.5 }}>
+              {event.data.guests.map((guest, idx) => (
+                <Typography
+                  key={idx}
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block" }}
+                >
+                  {getGuestInfoAsString(guest)}
+                </Typography>
+              ))}
             </Box>
           </Box>
 
