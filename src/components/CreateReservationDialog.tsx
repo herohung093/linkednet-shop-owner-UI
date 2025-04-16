@@ -110,7 +110,8 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
 
   // Customer search state
   const [customerResults, setCustomerResults] = useState<Customer[]>([]);
-  const [searchString, setSearchString] = useState("");
+  const [customerSearchInput, setCustomerSearchInput] = useState<string>(""); // New state for dedicated search input
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null); // State to hold selected customer for Autocomplete value
   const [customerSearchTimer, setCustomerSearchTimer] = useState<NodeJS.Timeout | null>(null);
 
   /**
@@ -250,8 +251,8 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
       clearTimeout(customerSearchTimer);
     }
 
-    // Only search if at least 3 characters are entered
-    if (!searchString || searchString.length < 3) {
+    // Use customerSearchInput instead of searchString
+    if (!customerSearchInput || customerSearchInput.length < 3) {
       setCustomerResults([]);
       return;
     }
@@ -264,7 +265,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
             size: 10,
             sort: "id,DESC",
             filterBlacklisted: false,
-            searchString: searchString,
+            searchString: customerSearchInput, // Use customerSearchInput here
           },
         });
         setCustomerResults(response.data?.content || []);
@@ -275,7 +276,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     
     setCustomerSearchTimer(timer);
     return () => clearTimeout(timer);
-  }, [searchString]);
+  }, [customerSearchInput]); // Depend on customerSearchInput
 
   /**
    * Effect: Reset staff selection to "Any" when guest count changes
@@ -474,7 +475,8 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   const handleClose = () => {
     handleCreateDialogClose();
     setCustomerResults([]);
-    setSearchString("");
+    setCustomerSearchInput(""); // Reset dedicated search input
+    setSelectedCustomer(null); // Reset selected customer state
     reset({
       firstName: "",
       lastName: "",
@@ -498,7 +500,12 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   // ========== RENDER COMPONENT ==========
   return (
     <>
-      <Dialog open={isCreateDialogOpen} onClose={handleClose}>
+      <Dialog 
+        open={isCreateDialogOpen} 
+        onClose={handleClose}
+        maxWidth="sm" // Add this prop
+        fullWidth // add this to use the full maxWidth space
+      >
         <DialogTitle>Create Reservation</DialogTitle>
         <DialogContent>
           {/* Date field (non-editable) */}
@@ -509,22 +516,83 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
             margin="normal"
             disabled
           />
+
+          {/* Dedicated Customer Search Autocomplete */}
+          <Autocomplete
+            freeSolo // Keep freeSolo if you want to allow typing non-matching text, otherwise remove
+            options={customerResults}
+            getOptionLabel={(option) => 
+              // Display name and phone in the dropdown
+              typeof option === 'string' ? option : `${option.firstName} ${option.lastName} - ${option.phone}`
+            }
+            value={selectedCustomer} // Control the value with state
+            inputValue={customerSearchInput} // Control the input value with state
+            onInputChange={(event, newInputValue) => {
+              setCustomerSearchInput(newInputValue);
+              // If input is cleared manually, reset selected customer
+              if (newInputValue === '') {
+                setSelectedCustomer(null);
+                // Optionally clear the form fields too
+                // setValue("firstName", "");
+                // setValue("lastName", "");
+                // setValue("phone", "");
+              }
+            }}
+            onChange={(event, newValue) => {
+              if (typeof newValue === 'object' && newValue !== null) {
+                // Populate form fields on selection
+                setValue("firstName", newValue.firstName || "", { shouldValidate: true });
+                setValue("lastName", newValue.lastName || "", { shouldValidate: true });
+                setValue("phone", newValue.phone || "", { shouldValidate: true });
+                setSelectedCustomer(newValue); // Update the selected customer state
+                setCustomerSearchInput(`${newValue.firstName} ${newValue.lastName} - ${newValue.phone}`); // Keep selected text in input
+                setCustomerResults([]); // Clear results after selection
+              } else {
+                 // Handle case where user clears selection or types non-matching text
+                 setSelectedCustomer(null); 
+                 // Optionally clear form fields if search is cleared
+                 // setValue("firstName", "");
+                 // setValue("lastName", "");
+                 // setValue("phone", "");
+              }
+            }}
+            renderOption={(props, option) => (
+              <li {...props}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                  <span>
+                    {highlightMatch(option.firstName || '', customerSearchInput)} {highlightMatch(option.lastName || '', customerSearchInput)}
+                  </span>
+                  <span>
+                    {highlightMatch(option.phone || '', customerSearchInput)}
+                  </span>
+                </div>
+              </li>
+            )}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Search Existing Customer (Name/Phone)"
+                fullWidth
+                margin="normal"
+              />
+            )}
+          />
           
-          {/* Customer information fields */}
+          {/* Customer information fields - Reverted to TextField */}
           <Controller
             name="firstName"
             control={control}
             defaultValue=""
             rules={{ required: "First name is required" }}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <TextField
                 {...field}
                 label="First Name"
                 required
                 fullWidth
                 margin="normal"
-                error={!!errors.firstName}
-                helperText={errors.firstName ? errors.firstName.message : ""}
+                error={!!fieldState.error}
+                helperText={fieldState.error ? fieldState.error.message : ""}
               />
             )}
           />
@@ -532,31 +600,29 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
             name="lastName"
             control={control}
             defaultValue=""
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <TextField
                 {...field}
                 label="Last Name"
                 fullWidth
                 margin="normal"
-                error={!!errors.lastName}
-                helperText={errors.lastName ? errors.lastName.message : ""}
+                error={!!fieldState.error}
+                helperText={fieldState.error ? fieldState.error.message : ""}
               />
             )}
           />
           
-          {/* Phone field with customer search autocomplete */}
+          {/* Phone field - Reverted to TextField */}
           <Controller
             name="phone"
             control={control}
             rules={{
-              // Make required rule conditional
+              // Keep conditional validation rules
               required: walkInBooking ? false : "Phone number is required",
-              // Make pattern rule conditional
               pattern: walkInBooking ? undefined : {
                 value: /^04\d{8}$/,
                 message: "Phone number must start with 04 and be 10 digits",
               },
-              // Keep length validation conditional as well, though pattern implies it
               maxLength: walkInBooking ? undefined : {
                 value: 10,
                 message: "Phone number cannot exceed 10 digits",
@@ -567,65 +633,24 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
               },
             }}
             render={({ field, fieldState }) => (
-              <Autocomplete
-                freeSolo
-                options={customerResults}
-                getOptionLabel={(option) =>
-                  typeof option === "string" 
-                    ? option 
-                    : option.phone || ''  // Only return the phone for input display
-                }
-                renderOption={(props, option) => (
-                  <li {...props}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                      <span>
-                        {option.firstName} {option.lastName}
-                      </span>
-                      <span>
-                        {highlightMatch(option.phone || '', searchString)}
-                      </span>
-                    </div>
-                  </li>
-                )}
-                onInputChange={(event, value) => {
-                  field.onChange(value);
-                  setSearchString(value);
+              <TextField
+                {...field}
+                label="Phone"
+                type="tel" 
+                required={!walkInBooking} // Keep dynamic required prop
+                fullWidth
+                margin="normal"
+                error={!!fieldState.error}
+                helperText={fieldState.error ? fieldState.error.message : ""}
+                inputProps={{ 
+                  maxLength: 10 
                 }}
-                onChange={(event, newValue) => {
-                  if (typeof newValue === 'object' && newValue !== null) {
-                    // Update all relevant fields with customer data
-                    field.onChange(newValue.phone || "");
-                    setValue("firstName", newValue.firstName || "");
-                    setValue("lastName", newValue.lastName || "");
-                    
-                    // Optionally clear the search results after selection
-                    setCustomerResults([]);
-                  } else {
-                    field.onChange(newValue || "");
-                  }
+                onInput={(e) => {
+                  // Keep digit filtering for direct input
+                  const target = e.target as HTMLInputElement;
+                  target.value = target.value.replace(/\D/g, "");
+                  field.onChange(target.value); // Ensure react-hook-form state updates
                 }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Phone"
-                    type="tel"
-                    required={!walkInBooking} // Make required prop dynamic
-                    fullWidth
-                    margin="normal"
-                    error={!!fieldState.error}
-                    helperText={fieldState.error ? fieldState.error.message : ""}
-                    inputProps={{ 
-                      ...params.inputProps,
-                      maxLength: 10 
-                    }}
-                    onInput={(e) => {
-                      const target = e.target as HTMLInputElement;
-                      target.value = target.value.replace(/\D/g, "");
-                      field.onChange(target.value);
-                      setSearchString(target.value);
-                    }}
-                  />
-                )}
               />
             )}
           />
