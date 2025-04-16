@@ -571,7 +571,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Search Existing Customer (Name/Phone)"
+                label="Search For Existing Customer (Name/Phone)"
                 fullWidth
                 margin="normal"
               />
