@@ -764,6 +764,62 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     }
   };
 
+  // Add state for draggable dialog
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [initialMousePos, setInitialMousePos] = useState({ x: 0, y: 0 });
+  // Reference to the dialog paper element
+  const dialogRef = useRef<HTMLElement>(null);
+
+  // Reset position state when dialog opens
+  useEffect(() => {
+    if (isCreateDialogOpen) {
+      setPosition({ x: 0, y: 0 });
+    }
+  }, [isCreateDialogOpen]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Only enable dragging when clicking on the dialog title
+    if ((e.target as HTMLElement).closest('.dialog-title')) {
+      setIsDragging(true);
+      setInitialMousePos({ x: e.clientX - position.x, y: e.clientY - position.y });
+      e.preventDefault();
+    }
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      setPosition({
+        x: e.clientX - initialMousePos.x,
+        y: e.clientY - initialMousePos.y
+      });
+      e.preventDefault();
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging) {
+      setIsDragging(false);
+    }
+  };
+
+  useEffect(() => {
+    // Add/remove listeners on the window
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    } else {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    }
+
+    // Cleanup listeners
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
   // ========== RENDER COMPONENT ==========
   return (
     <>
@@ -771,13 +827,27 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
         <Dialog 
           open={isCreateDialogOpen} 
           onClose={handleClose}
-          maxWidth="sm" // Add this prop
-          fullWidth // add this to use the full maxWidth space
-          // Add disableEnforceFocus and disableRestoreFocus props to prevent focus trapping issues
+          maxWidth="sm"
+          fullWidth
           disableEnforceFocus
           disableRestoreFocus
+          PaperProps={{
+            ref: dialogRef,
+            style: {
+              transform: `translate(${position.x}px, ${position.y}px)`,
+              transition: isDragging ? 'none' : 'transform 0.1s ease',
+              cursor: isDragging ? 'grabbing' : 'auto',
+            },
+            onMouseDown: handleMouseDown
+          }}
         >
-          <DialogTitle>{isEditMode ? "Edit Reservation" : "Create Reservation"}</DialogTitle>
+          <DialogTitle 
+            className="dialog-title" 
+            style={{ cursor: "grab", userSelect: "none" }}
+          >
+            {isEditMode ? "Edit Reservation" : "Create Reservation"}
+          </DialogTitle>
+          
           <DialogContent>
             {/* Date field */}
             {isEditMode ? (
