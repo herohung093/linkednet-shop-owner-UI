@@ -271,6 +271,19 @@ const ManageReservationsPage: React.FC = () => {
     }
   };
 
+  // Add this handler for reservation updates
+  const handleReservationUpdated = async () => {
+    if (selectedDate) {
+      const startDate = moment().startOf("month").format("DD/MM/YYYY");
+      const endDate = moment().endOf("month").format("DD/MM/YYYY");
+      const data = await fetchReservations({ startDate, endDate });
+      fetchStoreClosedDates({ startDate, endDate });
+      const processedEvents = await convertToProcessedEvents(data);
+      setEvents(processedEvents);
+      dateCalendarHandleDateChange(selectedDate, processedEvents);
+    }
+  };
+
   return (
     <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 4 } }}>
       <Box sx={{ mb: 4 }}>
@@ -399,6 +412,7 @@ const ManageReservationsPage: React.FC = () => {
         handleStatusChange={handleStatusChange}
         handleSubmit={handleSubmit}
         isStatusModified={isStatusModified}
+        onReservationUpdated={handleReservationUpdated}
       />
 
       <Tooltip title="Create New Booking">

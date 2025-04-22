@@ -35,6 +35,7 @@ interface BookingEventListItemProps {
       totalEstimatedTime: number;
       totalPrice: number;
       guests: Guest[];
+      walkInBooking: boolean;
       communication: {
         FIRST_BOOKING_REMINDER: string;
         FINAL_BOOKING_REMINDER: string;
@@ -127,6 +128,12 @@ const BookingEventListItem: React.FC<BookingEventListItemProps> = ({
                   <GroupsIcon sx={{ fontSize: 16 }} />
                 )}
               </Avatar>
+              
+              {/* Walk-in Indicator */}
+              {event.data.walkInBooking && (
+                <Chip label="Walk-in" color="info" variant="outlined" size="small" />
+              )}
+
               {displayDate && (
                 <Typography variant="caption" color="text.secondary">
                   {moment(event.data.bookingTime.split(" ")[0], "DD/MM/YYYY").format(

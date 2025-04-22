@@ -15,21 +15,21 @@ const UpComingBooking: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<ProcessedEvent | null>(null);
   const [isStatusModified, setIsStatusModified] = useState(false);
 
-  useEffect(() => {
-    const fetchReservations = async () => {
-      try {
-        const response = await axiosWithToken.get<Reservation[]>(
-          "/dashboard/getFutureBookings"
-        );
-        const processedEvents = await convertToProcessedEvents(response.data);
-        setEvents(processedEvents);
-      } catch (err) {
-        setError("Failed to fetch reservations");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchReservations = async () => {
+    try {
+      const response = await axiosWithToken.get<Reservation[]>(
+        "/dashboard/getFutureBookings"
+      );
+      const processedEvents = await convertToProcessedEvents(response.data);
+      setEvents(processedEvents);
+    } catch (err) {
+      setError("Failed to fetch reservations");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchReservations();
   }, []);
 
@@ -260,6 +260,7 @@ const UpComingBooking: React.FC = () => {
         handleStatusChange={handleStatusChange}
         handleSubmit={handleSubmit}
         isStatusModified={isStatusModified}
+        onReservationUpdated={fetchReservations}
       />
     </Box>
   );
