@@ -12,6 +12,7 @@ import {
   IconButton,
   Checkbox, // Added Checkbox
   FormControlLabel, // Added FormControlLabel
+  Typography,
 } from "@mui/material";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { axiosWithToken } from "../utils/axios";
@@ -42,7 +43,18 @@ interface FormData {
   selectedStaff: string;
   selectedAvailability: string;
   guests: Guest[];
-  walkInBooking: boolean; // Added walkInBooking field
+  walkInBooking: boolean;
+}
+
+// Update the Guest interface to include schedule fields
+interface Guest {
+  id: number | null;
+  name: string;
+  guestServices: GuestService[] | null;
+  totalPrice: number;
+  totalEstimatedTime: number;
+  selectedStaff?: string;  // Add staff selection per guest
+  selectedAvailability?: string; // Add time selection per guest
 }
 
 /**
@@ -86,9 +98,12 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
           guestServices: null,
           totalPrice: 0,
           totalEstimatedTime: 0,
+          selectedStaff: "0", // Default staff for first guest
+          selectedAvailability: "", // Default empty availability for first guest
         },
       ],
-      walkInBooking: true, // Set default value
+      walkInBooking: true,
+      selectedStaff: "0", // This is now for the main/first guest
     },
   });
 
@@ -166,13 +181,17 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
   };
 
-  // Watch form values for conditional logic
+  // Watch form values for all guests' selected staff and availability
+  const guestsWatch = watch("guests");
   const selectedStaff = watch("selectedStaff");
   const selectedAvailability = watch("selectedAvailability");
   const walkInBooking = watch("walkInBooking"); // Watch the walkInBooking field
   const storeConfig = useSelector(
     (state: RootState) => state.storesList?.storesList?.[0]
   );
+
+  // Watch Guest 1's time selection to sync with other guests
+  const guest1Time = watch("guests.0.selectedAvailability");
 
   // Add local state for editable date in edit mode
   const [editableDate, setEditableDate] = useState<moment.Moment | null>(selectedDate);
@@ -351,8 +370,16 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
    * This is because staff assignments work differently for single vs. group bookings
    */
   useEffect(() => {
+    // Reset main staff selection - mainly for backward compatibility
     setValue("selectedStaff", "0"); // 0 represents "Any"
-  }, [guestFields.length, setValue]);
+    
+    // For each guest, ensure they have a staff selection
+    guestFields.forEach((field, index) => {
+      if (!guestsWatch[index].selectedStaff) {
+        setValue(`guests.${index}.selectedStaff`, "0");
+      }
+    });
+  }, [guestFields.length, setValue, guestsWatch]);
 
   // Initialize form with existing reservation data when in edit mode
   useEffect(() => {
@@ -370,6 +397,27 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
       }
       
       // Reset form with existing data
+      // Map each guest and add selectedStaff and selectedAvailability properties
+      const guestsWithSchedule = guests.map((guest, index) => {
+        let guestStaffId = "0";
+        
+        // Get staff ID from the guest's first service if it exists
+        if (guest.guestServices && guest.guestServices.length > 0 && 
+            guest.guestServices[0].staff && guest.guestServices[0].staff.id) {
+          guestStaffId = guest.guestServices[0].staff.id.toString();
+        }
+        
+        return {
+          id: guest.id,
+          name: guest.name,
+          guestServices: guest.guestServices,
+          totalPrice: guest.totalPrice,
+          totalEstimatedTime: guest.totalEstimatedTime,
+          selectedStaff: guestStaffId,
+          selectedAvailability: time, // Use the same time initially
+        };
+      });
+      
       reset({
         firstName: customer.firstName || "",
         lastName: customer.lastName || "",
@@ -377,13 +425,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
         note: note || "",
         selectedStaff: staffId,
         selectedAvailability: time,
-        guests: guests.map(guest => ({
-          id: guest.id,
-          name: guest.name,
-          guestServices: guest.guestServices,
-          totalPrice: guest.totalPrice,
-          totalEstimatedTime: guest.totalEstimatedTime,
-        })),
+        guests: guestsWithSchedule,
         walkInBooking: walkInBooking || false,
       });
       
@@ -406,6 +448,26 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   // ========== HELPER FUNCTIONS ==========
 
   /**
+   * Get list of staff IDs that are already selected by other guests
+   * Used to prevent double-booking staff across multiple guests
+   */
+  const getSelectedStaffIds = (currentGuestIndex: number): number[] => {
+    const selectedStaffIds: number[] = [];
+    
+    guestFields.forEach((field, idx) => {
+      // Skip the current guest in the check
+      if (idx !== currentGuestIndex) {
+        const staffId = guestsWatch[idx]?.selectedStaff;
+        if (staffId && staffId !== "0") { // Don't include "Any" in exclusion list
+          selectedStaffIds.push(parseInt(staffId));
+        }
+      }
+    });
+    
+    return selectedStaffIds;
+  };
+
+  /**
    * Find availability object by time
    */
   const findAvailabilityByTime = (time: string) => {
@@ -413,21 +475,68 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   };
 
   /**
-   * Get a random staff ID from available staff
-   * Used for "Any Professional" bookings
+   * Get a random staff ID from available staff, excluding already assigned ones.
+   * Used for "Any Professional" bookings.
+   * @param staffIds - Array of staff IDs available at a specific time slot.
+   * @param excludedStaffIds - Array of staff IDs already assigned to other guests in this booking.
+   * @returns A random staff ID from the available list, or null if none are available after exclusion.
    */
-  const getRandomStaffId = (staffIds: number[]) => {
-    const randomIndex = Math.floor(Math.random() * staffIds.length);
-    return staffIds[randomIndex];
+  const getRandomStaffId = (staffIds: number[], excludedStaffIds: number[]): number | null => {
+    // Filter out staff IDs that are already assigned to other guests
+    const availableStaff = staffIds.filter(id => !excludedStaffIds.includes(id));
+
+    // If no staff are available after filtering, return null
+    if (availableStaff.length === 0) {
+      // Optionally, could return the first from the original list as a fallback,
+      // but returning null indicates a potential scheduling conflict.
+      console.warn("Could not find an available staff member for 'Any Professional' after excluding assigned staff.");
+      return null; 
+    }
+
+    // Select a random index from the filtered list
+    const randomIndex = Math.floor(Math.random() * availableStaff.length);
+    return availableStaff[randomIndex];
   };
 
   /**
    * Validate that all guests have at least one service selected
+   * and all required time/staff selections are made
    */
-  const validateGuestServices = (guests: Guest[]): boolean => {
-    return guests.every(
-      (guest) => guest.guestServices && guest.guestServices.length > 0
+  const validateGuestServices = (guests: Guest[]): { valid: boolean; errorMessage: string } => {
+    // Check if any guest is missing services
+    const guestWithoutServices = guests.findIndex(
+      (guest) => !guest.guestServices || guest.guestServices.length === 0
     );
+    
+    if (guestWithoutServices !== -1) {
+      return { 
+        valid: false, 
+        errorMessage: `Please select at least one service for Guest ${guestWithoutServices + 1}` 
+      };
+    }
+
+    // Check if any guest is missing a staff selection
+    const guestWithoutStaff = guests.findIndex(
+      (guest) => guest.selectedStaff === null && guest.selectedStaff === undefined
+    );
+    
+    if (guestWithoutStaff !== -1) {
+      return { 
+        valid: false, 
+        errorMessage: `Please select a staff member for Guest ${guestWithoutStaff + 1}` 
+      };
+    }
+
+    // Only check first guest for time selection since others inherit from it
+    if (!guests[0].selectedAvailability) {
+      return {
+        valid: false,
+        errorMessage: "Please select an appointment time"
+      };
+    }
+
+    // All validations passed
+    return { valid: true, errorMessage: "" };
   };
 
   // ========== FORM SUBMISSION ==========
@@ -440,203 +549,133 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
     const isPhoneRequired = !data.walkInBooking;
     const isPhoneValid = isPhoneRequired ? data.phone.match(/^04\d{8}$/) : true;
 
-    if (
-      !editableDate ||
-      !data.selectedAvailability ||
-      !data.firstName ||
-      (isPhoneRequired && !data.phone) || // Check phone only if required
-      !isPhoneValid || // Check phone format only if required
-      !validateGuestServices(data.guests)
-    ) {
-      let errorMessage = "Please fill all required fields correctly and ensure each guest has at least one service.";
-      if (isPhoneRequired && !data.phone) {
-        errorMessage = "Phone number is required for non-walk-in bookings.";
-      } else if (isPhoneRequired && !isPhoneValid) {
-        errorMessage = "Phone number must be a valid 10-digit Australian mobile number starting with 04.";
-      }
-      alert(errorMessage);
+    // First check for phone and date, which are common requirements
+    if (!editableDate) {
+      alert("Please select a valid date");
       return;
     }
+    
+    if (isPhoneRequired && !data.phone) {
+      alert("Phone number is required for non-walk-in bookings.");
+      return;
+    } 
+    
+    if (isPhoneRequired && !isPhoneValid) {
+      alert("Phone number must be a valid 10-digit Australian mobile number starting with 04.");
+      return;
+    }
+    
+    if (!data.firstName) {
+      alert("First name is required");
+      return;
+    }
+
+    // Check guest services, staff and time selections
+    const guestValidation = validateGuestServices(data.guests);
+    if (!guestValidation.valid) {
+      alert(guestValidation.errorMessage);
+      return;
+    }
+
     setIsCreating(true);
 
-    let staffId = data.selectedStaff;
+    // Ensure all guests have the same time as Guest 1
+    const firstGuestTime = data.guests[0].selectedAvailability || data.selectedAvailability;
+    
+    // Track staff assigned within this specific booking to avoid double-booking
+    // Initialize as empty, will be populated as we iterate through guests
+    const assignedStaffIdsForThisBooking: number[] = []; 
 
-    // Special handling for edit mode to preserve staff assignments
-    if (isEditMode && existingReservation) {
-      // In edit mode, preserve existing staff assignments if they're valid
-      if (parseInt(staffId) === 0) {
-        // For "Any Professional" in edit mode
-        const matchedAvailability = findAvailabilityByTime(
-          data.selectedAvailability
-        );
+    let bookingCreationFailed = false; // Flag to track if assignment fails
+
+    data.guests.forEach((guest, guestIndex) => {
+      if (bookingCreationFailed) return; // Stop processing if an assignment failed
+
+      if (!guest.guestServices) return;
+      
+      // Set all guests to use the same time
+      guest.selectedAvailability = firstGuestTime;
+      
+      const guestStaffId = guest.selectedStaff || data.selectedStaff || "0";
+      
+      // For "Any Professional" bookings
+      if (parseInt(guestStaffId) === 0) {
+        const matchedAvailability = findAvailabilityByTime(guest1Time || "");
         
-        if (matchedAvailability) {
-          // Process each guest's services
-          data.guests.forEach((guest, guestIndex) => {
-            if (guest.guestServices) {
-              guest.guestServices.forEach((guestService, serviceIndex) => {
-                // If there's an existing staff assignment, preserve it if that staff is available
-                // Otherwise assign a new staff member
-                const existingStaffId = guestService.staff?.id;
-                
-                if (existingStaffId && matchedAvailability.staffs.includes(existingStaffId)) {
-                  // Keep existing staff if they're available
-                } else {
-                  // Assign new staff: for single guest use random staff, for multiple guests use staff by index
-                  if (data.guests.length === 1) {
-                    const randomStaffId = getRandomStaffId(matchedAvailability.staffs);
-                    guestService.staff = staffList.find(
-                      (staff) => staff.id === randomStaffId
-                    ) || {
-                      id: randomStaffId,
-                      firstName: "",
-                      lastName: "",
-                      nickname: "",
-                      phone: "",
-                      skillLevel: 1,
-                      dateOfBirth: "",
-                      rate: 1,
-                      workingDays: "",
-                      storeUuid: "",
-                      tenantUuid: "",
-                      isActive: true,
-                    };
-                  } else {
-                    // For multiple guests, try to use the guest index in the staffs array
-                    const staffIdx = guestIndex % matchedAvailability.staffs.length;
-                    const assignedStaffId = matchedAvailability.staffs[staffIdx];
-                    guestService.staff = {
-                      id: assignedStaffId,
-                      firstName: "",
-                      lastName: "",
-                      nickname: "",
-                      phone: "",
-                      skillLevel: 1,
-                      dateOfBirth: "",
-                      rate: 1,
-                      workingDays: "",
-                      storeUuid: "",
-                      tenantUuid: "",
-                      isActive: true,
-                    };
-                  }
-                }
-              });
-            }
-          });
-        }
-      } else {
-        // Specific staff was selected, assign to all services
-        data.guests.forEach((guest) => {
-          if (guest.guestServices) {
+        if (matchedAvailability && matchedAvailability.staffs.length > 0) {
+          // Assign random staff from available staff at this time slot, excluding already assigned ones
+          // Pass the current state of assignedStaffIdsForThisBooking
+          const randomStaffId = getRandomStaffId(matchedAvailability.staffs, assignedStaffIdsForThisBooking);
+          
+          if (randomStaffId !== null) {
+            // Assign the chosen staff ID to all services for this guest
             guest.guestServices.forEach((guestService) => {
-              const specificStaff = staffList.find(
-                (staff) => staff.id === parseInt(staffId)
-              ) || {
-                id: parseInt(staffId),
-                firstName: "",
-                lastName: "",
-                nickname: "",
-                phone: "",
-                skillLevel: 1,
-                dateOfBirth: "",
-                rate: 1,
-                workingDays: "",
-                storeUuid: "",
-                tenantUuid: "",
-                isActive: true,
-              };
-              guestService.staff = specificStaff;
-            });
-          }
-        });
-      }
-    } else {
-      // Create mode - use existing logic
-      if (parseInt(staffId) === 0) {
-        // For "Any Professional" bookings
-        const matchedAvailability = findAvailabilityByTime(
-          data.selectedAvailability
-        );
-        if (matchedAvailability) {
-          if (data.guests.length == 1) {
-            // Single guest: assign random available staff
-            staffId = getRandomStaffId(matchedAvailability.staffs).toString();
-            data.guests[0].guestServices?.forEach((guestService) => {
               guestService.staff = staffList.find(
-                (staff) => staff.id === parseInt(staffId)
+                (staff) => staff.id === randomStaffId
               ) || {
-                id: parseInt(staffId),
-                firstName: "",
-                lastName: "",
-                nickname: "",
-                phone: "",
-                skillLevel: 1,
-                dateOfBirth: "",
-                rate: 1,
-                workingDays: "",
-                storeUuid: "",
-                tenantUuid: "",
-                isActive: true,
+                id: randomStaffId,
+                firstName: "", lastName: "", nickname: "", phone: "", skillLevel: 1,
+                dateOfBirth: "", rate: 1, workingDays: "", storeUuid: "", tenantUuid: "", isActive: true,
               };
             });
+            // Add the assigned staff ID to the tracking list for this booking
+            assignedStaffIdsForThisBooking.push(randomStaffId);
           } else {
-            // Multiple guests: assign different staff to each guest
-            data.guests.forEach((guest, index) => {
-              const staffId = matchedAvailability.staffs[index];
-              if (guest.guestServices) {
-                guest.guestServices.forEach((guestService) => {
-                  guestService.staff = {
-                    id: staffId,
-                    firstName: "",
-                    lastName: "",
-                    nickname: "",
-                    phone: "",
-                    skillLevel: 1,
-                    dateOfBirth: "",
-                    rate: 1,
-                    workingDays: "",
-                    storeUuid: "",
-                    tenantUuid: "",
-                    isActive: true,
-                  };
-                });
-              }
-            });
+            // Handle case where no staff could be assigned
+            console.error(`Could not assign 'Any Professional' for Guest ${guestIndex + 1}. No available staff left.`);
+            alert(`Could not find an available staff member for Guest ${guestIndex + 1}. Please adjust staff selections or time.`);
+            bookingCreationFailed = true; // Set flag to stop submission
+            setIsCreating(false); // Reset loading state
+            return; // Exit the forEach loop early
           }
+        } else {
+          // Handle case where availability data is missing
+           console.error(`Availability data missing for time ${guest1Time} when assigning 'Any Professional' for Guest ${guestIndex + 1}.`);
+           alert(`Could not find availability data for the selected time for Guest ${guestIndex + 1}. Please try again or select a different time.`);
+           bookingCreationFailed = true;
+           setIsCreating(false);
+           return;
         }
       } else {
-        // Specific staff booking: assign selected staff to all services. Single booking
-        data.guests.forEach((guest) => {
-          if (guest.guestServices) {
-            guest.guestServices.forEach((guestService) => {
-              guestService.staff = staffList.find(
-                (staff) => staff.id === parseInt(staffId)
-              ) || {
-                id: parseInt(staffId),
-                firstName: "",
-                lastName: "",
-                nickname: "",
-                phone: "",
-                skillLevel: 1,
-                dateOfBirth: "",
-                rate: 1,
-                workingDays: "",
-                storeUuid: "",
-                tenantUuid: "",
-                isActive: true,
-              };
-            });
-          }
+        // Specific staff was selected for this guest
+        const specificStaffId = parseInt(guestStaffId);
+        
+        // ***MODIFIED CHECK***
+        // Check if this specific staff is already assigned to a PREVIOUS guest in this booking
+        if (assignedStaffIdsForThisBooking.includes(specificStaffId)) {
+           console.error(`Staff ID ${specificStaffId} is already assigned to another guest in this booking.`);
+           alert(`Staff ${staffList.find(s => s.id === specificStaffId)?.nickname || `ID ${specificStaffId}`} is already assigned to another guest in this booking. Please select different staff for Guest ${guestIndex + 1}.`);
+           bookingCreationFailed = true;
+           setIsCreating(false);
+           return; // Exit the forEach loop early
+        }
+
+        // Assign the specific staff to the guest's services
+        guest.guestServices.forEach((guestService) => {
+          guestService.staff = staffList.find(
+            (staff) => staff.id === specificStaffId
+          ) || {
+            id: specificStaffId,
+            firstName: "", lastName: "", nickname: "", phone: "", skillLevel: 1,
+            dateOfBirth: "", rate: 1, workingDays: "", storeUuid: "", tenantUuid: "", isActive: true,
+          };
         });
+        // Add the specifically assigned staff ID to the tracking list *after* successful assignment
+        assignedStaffIdsForThisBooking.push(specificStaffId);
       }
+    });
+
+    // If any assignment failed, stop the submission process
+    if (bookingCreationFailed) {
+      setIsCreating(false); // Ensure loading state is reset if we exit early
+      return; 
     }
 
     // Prepare reservation data for API with explicit staff object mapping
     const reservationData = {
       id: isEditMode && existingReservation ? existingReservation.id : undefined,
       date: editableDate.format("DD/MM/YYYY"),
-      bookingTime: `${editableDate.format("DD/MM/YYYY")} ${data.selectedAvailability}`,
+      bookingTime: `${editableDate.format("DD/MM/YYYY")} ${data.guests[0].selectedAvailability || data.selectedAvailability}`,
       status: existingReservation?.status || "PENDING",
       note: data.note,
       customer: {
@@ -651,19 +690,10 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
         name: g.name,
         guestServices: g.guestServices
           ? g.guestServices.map((gs) => {
-              // Ensure staff object is properly constructed
-              const staffObj = gs.staff || { 
-                id: parseInt(staffId),
-                // Include minimum required fields for staff
-                firstName: "",
-                lastName: "",
-                nickname: "",
-                isActive: true
-              };
-              
+              // Staff is already assigned above
               return {
                 serviceItem: gs.serviceItem,
-                staff: staffObj
+                staff: gs.staff // Ensure the assigned staff object is included
               };
             })
           : null,
@@ -901,6 +931,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
                   setValue("firstName", newValue.firstName || "", { shouldValidate: true });
                   setValue("lastName", newValue.lastName || "", { shouldValidate: true });
                   setValue("phone", newValue.phone || "", { shouldValidate: true });
+                  setValue("walkInBooking", false); // Uncheck the walk-in booking checkbox
                   setSelectedCustomer(newValue); // Update the selected customer state
                   setCustomerSearchInput(`${newValue.firstName} ${newValue.lastName} - ${newValue.phone}`); // Keep selected text in input
                   setCustomerResults([]); // Clear results after selection
@@ -911,6 +942,8 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
                    // setValue("firstName", "");
                    // setValue("lastName", "");
                    // setValue("phone", "");
+                   // Optionally reset walkInBooking if needed when selection is cleared
+                   // setValue("walkInBooking", true); 
                 }
               }}
               renderOption={(props, option) => (
@@ -1048,6 +1081,8 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
                       guestServices: null,
                       totalPrice: 0,
                       totalEstimatedTime: 0,
+                      selectedStaff: "0", // Default to "Any Professional"
+                      selectedAvailability: "", // Empty availability initially
                     });
                   }
                 }}
@@ -1056,285 +1091,292 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
               </Button>
             </div>
             
-            {/* Service selection for each guest */}
+            {/* Service selection for each guest with their own staff/time selection */}
             {guestFields.map((field, index) => (
               <div
                 key={field.id}
-                style={{ display: "flex", alignItems: "center" }}
+                style={{ 
+                  display: "flex", 
+                  flexDirection: "column", 
+                  marginBottom: "16px", 
+                  padding: "16px",
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  backgroundColor: "#f9f9f9"
+                }}
               >
-                <div style={{ flex: 1 }}>
-                  <Controller
-                    name={`guests.${index}.guestServices`}
-                    control={control}
-                    defaultValue={null}
-                    rules={{
-                      validate: (value) =>
-                        (value && value.length > 0) ||
-                        "At least one service must be selected",
-                    }}
-                    render={({ field, fieldState }) => (
-                      <>
-                        <Autocomplete
-                          {...field}
-                          multiple
-                          options={servicesList
-                            // Filtering will be handled in filterOptions below
-                            .filter((service) =>
-                              field.value
-                                ? !field.value.some(
-                                    (selected: GuestService) =>
-                                      selected.serviceItem.id === service.id
-                                  )
-                                : true
-                            )
-                            .sort((a, b) =>
-                              a.serviceName.localeCompare(b.serviceName)
-                            )}
-                          getOptionLabel={(option) => option.serviceName}
-                          value={
-                            field.value
-                              ? field.value.map(
-                                  (gs: GuestService) => gs.serviceItem
-                                )
-                              : []
-                          }
-                          onChange={(_, newValue) => {
-                            const formatted = newValue.map((svc: ServiceItem) => {
-                              // match the service from servicesList by id
-                              const matchedService = servicesList.find(
-                                (s) => s.id === svc.id
-                              );
-                              return {
-                                serviceItem: matchedService ?? svc,
-                                staff: 0,
-                              };
-                            });
-                            field.onChange(formatted);
-                          }}
-                          isOptionEqualToValue={(option, value) =>
-                            option.id === value.id
-                          }
-                          // Add custom filterOptions for word-start matching
-                          filterOptions={(options, { inputValue }) => {
-                            if (!inputValue) return options;
-                            const lowerInput = inputValue.trim().toLowerCase();
-                            return options.filter((option) => {
-                              // Use a regex to match word-starts but do not split the string
-                              const regex = new RegExp(`\\b${lowerInput}`, "i");
-                              return regex.test(option.serviceName);
-                            });
-                          }}
-                          renderOption={(props, option, { inputValue }) => (
-                            // Add whiteSpace style to the list item props
-                            <li {...props} style={{ ...props.style, whiteSpace: 'pre-wrap' }}>
-                              {highlightMatch(option.serviceName, inputValue)}
-                            </li>
-                          )}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              label={`Select Services for ${guestFields[index].name}`}
-                              margin="normal"
-                              fullWidth
-                              error={!!fieldState.error}
-                              helperText={
-                                fieldState.error ? fieldState.error.message : ""
-                              }
-                            />
-                          )}
-                        />
-                      </>
-                    )}
-                  />
+                <div style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "space-between",
+                  marginBottom: "8px"
+                }}>
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    {guestFields[index].name}
+                  </Typography>
+                  {guestFields.length > 1 && index > 0 && (
+                    <IconButton
+                      onClick={() => remove(index)}
+                      edge="end"
+                    >
+                      <RemoveCircleIcon style={{ color: "red" }} />
+                    </IconButton>
+                  )}
                 </div>
-                {guestFields.length > 1 && index > 0 && (
-                  <IconButton
-                    onClick={() => remove(index)}
-                    edge="end"
-                    style={{ marginLeft: 8 }}
-                  >
-                    <RemoveCircleIcon style={{ color: "red" }} />
-                  </IconButton>
-                )}
+                
+                {/* Service selection */}
+                <Controller
+                  name={`guests.${index}.guestServices`}
+                  control={control}
+                  defaultValue={null}
+                  rules={{
+                    validate: (value) =>
+                      (value && value.length > 0) ||
+                      "At least one service must be selected",
+                  }}
+                  render={({ field, fieldState }) => (
+                    <Autocomplete
+                      {...field}
+                      multiple
+                      options={servicesList
+                        .filter((service) =>
+                          field.value
+                            ? !field.value.some(
+                                (selected: GuestService) =>
+                                  selected.serviceItem.id === service.id
+                              )
+                            : true
+                        )
+                        .sort((a, b) =>
+                          a.serviceName.localeCompare(b.serviceName)
+                        )}
+                      getOptionLabel={(option) => option.serviceName}
+                      value={
+                        field.value
+                          ? field.value.map(
+                              (gs: GuestService) => gs.serviceItem
+                            )
+                          : []
+                      }
+                      onChange={(_, newValue) => {
+                        const formatted = newValue.map((svc: ServiceItem) => {
+                          // match the service from servicesList by id
+                          const matchedService = servicesList.find(
+                            (s) => s.id === svc.id
+                          );
+                          return {
+                            serviceItem: matchedService ?? svc,
+                            staff: 0,
+                          };
+                        });
+                        field.onChange(formatted);
+                      }}
+                      isOptionEqualToValue={(option, value) =>
+                        option.id === value.id
+                      }
+                      filterOptions={(options, { inputValue }) => {
+                        if (!inputValue) return options;
+                        const lowerInput = inputValue.trim().toLowerCase();
+                        return options.filter((option) => {
+                          const regex = new RegExp(`\\b${lowerInput}`, "i");
+                          return regex.test(option.serviceName);
+                        });
+                      }}
+                      renderOption={(props, option, { inputValue }) => (
+                        <li {...props} style={{ ...props.style, whiteSpace: 'pre-wrap' }}>
+                          {highlightMatch(option.serviceName, inputValue)}
+                        </li>
+                      )}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Select Services"
+                          margin="normal"
+                          fullWidth
+                          error={!!fieldState.error}
+                          helperText={
+                            fieldState.error ? fieldState.error.message : ""
+                          }
+                        />
+                      )}
+                    />
+                  )}
+                />
+
+                {/* Staff and Availability selection for this guest */}
+                <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+                  {/* Staff selection for each guest */}
+                  <Controller
+                    name={`guests.${index}.selectedStaff`}
+                    control={control}
+                    defaultValue="0"
+                    rules={{ required: "Staff selection is required" }}
+                    render={({ field }) => {
+                      // Get staff IDs that are already selected by other guests
+                      const selectedStaffIds = getSelectedStaffIds(index);
+                      
+                      // Filter staff based on availability and exclude already selected staff
+                      let filteredStaff = staffList.filter(staff => 
+                        // Always include "Any Professional" option
+                        staff.id === 0 || 
+                        // For specific staff, ensure they're available and not already selected
+                        (staff.id !== null && 
+                         availableStaffIds.has(staff.id) && 
+                         !selectedStaffIds.includes(staff.id))
+                      );
+                      
+                      return (
+                        <TextField
+                          {...field}
+                          select
+                          label="Select Staff"
+                          fullWidth
+                          margin="normal"
+                          error={!!errors.guests?.[index]?.selectedStaff}
+                          helperText={
+                            errors.guests?.[index]?.selectedStaff 
+                              ? errors.guests[index].selectedStaff.message 
+                              : ""
+                          }
+                          style={{ flex: 1 }}
+                          SelectProps={{
+                            MenuProps: {
+                              PaperProps: { style: { maxHeight: 48 * 10 } },
+                            },
+                          }}
+                          onChange={(e) => {
+                            const selectedValue = e.target.value;
+                            field.onChange(e); // Update form state first
+
+                            // Check if should fetch availability
+                            if (editableDate && selectedValue !== undefined && selectedValue !== null) {
+                              fetchStaffAvailability(editableDate, selectedValue);
+                            }
+                          }}
+                        >
+                          {filteredStaff
+                            .slice()
+                            .sort((a, b) => a.nickname.localeCompare(b.nickname))
+                            .map((staff) => (
+                              <MenuItem key={staff.id} value={staff.id ?? ""}>
+                                {staff.nickname}
+                              </MenuItem>
+                            ))}
+                        </TextField>
+                      );
+                    }}
+                  />
+                  
+                  {/* Time slot selection - only show for the first guest */}
+                  {index === 0 && (
+                    <Controller
+                      name={`guests.${index}.selectedAvailability`}
+                      control={control}
+                      defaultValue=""
+                      rules={{ required: "Availability selection is required" }}
+                      render={({ field }) => {
+                        // Get the current selectedStaff value for this guest
+                        const currentGuestStaff = watch(`guests.${index}.selectedStaff`);
+                        
+                        // Filter availability options for this guest
+                        let availableOptions = staffAvailability
+                          .filter((availabilityItem) => {
+                            // Staff matches if "Any" selected or specific staff is available
+                            const staffMatches = 
+                              currentGuestStaff === "0" || 
+                              parseInt(currentGuestStaff || "") === 0 ||
+                              availabilityItem.staffs.includes(parseInt(currentGuestStaff || ""));
+                            
+                            return staffMatches;
+                          });
+                        
+                        // Sort time slots
+                        availableOptions = Array.from(
+                          new Map(availableOptions.map(item => [item.time, item])).values()
+                        ).sort((a, b) => moment(a.time, "HH:mm").diff(moment(b.time, "HH:mm")));
+
+                        return (
+                          <TextField
+                            {...field}
+                            select
+                            required
+                            label="Select Time"
+                            fullWidth
+                            margin="normal"
+                            style={{ flex: 1 }}
+                            error={!!errors.guests?.[index]?.selectedAvailability}
+                            helperText={
+                              errors.guests?.[index]?.selectedAvailability
+                                ? errors.guests[index].selectedAvailability.message
+                                : ""
+                            }
+                            SelectProps={{
+                              MenuProps: {
+                                PaperProps: {
+                                  style: {
+                                    maxHeight: 48 * 10,
+                                  },
+                                },
+                              },
+                              onOpen: handleAvailabilityMenuOpen,
+                              onClose: handleAvailabilityMenuClose,
+                              renderValue: (value) => value as string,
+                            }}
+                            InputProps={{
+                              endAdornment: loadingAvailability ? (
+                                <CircularProgress size={20} color="inherit" />
+                              ) : null,
+                            }}
+                            key={`avail-${index}-${currentGuestStaff}`}
+                          >
+                            {/* Case 1: Loading */}
+                            {loadingAvailability && (
+                              <MenuItem disabled value="">
+                                Loading available times...
+                              </MenuItem>
+                            )}
+                            
+                            {/* Case 2: Not Loading, but no options */}
+                            {!loadingAvailability && availableOptions.length === 0 && (
+                               <MenuItem disabled value="">
+                                 No available times found.
+                               </MenuItem>
+                            )}
+
+                            {/* Case 3: Render available options */}
+                            {!loadingAvailability && availableOptions.length > 0 && (
+                              availableOptions.map((availabilityItem) => (
+                                <MenuItem
+                                  key={availabilityItem.time}
+                                  value={availabilityItem.time}
+                                >
+                                  {availabilityItem.time}
+                                </MenuItem>
+                              ))
+                            )}
+                          </TextField>
+                        );
+                      }}
+                    />
+                  )}
+                  
+                  {/* For guests after the first one, show the selected time as text */}
+                  {index > 0 && (
+                    <TextField
+                      label="Appointment Time"
+                      value={guest1Time || "Same as Guest 1"}
+                      fullWidth
+                      margin="normal"
+                      style={{ flex: 1 }}
+                      disabled
+                      InputProps={{
+                        readOnly: true,
+                      }}
+                    />
+                  )}
+                </div>
               </div>
             ))}
-            
-            {/* Staff selection */}
-            <Controller
-              name="selectedStaff"
-              control={control}
-              defaultValue="0"
-              rules={{ required: "Staff selection is required" }}
-              render={({ field }) => {
-                // First filter by group booking constraint
-                let filteredStaff =
-                  guestFields.length > 1
-                    ? staffList.filter((staff) => staff.nickname === "Any")
-                    : staffList;
-                
-                // Then filter out staff that aren't available on the selected date
-                filteredStaff = filteredStaff.filter(staff => 
-                  // Always include "Any" staff or check if staff ID is in the available set
-                  staff.id === 0 || (staff.id !== null && availableStaffIds.has(staff.id))
-                );
-                
-                return (
-                  <TextField
-                    {...field}
-                    select
-                    label="Select Staff"
-                    fullWidth
-                    margin="normal"
-                    error={!!errors.selectedStaff}
-                    helperText={
-                      errors.selectedStaff ? errors.selectedStaff.message : ""
-                    }
-                    SelectProps={{
-                      MenuProps: {
-                        PaperProps: { style: { maxHeight: 48 * 10 } },
-                      },
-                    }}
-                    onChange={(e) => {
-                      const selectedValue = e.target.value;
-                      field.onChange(e); // Update form state first
-
-                      // Check the condition for fetching availability
-                      const shouldFetch = editableDate && selectedValue !== undefined && selectedValue !== null;
-
-                      // Trigger fetchStaffAvailability when staff selection changes
-                      if (shouldFetch) {
-                        // Ensure selectedValue is passed correctly, even if it's "0"
-                        fetchStaffAvailability(editableDate!, selectedValue); 
-                      } else {
-                        console.warn("Skipping fetch: Date missing or invalid value.");
-                      }
-                    }}
-                  >
-                    {filteredStaff
-                      .slice()
-                      .sort((a, b) => a.nickname.localeCompare(b.nickname))
-                      .map((staff) => (
-                        <MenuItem key={staff.id} value={staff.id ?? ""}>
-                          {staff.nickname}
-                        </MenuItem>
-                      ))}
-                  </TextField>
-                );
-              }}
-            />
-            
-            {/* Time slot selection */}
-            <Controller
-              name="selectedAvailability"
-              control={control}
-              defaultValue=""
-              rules={{ required: "Availability selection is required" }}
-              render={({ field }) => {
-                // Get the current selectedStaff value directly from watch within render
-                const currentSelectedStaff = watch("selectedStaff"); 
-                const numGuests = guestFields.length; // Get number of guests
-
-                // Get the existing time if in edit mode
-                const existingTime = isEditMode && existingReservation 
-                  ? existingReservation.bookingTime.split(" ")[1] 
-                  : null;
-                
-                // Check if date has changed in edit mode
-                const existingDate = isEditMode && existingReservation 
-                  ? existingReservation.bookingTime.split(" ")[0]
-                  : null;
-                const currentDate = editableDate ? editableDate.format("DD/MM/YYYY") : null;
-                const dateHasChanged = existingDate && currentDate && existingDate !== currentDate;
-                
-                // If date has changed, we don't consider the existing time at all
-                const shouldConsiderExistingTime = isEditMode && existingTime && !dateHasChanged;
-
-                // Determine the list of options to display
-                let availableOptions = staffAvailability
-                  .filter((availabilityItem) => {
-                    // Condition 1: Check if enough staff are available for the number of guests
-                    const hasEnoughStaff = availabilityItem.staffs.length >= numGuests;
-
-                    // Condition 2: Check if the staff matches (either "Any" or specific staff ID)
-                    const staffMatches = currentSelectedStaff === "0" || parseInt(currentSelectedStaff) === 0 ||
-                                        availabilityItem.staffs.includes(parseInt(currentSelectedStaff));
-
-                    // Include if it meets both staff count and staff match criteria
-                    return hasEnoughStaff && staffMatches;
-                  });
-                
-                // Ensure uniqueness in case the existing time also met the filter criteria
-                availableOptions = Array.from(new Map(availableOptions.map(item => [item.time, item])).values())
-                                        .sort((a, b) => moment(a.time, "HH:mm").diff(moment(b.time, "HH:mm")));
-                
-                // Only log a warning if the date hasn't changed but the time is no longer available
-                if (shouldConsiderExistingTime && !availableOptions.some(opt => opt.time === existingTime)) {
-                  console.warn(`Previously selected time (${existingTime}) is no longer available with the current staff selection or guest count`);
-                }
-
-                return (
-                  <TextField
-                    {...field}
-                    select
-                    required
-                    label="Select Availability"
-                    fullWidth
-                    margin="normal"
-                    error={!!errors.selectedAvailability}
-                    helperText={
-                      errors.selectedAvailability
-                        ? errors.selectedAvailability.message
-                        : ""
-                    }
-                    SelectProps={{
-                      MenuProps: {
-                        PaperProps: {
-                          style: {
-                            maxHeight: 48 * 10,
-                          },
-                        },
-                      },
-                      onOpen: handleAvailabilityMenuOpen,
-                      onClose: handleAvailabilityMenuClose,
-                      renderValue: (value) => value as string,
-                    }}
-                    InputProps={{
-                      endAdornment: loadingAvailability ? (
-                        <CircularProgress size={20} color="inherit" />
-                      ) : null,
-                    }}
-                    // Using key might still be beneficial
-                    key={currentSelectedStaff} 
-                  >
-                    {/* Case 1: Loading */}
-                    {loadingAvailability && (
-                      <MenuItem disabled value="">
-                        Loading available times...
-                      </MenuItem>
-                    )}
-                    
-                    {/* Case 2: Not Loading, but no options satisfy filter */}
-                    {!loadingAvailability && availableOptions.length === 0 && (
-                       <MenuItem disabled value="">
-                         No available times found.
-                       </MenuItem>
-                    )}
-
-                    {/* Case 3: Render available options */}
-                    {!loadingAvailability && availableOptions.length > 0 && (
-                      availableOptions.map((availabilityItem) => (
-                        <MenuItem
-                          key={availabilityItem.time}
-                          value={availabilityItem.time}
-                        >
-                          {availabilityItem.time}
-                        </MenuItem>
-                      ))
-                    )}
-                  </TextField>
-                );
-              }}
-            />
 
             {/* Notes field */}
             <Controller

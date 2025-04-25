@@ -347,7 +347,21 @@ const ManageReservationsPage: React.FC = () => {
               onChange={(newValue) => dateCalendarHandleDateChange(newValue)}
               renderLoading={() => <DayCalendarSkeleton />}
               slots={{ day: EventsDay }}
-              sx={{ width: "100%" }}
+              sx={{ 
+                width: "100%",
+                '& .MuiPickersDay-root.Mui-selected': {
+                  backgroundColor: 'primary.dark', // Darker shade of primary color
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                  '&:focus': {
+                    backgroundColor: 'secondary.light',
+                  }
+                },
+                '& .MuiPickersDay-root.Mui-selected.Mui-focusVisible': {
+                  backgroundColor: 'secondary.light',
+                }
+              }}
             />
           </LocalizationProvider>
         </Paper>

@@ -58,6 +58,17 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
   // Ref points back to Dialog.Content
   const dialogRef = useRef<HTMLDivElement>(null); 
 
+  // Check if booking is in the past
+  const isBookingInPast = () => {
+    if (selectedEvent?.data?.bookingTime) {
+      const bookingDateTime = moment(selectedEvent.data.bookingTime, "DD/MM/YYYY HH:mm");
+      return bookingDateTime.isBefore(moment());
+    }
+    return false;
+  };
+
+  const isPastBooking = isBookingInPast();
+
   // Reset position state when dialog opens
   useEffect(() => {
     if (isDialogOpen) {
@@ -120,7 +131,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
   };
 
   const handleEditClick = () => {
-    if (selectedEvent && selectedEvent.data) {
+    if (selectedEvent && selectedEvent.data && !isPastBooking) {
       // Set flag to prevent focus conflicts
       setIsTransitioningToEdit(true);
       // Close the current dialog first
@@ -248,14 +259,18 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                         aria-controls="menu-appbar"
                         aria-haspopup="true"
                         onClick={handleEditClick}
+                        disabled={isPastBooking}
                         sx={{
                           color: "#284f5b",
                           borderRadius: "20px",
-                          backgroundColor: "#d3eae2",
+                          backgroundColor: isPastBooking ? "#e0e0e0" : "#d3eae2",
                           border: "1px solid #E5E7EB",
                           fontSize: "14px",
                           paddingRight: "0.5rem",
                           paddingLeft: "0.5rem",
+                          '&.Mui-disabled': {
+                            color: 'rgba(0, 0, 0, 0.38)',
+                          },
                         }}
                       >
                         {selectedEvent.data.bookingTime.split(" ")[1]} -{" "}
@@ -263,6 +278,15 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                         ({selectedEvent.data.guests[0]?.totalEstimatedTime} mins)
                         <EditIcon fontSize="medium" className="ml-1" />
                       </IconButton>
+                      {isPastBooking && (
+                        <Chip 
+                          label="Past Booking" 
+                          size="small" 
+                          color="default" 
+                          variant="outlined" 
+                          sx={{ ml: 1 }}
+                        />
+                      )}
                     </div>
                   </fieldset>
 
@@ -281,8 +305,9 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     <Select.Root
                       value={selectedEvent.data.status}
                       onValueChange={handleStatusChange}
+                      disabled={isPastBooking}
                     >
-                      <Select.Trigger className="SelectTrigger">
+                      <Select.Trigger className="SelectTrigger" style={{ opacity: isPastBooking ? 0.7 : 1 }}>
                         <Select.Value placeholder="Select a status…" />
                         <Select.Icon className="SelectIcon">
                           <ChevronDownIcon />
@@ -314,6 +339,9 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     {selectedEvent.data.walkInBooking && (
                       <Chip label="Walk-in" color="info" variant="outlined" size="small" />
                     )}
+                    {isPastBooking && !selectedEvent.data.walkInBooking && (
+                      <Chip label="Past Booking" color="default" variant="outlined" size="small" />
+                    )}
                   </fieldset>
 
                   <fieldset className="mb-[15px] flex items-center gap-3">
@@ -325,23 +353,29 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                         {selectedEvent.data.customer.firstName}{" "}
                         {selectedEvent.data.customer.lastName}
                       </label>
-                      <Tooltip title="Edit Booking">
-                        <IconButton
-                          aria-label="edit booking"
-                          onClick={handleEditClick}
-                          size="small"
-                          sx={{
-                            color: "#284f5b",
-                            backgroundColor: "#d3eae2",
-                            border: "1px solid #E5E7EB",
-                            marginLeft: 1,
-                            '&:hover': {
-                              backgroundColor: "#b5d0c7"
-                            }
-                          }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
+                      <Tooltip title={isPastBooking ? "Cannot edit past bookings" : "Edit Booking"}>
+                        <span> {/* Wrap in span to allow tooltip on disabled button */}
+                          <IconButton
+                            aria-label="edit booking"
+                            onClick={handleEditClick}
+                            size="small"
+                            disabled={isPastBooking}
+                            sx={{
+                              color: "#284f5b",
+                              backgroundColor: isPastBooking ? "#e0e0e0" : "#d3eae2",
+                              border: "1px solid #E5E7EB",
+                              marginLeft: 1,
+                              '&:hover': {
+                                backgroundColor: isPastBooking ? "#e0e0e0" : "#b5d0c7"
+                              },
+                              '&.Mui-disabled': {
+                                color: 'rgba(0, 0, 0, 0.38)',
+                              }
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </span>
                       </Tooltip>
                     </div>
                   </fieldset>
@@ -505,7 +539,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
               )}
               <div className="mt-[25px] flex justify-end">
                 <Dialog.Close asChild>
-                  {isStatusModified && (
+                  {isStatusModified && !isPastBooking && (
                     <Button
                       variant="contained"
                       color="inherit"
