@@ -13,9 +13,12 @@ import {
   Slide,
   Toolbar,
   useScrollTrigger,
+  Typography,
+  Tooltip,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
+import { axiosWithToken } from "../utils/axios";
 import NotificationIcon from "./NotificationIcon";
 import HomeIcon from "@mui/icons-material/Home";
 import AccountMenuItem from "./AccountMenuItem";
@@ -52,6 +55,7 @@ const MenubarDemo = () => {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [estimatedCost, setEstimatedCost] = useState<string | null>(null);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -190,6 +194,27 @@ const MenubarDemo = () => {
     </Box>
   );
 
+  // Fetch estimated cost from API using axiosWithToken
+  useEffect(() => {
+    const fetchEstimatedCost = async () => {
+      try {
+        // Using axiosWithToken instead of fetch
+        const response = await axiosWithToken.get('/billing/estimate');
+        // Format the value correctly - make sure it's a string
+        const costValue = response.data.estimatedCost 
+          ? Number(response.data.estimatedCost).toFixed(2) 
+          : '0.00';
+        setEstimatedCost(costValue);
+      } catch (error) {
+        console.error('Error fetching estimated cost:', error);
+        // Set a default value to handle the error gracefully
+        setEstimatedCost('0.00');
+      }
+    };
+
+    fetchEstimatedCost();
+  }, []);
+
   return (
     <div>
       {isMobile && (
@@ -216,7 +241,17 @@ const MenubarDemo = () => {
                         <MenuIcon sx={{ color: "black" }} />
                       </IconButton>
                     </Box>
-                  <Box sx={{ display: "flex", gap: "0.5rem" }}>
+                  <Box sx={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                    {estimatedCost && (
+                      <Tooltip title="Estimated Monthly Cost">
+                        <Typography variant="body2" sx={{ 
+                          color: 'rgb(91, 105, 135)',
+                          fontSize: '14px'
+                        }}>
+                          Estimated costs: ${estimatedCost}
+                        </Typography>
+                      </Tooltip>
+                    )}
                     <NotificationIcon />
                     <AccountMenuItem />
                   </Box>
@@ -365,7 +400,17 @@ const MenubarDemo = () => {
                       </Menu>
                     </div>
                   </Box>
-                <Box sx={{ display: "flex", gap: "0.5rem" }}>
+                <Box sx={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  {estimatedCost && (
+                    <Tooltip title="Estimated Monthly Cost">
+                      <Typography variant="body2" sx={{ 
+                        color: 'rgb(91, 105, 135)',
+                        fontSize: '14px'
+                      }}>
+                        Estimated costs: ${estimatedCost}
+                      </Typography>
+                    </Tooltip>
+                  )}
                   <NotificationIcon />
                   <AccountMenuItem />
                 </Box>
