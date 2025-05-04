@@ -715,16 +715,19 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
       setActionResultType("success");
       handleCreateDialogClose();
       onReservationCreated();
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error ${isEditMode ? "updating" : "creating"} reservation:`, error);
-      setActionResultMessage(
-        `Failed to ${isEditMode ? "update" : "create"} reservation. Please try again or contact admin for support.`
-      );
+      // Extract error message from the API response
+      const errorMessage = error.response?.data?.message || 
+        `Failed to ${isEditMode ? "update" : "create"} reservation. Please try again or contact admin for support.`;
+      setActionResultMessage(errorMessage);
       setActionResultType("failure");
     } finally {
       setActionResultOpen(true);
       setIsCreating(false);
-      handleClose();
+      if (actionResultType === "success") {
+        handleClose();
+      }
     }
   };
 
