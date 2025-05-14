@@ -31,6 +31,7 @@ import PaymentCancel from "./pages/PaymentCancel.tsx";
 import ManagePromotionsPage from "./pages/ManagePromotionsPage.tsx";
 import useFetchUserDetailsOnRefresh from "./hooks/useFetchUserDetailsOnRefresh";
 import ManageStoreClosedDatePage from "./pages/ManageStoreClosedDatePage.tsx";
+import StaffSalaryPage from "./pages/StaffSalaryPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -73,6 +74,10 @@ const router = createBrowserRouter([
       {
         path: "staff",
         element: <StaffsPage />,
+      },
+      {
+        path: "staff-salary",
+        element: <StaffSalaryPage />,
       },
       {
         path: "login",
@@ -121,7 +126,6 @@ const router = createBrowserRouter([
         path: "create-promotion",
         element: <CreatePromotionPage />,
       },
-
       {
         path: "manage-promotions",
         element: <ManagePromotionsPage />,
@@ -136,7 +140,7 @@ const router = createBrowserRouter([
       },
       {
         path: "404",
-        element: <NotFoundPage />, // Add the NotFoundPage route
+        element: <NotFoundPage />,
       },
       {
         path: "*",
@@ -161,7 +165,6 @@ function RouteErrorBoundary() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
-        {/* <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" /> */}
         <h1 className="text-xl font-semibold text-gray-900 mb-2">
           Oops! Something went wrong
         </h1>

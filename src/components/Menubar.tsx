@@ -35,10 +35,6 @@ interface MenuItemProps {
 }
 
 interface Props {
-  /**
-   * Injected by the documentation to work in an iframe.
-   * You won't need it on your project.
-   */
   window?: () => Window;
   children?: React.ReactElement<any>;
 }
@@ -74,11 +70,14 @@ const MenubarDemo = () => {
     setOpenMenu("Manage Stores");
   };
 
-  const handleManagePromotionsClick = (
-    event: React.MouseEvent<HTMLElement>
-  ) => {
+  const handleManagePromotionsClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
     setOpenMenu("Manage Promotions");
+  };
+
+  const handleManageStaffClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+    setOpenMenu("Manage Staff");
   };
 
   const handleClose = () => {
@@ -94,8 +93,8 @@ const MenubarDemo = () => {
     ...(!storeConfigUuid
       ? [{ label: "Create Store", path: "/create-store" }]
       : []),
-      { label: "Store Settings", path: "/store-settings" },
-      { label: "Store Closed Dates", path: "/manage-store-closed-dates" },
+    { label: "Store Settings", path: "/store-settings" },
+    { label: "Store Closed Dates", path: "/manage-store-closed-dates" },
   ];
 
   const managePromotionsMenuItems: MenuItemProps[] = [
@@ -103,26 +102,23 @@ const MenubarDemo = () => {
     { label: "Promotions", path: "/manage-promotions" },
   ];
 
+  const manageStaffMenuItems: MenuItemProps[] = [
+    { label: "Staff List", path: "/staff" },
+    { label: "Staff Salary", path: "/staff-salary" },
+  ];
+
   const mainMenuItems: MenuItemProps[] = [
     { label: "Home", path: "/dashboard" },
     { label: "Manage Stores", children: storeMenuItems },
-    { label: "Staff", path: "/staff" },
+    { label: "Manage Staff", children: manageStaffMenuItems },
     { label: "Services", path: "/services" },
     { label: "Manage Bookings", path: "/manage-bookings" },
     { label: "Manage Customers", path: "/manage-customers" },
     { label: "Manage Promotions", children: managePromotionsMenuItems },
   ];
 
-  // Define paths where specific menu items should be hidden
-  const hiddenPaths = {
-    updatePayment: ["/update-payment-details"],
-  };
-
   function HideOnScroll(props: Props) {
     const { children, window } = props;
-    // Note that you normally won't need to set the window ref as useScrollTrigger
-    // will default to window.
-    // This is only being set here because the demo is in an iframe.
     const trigger = useScrollTrigger({
       target: window ? window() : undefined,
     });
@@ -194,20 +190,16 @@ const MenubarDemo = () => {
     </Box>
   );
 
-  // Fetch estimated cost from API using axiosWithToken
   useEffect(() => {
     const fetchEstimatedCost = async () => {
       try {
-        // Using axiosWithToken instead of fetch
         const response = await axiosWithToken.get('/billing/estimate');
-        // Format the value correctly - make sure it's a string
         const costValue = response.data.estimatedCost 
           ? Number(response.data.estimatedCost).toFixed(2) 
           : '0.00';
         setEstimatedCost(costValue);
       } catch (error) {
         console.error('Error fetching estimated cost:', error);
-        // Set a default value to handle the error gracefully
         setEstimatedCost('0.00');
       }
     };
@@ -230,17 +222,17 @@ const MenubarDemo = () => {
                     display: { xs: "flex", md: "none" },
                   }}
                 >
-                    <Box>
-                      <IconButton
-                        onClick={toggleDrawer}
-                        edge="start"
-                        color="inherit"
-                        aria-label="menu"
-                        sx={{ mr: 2 }}
-                      >
-                        <MenuIcon sx={{ color: "black" }} />
-                      </IconButton>
-                    </Box>
+                  <Box>
+                    <IconButton
+                      onClick={toggleDrawer}
+                      edge="start"
+                      color="inherit"
+                      aria-label="menu"
+                      sx={{ mr: 2 }}
+                    >
+                      <MenuIcon sx={{ color: "black" }} />
+                    </IconButton>
+                  </Box>
                   <Box sx={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
                     {estimatedCost && (
                       <Tooltip title="Estimated Monthly Cost">
@@ -265,161 +257,179 @@ const MenubarDemo = () => {
         </Box>
       )}
 
-      <>
-        {!isMobile && (
-          <AppBar position="fixed" sx={{ background: "white" }}>
-            <Toolbar>
+      {!isMobile && (
+        <AppBar position="fixed" sx={{ background: "white" }}>
+          <Toolbar>
+            <Box
+              sx={{
+                flexGrow: 1,
+                display: { xs: "flex", md: "flex", lg: "flex" },
+                justifyContent: "space-between",
+              }}
+            >
               <Box
                 sx={{
-                  flexGrow: 1,
-                  display: { xs: "flex", md: "flex", lg: "flex" },
-                  justifyContent: "space-between",
+                  display: "flex",
+                  gap: "2rem",
                 }}
               >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      gap: "2rem",
+                <Button
+                  onClick={() => navigate("/dashboard")}
+                  sx={{
+                    color: "black",
+                  }}
+                >
+                  <HomeIcon />
+                </Button>
+                <div>
+                  <Button
+                    id="manage-store-menu"
+                    onClick={handleManageStoreClick}
+                    sx={mainMenuStyle}
+                  >
+                    Manage Stores
+                  </Button>
+                  <Menu
+                    id="manage-store-menu"
+                    aria-labelledby="manage-store-button"
+                    anchorEl={anchorEl}
+                    keepMounted
+                    open={openMenu === "Manage Stores"}
+                    onClose={handleClose}
+                    anchorOrigin={{
+                      vertical: "bottom",
+                      horizontal: "left",
+                    }}
+                    transformOrigin={{
+                      vertical: "top",
+                      horizontal: "left",
                     }}
                   >
-                    <Button
-                      onClick={() => navigate("/dashboard")}
-                      sx={{
-                        color: "black",
-                      }}
-                    >
-                      <HomeIcon />
-                    </Button>
-                    <div>
-                      <Button
-                        id="manage-store-menu"
-                        onClick={handleManageStoreClick}
-                        sx={mainMenuStyle}
-                      >
-                        Manage Stores
-                      </Button>
-                      <Menu
-                        id="manage-store-menu"
-                        aria-labelledby="manage-store-button"
-                        anchorEl={anchorEl}
-                        keepMounted
-                        open={openMenu === "Manage Stores"}
-                        onClose={handleClose}
-                        anchorOrigin={{
-                          vertical: "bottom",
-                          horizontal: "left",
-                        }}
-                        transformOrigin={{
-                          vertical: "top",
-                          horizontal: "left",
-                        }}
-                        MenuListProps={{
-                          "aria-labelledby": "basic-button",
+                    {storeMenuItems.map((item, index) => (
+                      <MenuItem
+                        key={index}
+                        onClick={() => {
+                          handleClose();
+                          item.path && navigate(item.path);
                         }}
                       >
-                        {storeMenuItems.map((item, index) => (
-                          <MenuItem
-                            key={index}
-                            onClick={() => {
-                              handleClose();
-                              item.path && navigate(item.path);
-                            }}
-                          >
-                            {item.label}
-                          </MenuItem>
-                        ))}
-                      </Menu>
-                    </div>
-                    <Button
-                      onClick={() => navigate("/staff")}
-                      sx={mainMenuStyle}
-                    >
-                      Staff
-                    </Button>
-                    <Button
-                      onClick={() => navigate("/services")}
-                      sx={{
-                        color: "black",
-                        fontFamily:
-                          '"Roboto", "Helvetica", "Arial", sans-serif',
-                        fontWeight: 550,
-                      }}
-                    >
-                      Services
-                    </Button>
-                    <Button
-                      onClick={() => navigate("/manage-bookings")}
-                      sx={mainMenuStyle}
-                    >
-                      Manage Bookings
-                    </Button>
-                    <Button
-                      onClick={() => navigate("/manage-customers")}
-                      sx={mainMenuStyle}
-                    >
-                      Manage Customer
-                    </Button>
-                    <div>
-                      <Button
-                        id="manage-store-menu"
-                        onClick={handleManagePromotionsClick}
-                        sx={mainMenuStyle}
-                      >
-                        Manage Promotions
-                      </Button>
-                      <Menu
-                        id="manage-promotions-menu"
-                        aria-labelledby="manage-promotions-button"
-                        anchorEl={anchorEl}
-                        keepMounted
-                        open={openMenu === "Manage Promotions"}
-                        onClose={handleClose}
-                        anchorOrigin={{
-                          vertical: "bottom",
-                          horizontal: "left",
-                        }}
-                        transformOrigin={{
-                          vertical: "top",
-                          horizontal: "left",
-                        }}
-                        MenuListProps={{
-                          "aria-labelledby": "basic-button",
+                        {item.label}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </div>
+                <div>
+                  <Button
+                    id="manage-staff-menu"
+                    onClick={handleManageStaffClick}
+                    sx={mainMenuStyle}
+                  >
+                    Manage Staff
+                  </Button>
+                  <Menu
+                    id="manage-staff-menu"
+                    aria-labelledby="manage-staff-button"
+                    anchorEl={anchorEl}
+                    keepMounted
+                    open={openMenu === "Manage Staff"}
+                    onClose={handleClose}
+                    anchorOrigin={{
+                      vertical: "bottom",
+                      horizontal: "left",
+                    }}
+                    transformOrigin={{
+                      vertical: "top",
+                      horizontal: "left",
+                    }}
+                  >
+                    {manageStaffMenuItems.map((item, index) => (
+                      <MenuItem
+                        key={index}
+                        onClick={() => {
+                          handleClose();
+                          item.path && navigate(item.path);
                         }}
                       >
-                        {managePromotionsMenuItems.map((item, index) => (
-                          <MenuItem
-                            key={index}
-                            onClick={() => {
-                              handleClose();
-                              item.path && navigate(item.path);
-                            }}
-                          >
-                            {item.label}
-                          </MenuItem>
-                        ))}
-                      </Menu>
-                    </div>
-                  </Box>
-                <Box sx={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                  {estimatedCost && (
-                    <Tooltip title="Estimated Monthly Cost">
-                      <Typography variant="body2" sx={{ 
-                        color: 'rgb(91, 105, 135)',
-                        fontSize: '14px'
-                      }}>
-                        Estimated costs: ${estimatedCost}
-                      </Typography>
-                    </Tooltip>
-                  )}
-                  <NotificationIcon />
-                  <AccountMenuItem />
-                </Box>
+                        {item.label}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </div>
+                <Button
+                  onClick={() => navigate("/services")}
+                  sx={mainMenuStyle}
+                >
+                  Services
+                </Button>
+                <Button
+                  onClick={() => navigate("/manage-bookings")}
+                  sx={mainMenuStyle}
+                >
+                  Manage Bookings
+                </Button>
+                <Button
+                  onClick={() => navigate("/manage-customers")}
+                  sx={mainMenuStyle}
+                >
+                  Manage Customer
+                </Button>
+                <div>
+                  <Button
+                    id="manage-promotions-menu"
+                    onClick={handleManagePromotionsClick}
+                    sx={mainMenuStyle}
+                  >
+                    Manage Promotions
+                  </Button>
+                  <Menu
+                    id="manage-promotions-menu"
+                    aria-labelledby="manage-promotions-button"
+                    anchorEl={anchorEl}
+                    keepMounted
+                    open={openMenu === "Manage Promotions"}
+                    onClose={handleClose}
+                    anchorOrigin={{
+                      vertical: "bottom",
+                      horizontal: "left",
+                    }}
+                    transformOrigin={{
+                      vertical: "top",
+                      horizontal: "left",
+                    }}
+                  >
+                    {managePromotionsMenuItems.map((item, index) => (
+                      <MenuItem
+                        key={index}
+                        onClick={() => {
+                          handleClose();
+                          item.path && navigate(item.path);
+                        }}
+                      >
+                        {item.label}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </div>
               </Box>
-            </Toolbar>
-          </AppBar>
-        )}
-        <Box sx={{ height: "64px" }} />
-      </>
+              <Box sx={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                {estimatedCost && (
+                  <Tooltip title="Estimated Monthly Cost">
+                    <Typography variant="body2" sx={{ 
+                      color: 'rgb(91, 105, 135)',
+                      fontSize: '14px'
+                    }}>
+                      Estimated costs: ${estimatedCost}
+                    </Typography>
+                  </Tooltip>
+                )}
+                <NotificationIcon />
+                <AccountMenuItem />
+              </Box>
+            </Box>
+          </Toolbar>
+        </AppBar>
+      )}
+      <Box sx={{ height: "64px" }} />
     </div>
   );
 };
