@@ -89,7 +89,10 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
 
   const [formData, setFormData] = useState<any>({
     ...staff,
-    workingDays: staff.workingDays.split(",").map((day) => parseInt(day, 10)),
+    workingDays: staff.workingDays
+      .split(",")
+      .map((day) => parseInt(day, 10))
+      .filter((day) => !isNaN(day)), // Filter out NaN values
     dateOfBirth: createDateFromString(staff.dateOfBirth),
   });
 
@@ -106,7 +109,10 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
     });
     setFormData({
       ...staff,
-      workingDays: staff.workingDays.split(",").map((day) => parseInt(day, 10)),
+      workingDays: staff.workingDays
+        .split(",")
+        .map((day) => parseInt(day, 10))
+        .filter((day) => !isNaN(day)), // Filter out NaN values
       dateOfBirth: createDateFromString(staff.dateOfBirth),
     });
   };
@@ -124,11 +130,24 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
   };
 
   const onSubmitHandler = async (values: any) => {
-    const payload = {
+    interface StaffPayload {
+      firstName: string;
+      lastName: string;
+      nickname: string;
+      phone: string;
+      dateOfBirth: string;
+      isActive: boolean;
+      workingDays: string;
+      skillLevel: number;
+    }
+
+    const payload: StaffPayload = {
       ...formData,
       ...values,
       dateOfBirth: formatDate(values.dateOfBirth),
-      workingDays: formData.workingDays.join(","),
+      workingDays: formData.workingDays
+      .filter((day: number) => !isNaN(day)) // Filter out any potential NaN values
+      .join(","),
     };
 
     try {
@@ -152,12 +171,12 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
   const renderStaffCard = () => {
     const workingDaysMap = {
       1: "Mon",
-      2: "Tue", 
+      2: "Tue",
       3: "Wed",
       4: "Thu",
       5: "Fri",
       6: "Sat",
-      7: "Sun"
+      7: "Sun",
     };
 
     const workingDaysList = formData.workingDays
@@ -182,13 +201,12 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
             position: "relative",
             borderLeft: "4px solid",
             borderColor: staff.isActive ? "#4CAF50" : "#9e9e9e", // Green for active, Grey for inactive
-            backgroundColor: staff.isActive 
-              ? "rgba(76, 175, 80, 0.04)"  // Very light green background for active
+            backgroundColor: staff.isActive
+              ? "rgba(76, 175, 80, 0.04)" // Very light green background for active
               : "rgba(158, 158, 158, 0.04)", // Very light grey background for inactive
           }}
           onClick={() => setOpen(true)}
         >
-
           <Typography variant="h6" align="center" gutterBottom>
             {staff.nickname}
           </Typography>
@@ -241,19 +259,19 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
                   Working Days:
                 </Typography>
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                    {workingDaysList.map((day: string, index: number) => (
+                  {workingDaysList.map((day: string, index: number) => (
                     <Chip
                       key={index}
                       label={day}
                       size="small"
                       variant="outlined"
                       sx={{
-                      height: "20px",
-                      fontSize: "0.75rem",
-                      backgroundColor: "rgba(0, 0, 0, 0.04)",
+                        height: "20px",
+                        fontSize: "0.75rem",
+                        backgroundColor: "rgba(0, 0, 0, 0.04)",
                       }}
                     />
-                    ))}
+                  ))}
                 </Box>
               </Box>
             </Box>
