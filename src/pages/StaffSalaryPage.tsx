@@ -59,7 +59,7 @@ const StaffSalaryPage: React.FC = () => {
     rate: 0,
     effectiveDate: moment().format("DD/MM/YYYY"),
   });
-  const [formErrors, setFormErrors] = useState<Partial<RateFormData>>({});
+  const [formErrors, setFormErrors] = useState<{[key in keyof RateFormData]?: string}>({});
   const [actionResultOpen, setActionResultOpen] = useState(false);
   const [actionResultMessage, setActionResultMessage] = useState("");
   const [actionResultType, setActionResultType] = useState<"success" | "failure">("success");
@@ -86,7 +86,7 @@ const StaffSalaryPage: React.FC = () => {
   }, []);
 
   const validateForm = (): boolean => {
-    const errors: Partial<RateFormData> = {};
+    const errors: {[key in keyof RateFormData]?: string} = {};
     if (!formData.staffId) {
       errors.staffId = "Staff selection is required";
     }
@@ -225,7 +225,7 @@ const StaffSalaryPage: React.FC = () => {
                 disabled={!!selectedRate}
               >
                 {staffList.map((staff) => (
-                  <MenuItem key={staff.id} value={staff.id}>
+                  <MenuItem key={staff.id} value={String(staff.id)}>
                     {staff.firstName} {staff.lastName}
                   </MenuItem>
                 ))}
