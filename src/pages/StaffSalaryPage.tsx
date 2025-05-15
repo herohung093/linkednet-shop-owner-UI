@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
-  IconButton,
   InputAdornment,
   InputLabel,
   MenuItem,
@@ -24,11 +23,15 @@ import {
   Typography,
   useTheme,
   useMediaQuery,
+  Pagination,
+  FormControlLabel,
+  Switch,
+  TableSortLabel,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
-import { Edit as EditIcon, AttachMoney } from "@mui/icons-material";
+import { AttachMoney } from "@mui/icons-material";
 import moment from "moment";
 import { axiosWithToken } from "../utils/axios";
 import withAuth from "../components/HOC/withAuth";
@@ -36,7 +39,13 @@ import ActionResultDialog from "../components/dialogs/ActionResultDialog";
 
 interface StaffRate {
   id: number;
-  staffId: number;
+  staff: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    nickname: string;
+    // ...other staff properties
+  };
   rate: number;
   effectiveDate: string;
   endDate: string | null;
@@ -46,6 +55,14 @@ interface RateFormData {
   staffId: number;
   rate: number;
   effectiveDate: string;
+}
+
+interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
 }
 
 const StaffSalaryPage: React.FC = () => {
@@ -63,27 +80,72 @@ const StaffSalaryPage: React.FC = () => {
   const [actionResultOpen, setActionResultOpen] = useState(false);
   const [actionResultMessage, setActionResultMessage] = useState("");
   const [actionResultType, setActionResultType] = useState<"success" | "failure">("success");
+  
+  // Pagination and sorting state
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [sortBy, setSortBy] = useState("effectiveDate");
+  const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("DESC");
+  const [activeOnly, setActiveOnly] = useState(true);
+  const [totalPages, setTotalPages] = useState(0);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [staffResponse, ratesResponse] = await Promise.all([
-          axiosWithToken.get<Staff[]>("/staff/?isOnlyActive=true"),
-          axiosWithToken.get<StaffRate[]>("/staff/rate"),
-        ]);
-        setStaffList(staffResponse.data);
-        setStaffRates(ratesResponse.data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
-  }, []);
+  }, [page, size, sortBy, sortDirection, activeOnly]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [staffResponse, ratesResponse] = await Promise.all([
+        axiosWithToken.get<Staff[]>("/staff/?isOnlyActive=true"),
+        axiosWithToken.get<PaginatedResponse<StaffRate>>("/staff/rate/all", {
+          params: {
+            page,
+            size,
+            sortBy,
+            sortDirection,
+            activeOnly
+          }
+        }),
+      ]);
+      
+      setStaffList(staffResponse.data);
+      setStaffRates(ratesResponse.data.content);
+      setTotalPages(ratesResponse.data.totalPages);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value - 1); // API uses 0-based index for pages
+  };
+
+  const handleSortChange = (property: string) => {
+    // Map frontend column names to backend property names
+    const propertyMap: { [key: string]: string } = {
+      'staffName': 'staff.firstName',
+      'nickname': 'staff.nickname',
+      'rate': 'rate',
+      'effectiveDate': 'effectiveDate',
+      'endDate': 'endDate'
+    };
+
+    const backendProperty = propertyMap[property] || property;
+    const isAsc = sortBy === backendProperty && sortDirection === "ASC";
+    setSortDirection(isAsc ? "DESC" : "ASC");
+    setSortBy(backendProperty);
+  };
+
+  const handleActiveOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setActiveOnly(event.target.checked);
+    setPage(0); // Reset to first page when changing filter
+  };
 
   const validateForm = (): boolean => {
     const errors: {[key in keyof RateFormData]?: string} = {};
@@ -97,14 +159,6 @@ const StaffSalaryPage: React.FC = () => {
       errors.effectiveDate = "Effective date cannot be in the past";
     }
 
-    // Check for overlapping dates
-    const existingRates = staffRates.filter(
-      (rate) => rate.staffId === formData.staffId && (!rate.endDate || moment(rate.endDate, "DD/MM/YYYY").isAfter(formData.effectiveDate))
-    );
-    if (existingRates.length > 0 && !selectedRate) {
-      errors.effectiveDate = "Date range overlaps with existing rate";
-    }
-
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -113,36 +167,24 @@ const StaffSalaryPage: React.FC = () => {
     if (!validateForm()) return;
 
     try {
-      if (selectedRate) {
-        await axiosWithToken.put(`/staff/rate/${selectedRate.id}`, formData);
-        setActionResultMessage("Rate updated successfully");
-      } else {
-        await axiosWithToken.post(`/staff/rate/${formData.staffId}`, formData);
-        setActionResultMessage("New rate added successfully");
-      }
+      // Always create new rate, even when "editing"
+      await axiosWithToken.post(`/staff/rate/${formData.staffId}`, null, {
+        params: {
+          rate: formData.rate,
+          effectiveDate: formData.effectiveDate
+        }
+      });
+      setActionResultMessage("New rate added successfully");
       setActionResultType("success");
-      
-      // Refresh rates
-      const response = await axiosWithToken.get<StaffRate[]>("/staff/rate");
-      setStaffRates(response.data);
-      
-      handleCloseDialog();
     } catch (error) {
       setActionResultType("failure");
       setActionResultMessage("Failed to save rate. Please try again.");
     } finally {
+      // Always refresh data after submission attempt, even if there was an error
+      await fetchData();
       setActionResultOpen(true);
+      handleCloseDialog();
     }
-  };
-
-  const handleEdit = (rate: StaffRate) => {
-    setSelectedRate(rate);
-    setFormData({
-      staffId: rate.staffId,
-      rate: rate.rate,
-      effectiveDate: rate.effectiveDate,
-    });
-    setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
@@ -154,11 +196,6 @@ const StaffSalaryPage: React.FC = () => {
       effectiveDate: moment().format("DD/MM/YYYY"),
     });
     setFormErrors({});
-  };
-
-  const getStaffName = (staffId: number) => {
-    const staff = staffList.find((s) => s.id === staffId);
-    return staff ? `${staff.firstName} ${staff.lastName}` : "Unknown";
   };
 
   return (
@@ -181,40 +218,102 @@ const StaffSalaryPage: React.FC = () => {
           </Button>
         </Box>
 
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={activeOnly}
+                onChange={handleActiveOnlyChange}
+                color="primary"
+              />
+            }
+            label="Show active rates only"
+          />
+        </Box>
+
         <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Staff Name</TableCell>
-                <TableCell align="right">Rate</TableCell>
-                <TableCell>Effective Date</TableCell>
-                <TableCell>End Date</TableCell>
-                <TableCell align="center">Actions</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'staff.firstName'}
+                    direction={sortBy === 'staff.firstName' ? sortDirection.toLowerCase() as "asc" | "desc" : "asc"}
+                    onClick={() => handleSortChange('staffName')}
+                  >
+                    Staff Name
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'staff.nickname'}
+                    direction={sortBy === 'staff.nickname' ? sortDirection.toLowerCase() as "asc" | "desc" : "asc"}
+                    onClick={() => handleSortChange('nickname')}
+                  >
+                    Nickname
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell align="right">
+                  <TableSortLabel
+                    active={sortBy === 'rate'}
+                    direction={sortBy === 'rate' ? sortDirection.toLowerCase() as "asc" | "desc" : "asc"}
+                    onClick={() => handleSortChange('rate')}
+                  >
+                    Rate
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'effectiveDate'}
+                    direction={sortBy === 'effectiveDate' ? sortDirection.toLowerCase() as "asc" | "desc" : "asc"}
+                    onClick={() => handleSortChange('effectiveDate')}
+                  >
+                    Effective Date
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'endDate'}
+                    direction={sortBy === 'endDate' ? sortDirection.toLowerCase() as "asc" | "desc" : "asc"}
+                    onClick={() => handleSortChange('endDate')}
+                  >
+                    End Date
+                  </TableSortLabel>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {staffRates.map((rate) => (
                 <TableRow key={rate.id}>
-                  <TableCell>{getStaffName(rate.staffId)}</TableCell>
+                  <TableCell>
+                    {rate.staff.firstName} {rate.staff.lastName}
+                  </TableCell>
+                  <TableCell>{rate.staff.nickname}</TableCell>
                   <TableCell align="right">${rate.rate.toFixed(2)}</TableCell>
                   <TableCell>{moment(rate.effectiveDate, "DD/MM/YYYY").format("DD MMM YYYY")}</TableCell>
                   <TableCell>
                     {rate.endDate ? moment(rate.endDate, "DD/MM/YYYY").format("DD MMM YYYY") : "Current"}
-                  </TableCell>
-                  <TableCell align="center">
-                    <IconButton onClick={() => handleEdit(rate)} size="small">
-                      <EditIcon />
-                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
+
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+          <Pagination
+            count={totalPages}
+            page={page + 1} // API uses 0-based index, UI uses 1-based
+            onChange={handlePageChange}
+            color="primary"
+            showFirstButton
+            showLastButton
+          />
+        </Box>
       </Paper>
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{selectedRate ? "Edit Rate" : "Add New Rate"}</DialogTitle>
+        <DialogTitle>{selectedRate ? "Add New Rate for " + selectedRate.staff.firstName : "Add New Rate"}</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2, display: "flex", flexDirection: "column", gap: 3 }}>
             <FormControl fullWidth error={!!formErrors.staffId}>
@@ -226,7 +325,7 @@ const StaffSalaryPage: React.FC = () => {
               >
                 {staffList.map((staff) => (
                   <MenuItem key={staff.id} value={String(staff.id)}>
-                    {staff.firstName} {staff.lastName}
+                    {staff.firstName} {staff.lastName} ({staff.nickname})
                   </MenuItem>
                 ))}
               </Select>
@@ -260,6 +359,7 @@ const StaffSalaryPage: React.FC = () => {
                   })
                 }
                 format="DD/MM/YYYY"
+                minDate={moment()} // Add this line to disable past dates
                 slotProps={{
                   textField: {
                     error: !!formErrors.effectiveDate,
@@ -280,7 +380,7 @@ const StaffSalaryPage: React.FC = () => {
               "&:hover": { backgroundColor: "grey" },
             }}
           >
-            {selectedRate ? "Update" : "Save"}
+            Add Rate
           </Button>
         </DialogActions>
       </Dialog>
