@@ -80,6 +80,11 @@ const MenubarDemo = () => {
     setOpenMenu("Manage Staff");
   };
 
+  const handlePayrollClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+    setOpenMenu("Payroll");
+  };
+
   const handleClose = () => {
     setAnchorEl(null);
     setOpenMenu(null);
@@ -107,10 +112,16 @@ const MenubarDemo = () => {
     { label: "Staff Salary", path: "/staff-salary" },
   ];
 
+  const payrollMenuItems: MenuItemProps[] = [
+    { label: "Create Payroll", path: "/create-payroll" },
+    { label: "Payroll History", path: "/payroll-history" },
+  ];
+
   const mainMenuItems: MenuItemProps[] = [
     { label: "Home", path: "/dashboard" },
     { label: "Manage Stores", children: storeMenuItems },
     { label: "Manage Staff", children: manageStaffMenuItems },
+    { label: "Payroll", children: payrollMenuItems },
     { label: "Services", path: "/services" },
     { label: "Manage Bookings", path: "/manage-bookings" },
     { label: "Manage Customers", path: "/manage-customers" },
@@ -119,6 +130,9 @@ const MenubarDemo = () => {
 
   function HideOnScroll(props: Props) {
     const { children, window } = props;
+    // Note that you normally won't need to set the window ref as useScrollTrigger
+    // will default to window.
+    // This is only being set here because the demo is in an iframe.
     const trigger = useScrollTrigger({
       target: window ? window() : undefined,
     });
@@ -190,16 +204,20 @@ const MenubarDemo = () => {
     </Box>
   );
 
+  // Fetch estimated cost from API using axiosWithToken
   useEffect(() => {
     const fetchEstimatedCost = async () => {
       try {
+        // Using axiosWithToken instead of fetch
         const response = await axiosWithToken.get('/billing/estimate');
+        // Format the value correctly - make sure it's a string
         const costValue = response.data.estimatedCost 
           ? Number(response.data.estimatedCost).toFixed(2) 
           : '0.00';
         setEstimatedCost(costValue);
       } catch (error) {
         console.error('Error fetching estimated cost:', error);
+        // Set a default value to handle the error gracefully
         setEstimatedCost('0.00');
       }
     };
@@ -355,6 +373,43 @@ const MenubarDemo = () => {
                     ))}
                   </Menu>
                 </div>
+                <div>
+                  <Button
+                    id="payroll-menu"
+                    onClick={handlePayrollClick}
+                    sx={mainMenuStyle}
+                  >
+                    Payroll
+                  </Button>
+                  <Menu
+                    id="payroll-menu"
+                    aria-labelledby="payroll-button"
+                    anchorEl={anchorEl}
+                    keepMounted
+                    open={openMenu === "Payroll"}
+                    onClose={handleClose}
+                    anchorOrigin={{
+                      vertical: "bottom",
+                      horizontal: "left",
+                    }}
+                    transformOrigin={{
+                      vertical: "top",
+                      horizontal: "left",
+                    }}
+                  >
+                    {payrollMenuItems.map((item, index) => (
+                      <MenuItem
+                        key={index}
+                        onClick={() => {
+                          handleClose();
+                          item.path && navigate(item.path);
+                        }}
+                      >
+                        {item.label}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </div>
                 <Button
                   onClick={() => navigate("/services")}
                   sx={mainMenuStyle}
@@ -421,7 +476,7 @@ const MenubarDemo = () => {
                       Estimated costs: ${estimatedCost}
                     </Typography>
                   </Tooltip>
-                )}
+              )}
                 <NotificationIcon />
                 <AccountMenuItem />
               </Box>
