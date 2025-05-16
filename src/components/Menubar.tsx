@@ -43,6 +43,14 @@ const mainMenuStyle = {
   color: "black",
   fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
   fontWeight: 550,
+  height: "64px",
+  lineHeight: "64px",
+  padding: "0 16px",
+  textTransform: "none",
+  minWidth: "auto",
+  "&:hover": {
+    backgroundColor: "rgba(0, 0, 0, 0.04)",
+  },
 };
 
 const MenubarDemo = () => {
@@ -63,6 +71,11 @@ const MenubarDemo = () => {
 
   const handleMobileItemClick = (label: string) => {
     setOpenMobileChildMenu(openMobileChildMenu === label ? null : label);
+  };
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, label: string) => {
+    setAnchorEl(event.currentTarget);
+    setOpenMenu(label);
   };
 
   const handleManageStoreClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -130,9 +143,6 @@ const MenubarDemo = () => {
 
   function HideOnScroll(props: Props) {
     const { children, window } = props;
-    // Note that you normally won't need to set the window ref as useScrollTrigger
-    // will default to window.
-    // This is only being set here because the demo is in an iframe.
     const trigger = useScrollTrigger({
       target: window ? window() : undefined,
     });
@@ -204,20 +214,16 @@ const MenubarDemo = () => {
     </Box>
   );
 
-  // Fetch estimated cost from API using axiosWithToken
   useEffect(() => {
     const fetchEstimatedCost = async () => {
       try {
-        // Using axiosWithToken instead of fetch
         const response = await axiosWithToken.get('/billing/estimate');
-        // Format the value correctly - make sure it's a string
         const costValue = response.data.estimatedCost 
           ? Number(response.data.estimatedCost).toFixed(2) 
           : '0.00';
         setEstimatedCost(costValue);
       } catch (error) {
         console.error('Error fetching estimated cost:', error);
-        // Set a default value to handle the error gracefully
         setEstimatedCost('0.00');
       }
     };
@@ -227,7 +233,7 @@ const MenubarDemo = () => {
 
   return (
     <div>
-      {isMobile && (
+      {isMobile ? (
         <Box sx={{ flexGrow: 1 }}>
           <HideOnScroll>
             <AppBar position="fixed" sx={{ background: "white" }}>
@@ -273,210 +279,110 @@ const MenubarDemo = () => {
             {drawerMenuList()}
           </Drawer>
         </Box>
-      )}
-
-      {!isMobile && (
-        <AppBar position="fixed" sx={{ background: "white" }}>
-          <Toolbar>
+      ) : (
+        <AppBar position="fixed" sx={{ background: "white", boxShadow: 1 }}>
+          <Toolbar sx={{ minHeight: "64px !important", px: 2 }}>
             <Box
               sx={{
-                flexGrow: 1,
-                display: { xs: "flex", md: "flex", lg: "flex" },
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
                 justifyContent: "space-between",
+                gap: 0.5,
               }}
             >
               <Box
                 sx={{
                   display: "flex",
-                  gap: "2rem",
+                  alignItems: "center",
+                  gap: 1,
                 }}
               >
-                <Button
+                <IconButton
                   onClick={() => navigate("/dashboard")}
                   sx={{
                     color: "black",
+                    height: "40px",
+                    width: "40px",
                   }}
                 >
                   <HomeIcon />
-                </Button>
-                <div>
-                  <Button
-                    id="manage-store-menu"
-                    onClick={handleManageStoreClick}
-                    sx={mainMenuStyle}
-                  >
-                    Manage Stores
-                  </Button>
-                  <Menu
-                    id="manage-store-menu"
-                    aria-labelledby="manage-store-button"
-                    anchorEl={anchorEl}
-                    keepMounted
-                    open={openMenu === "Manage Stores"}
-                    onClose={handleClose}
-                    anchorOrigin={{
-                      vertical: "bottom",
-                      horizontal: "left",
-                    }}
-                    transformOrigin={{
-                      vertical: "top",
-                      horizontal: "left",
-                    }}
-                  >
-                    {storeMenuItems.map((item, index) => (
-                      <MenuItem
-                        key={index}
-                        onClick={() => {
-                          handleClose();
-                          item.path && navigate(item.path);
-                        }}
+                </IconButton>
+
+                {mainMenuItems.map((item, index) => (
+                  item.children ? (
+                    <Box key={index} sx={{ position: "relative" }}>
+                      <Button
+                        id={`${item.label.toLowerCase()}-menu`}
+                        onClick={(e) => handleMenuClick(e, item.label)}
+                        sx={mainMenuStyle}
                       >
                         {item.label}
-                      </MenuItem>
-                    ))}
-                  </Menu>
-                </div>
-                <div>
-                  <Button
-                    id="manage-staff-menu"
-                    onClick={handleManageStaffClick}
-                    sx={mainMenuStyle}
-                  >
-                    Manage Staff
-                  </Button>
-                  <Menu
-                    id="manage-staff-menu"
-                    aria-labelledby="manage-staff-button"
-                    anchorEl={anchorEl}
-                    keepMounted
-                    open={openMenu === "Manage Staff"}
-                    onClose={handleClose}
-                    anchorOrigin={{
-                      vertical: "bottom",
-                      horizontal: "left",
-                    }}
-                    transformOrigin={{
-                      vertical: "top",
-                      horizontal: "left",
-                    }}
-                  >
-                    {manageStaffMenuItems.map((item, index) => (
-                      <MenuItem
-                        key={index}
-                        onClick={() => {
-                          handleClose();
-                          item.path && navigate(item.path);
+                      </Button>
+                      <Menu
+                        id={`${item.label.toLowerCase()}-menu`}
+                        anchorEl={anchorEl}
+                        open={openMenu === item.label}
+                        onClose={handleClose}
+                        anchorOrigin={{
+                          vertical: "bottom",
+                          horizontal: "left",
+                        }}
+                        transformOrigin={{
+                          vertical: "top",
+                          horizontal: "left",
+                        }}
+                        PaperProps={{
+                          elevation: 2,
+                          sx: { mt: 1 }
                         }}
                       >
-                        {item.label}
-                      </MenuItem>
-                    ))}
-                  </Menu>
-                </div>
-                <div>
-                  <Button
-                    id="payroll-menu"
-                    onClick={handlePayrollClick}
-                    sx={mainMenuStyle}
-                  >
-                    Payroll
-                  </Button>
-                  <Menu
-                    id="payroll-menu"
-                    aria-labelledby="payroll-button"
-                    anchorEl={anchorEl}
-                    keepMounted
-                    open={openMenu === "Payroll"}
-                    onClose={handleClose}
-                    anchorOrigin={{
-                      vertical: "bottom",
-                      horizontal: "left",
-                    }}
-                    transformOrigin={{
-                      vertical: "top",
-                      horizontal: "left",
-                    }}
-                  >
-                    {payrollMenuItems.map((item, index) => (
-                      <MenuItem
-                        key={index}
-                        onClick={() => {
-                          handleClose();
-                          item.path && navigate(item.path);
-                        }}
-                      >
-                        {item.label}
-                      </MenuItem>
-                    ))}
-                  </Menu>
-                </div>
-                <Button
-                  onClick={() => navigate("/services")}
-                  sx={mainMenuStyle}
-                >
-                  Services
-                </Button>
-                <Button
-                  onClick={() => navigate("/manage-bookings")}
-                  sx={mainMenuStyle}
-                >
-                  Manage Bookings
-                </Button>
-                <Button
-                  onClick={() => navigate("/manage-customers")}
-                  sx={mainMenuStyle}
-                >
-                  Manage Customer
-                </Button>
-                <div>
-                  <Button
-                    id="manage-promotions-menu"
-                    onClick={handleManagePromotionsClick}
-                    sx={mainMenuStyle}
-                  >
-                    Manage Promotions
-                  </Button>
-                  <Menu
-                    id="manage-promotions-menu"
-                    aria-labelledby="manage-promotions-button"
-                    anchorEl={anchorEl}
-                    keepMounted
-                    open={openMenu === "Manage Promotions"}
-                    onClose={handleClose}
-                    anchorOrigin={{
-                      vertical: "bottom",
-                      horizontal: "left",
-                    }}
-                    transformOrigin={{
-                      vertical: "top",
-                      horizontal: "left",
-                    }}
-                  >
-                    {managePromotionsMenuItems.map((item, index) => (
-                      <MenuItem
-                        key={index}
-                        onClick={() => {
-                          handleClose();
-                          item.path && navigate(item.path);
-                        }}
-                      >
-                        {item.label}
-                      </MenuItem>
-                    ))}
-                  </Menu>
-                </div>
+                        {item.children.map((child, childIndex) => (
+                          <MenuItem
+                            key={childIndex}
+                            onClick={() => {
+                              handleClose();
+                              child.path && navigate(child.path);
+                            }}
+                          >
+                            {child.label}
+                          </MenuItem>
+                        ))}
+                      </Menu>
+                    </Box>
+                  ) : (
+                    <Button
+                      key={index}
+                      onClick={() => item.path && navigate(item.path)}
+                      sx={mainMenuStyle}
+                    >
+                      {item.label}
+                    </Button>
+                  )
+                ))}
               </Box>
-              <Box sx={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+
+              <Box 
+                sx={{ 
+                  display: "flex", 
+                  alignItems: "center",
+                  gap: 2,
+                }}
+              >
                 {estimatedCost && (
                   <Tooltip title="Estimated Monthly Cost">
-                    <Typography variant="body2" sx={{ 
-                      color: 'rgb(91, 105, 135)',
-                      fontSize: '14px'
-                    }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{
+                        color: 'rgb(91, 105, 135)',
+                        fontSize: '14px',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       Estimated costs: ${estimatedCost}
                     </Typography>
                   </Tooltip>
-              )}
+                )}
                 <NotificationIcon />
                 <AccountMenuItem />
               </Box>
