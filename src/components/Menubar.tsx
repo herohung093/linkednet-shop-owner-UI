@@ -26,12 +26,24 @@ import MenuIcon from "@mui/icons-material/Menu";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import InfoOutlined from "@mui/icons-material/InfoOutlined";
+import moment from "moment";
 
 interface MenuItemProps {
   label: string;
   path?: string;
   onClick?: () => void;
   children?: MenuItemProps[];
+}
+
+interface BillingEstimate {
+  reservationCount: number;
+  estimatedCost: number;
+  month: string;
+  year: number;
+  partialMonth: boolean;
+  billingStartDate: string;
+  billingEndDate: string;
 }
 
 interface Props {
@@ -55,7 +67,8 @@ const MenubarDemo = () => {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [estimatedCost, setEstimatedCost] = useState<string | null>(null);
+  const [billingEstimate, setBillingEstimate] =
+    useState<BillingEstimate | null>(null);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -199,16 +212,12 @@ const MenubarDemo = () => {
     const fetchEstimatedCost = async () => {
       try {
         // Using axiosWithToken instead of fetch
-        const response = await axiosWithToken.get('/billing/estimate');
-        // Format the value correctly - make sure it's a string
-        const costValue = response.data.estimatedCost 
-          ? Number(response.data.estimatedCost).toFixed(2) 
-          : '0.00';
-        setEstimatedCost(costValue);
+        const response = await axiosWithToken.get<BillingEstimate>(
+          "/billing/estimate"
+        );
+        setBillingEstimate(response.data);
       } catch (error) {
-        console.error('Error fetching estimated cost:', error);
-        // Set a default value to handle the error gracefully
-        setEstimatedCost('0.00');
+        console.error("Error fetching estimated cost:", error);
       }
     };
 
@@ -242,15 +251,48 @@ const MenubarDemo = () => {
                       </IconButton>
                     </Box>
                   <Box sx={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                    {estimatedCost && (
-                      <Tooltip title="Estimated Monthly Cost">
-                        <Typography variant="body2" sx={{ 
-                          color: 'rgb(91, 105, 135)',
-                          fontSize: '14px'
-                        }}>
-                          Estimated costs: ${estimatedCost}
-                        </Typography>
-                      </Tooltip>
+                    {billingEstimate && (
+                      <>
+                        <Tooltip title="Estimated Monthly Cost">
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "rgb(91, 105, 135)",
+                              fontSize: "14px",
+                            }}
+                          >
+                            Estimated costs: $
+                            {billingEstimate.estimatedCost.toFixed(2)}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip
+                          title={
+                            <div>
+                              <p>
+                                Reservation Count:{" "}
+                                {billingEstimate.reservationCount}
+                              </p>
+                              <p>
+                                Billing Period:{" "}
+                                {moment(
+                                  billingEstimate.billingStartDate
+                                ).format("DD/MM/YYYY")}{" "}
+                                -{" "}
+                                {moment(
+                                  billingEstimate.billingEndDate
+                                ).format("DD/MM/YYYY")}
+                              </p>
+                              <p style={{ fontSize: "12px", fontStyle: "italic" }}>
+                                Note: Walk-in and cancelled bookings are not included
+                              </p>
+                            </div>
+                          }
+                        >
+                          <InfoOutlined
+                            sx={{ color: "rgb(91, 105, 135)", fontSize: "16px" }}
+                          />
+                        </Tooltip>
+                      </>
                     )}
                     <NotificationIcon />
                     <AccountMenuItem />
@@ -401,15 +443,48 @@ const MenubarDemo = () => {
                     </div>
                   </Box>
                 <Box sx={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                  {estimatedCost && (
-                    <Tooltip title="Estimated Monthly Cost">
-                      <Typography variant="body2" sx={{ 
-                        color: 'rgb(91, 105, 135)',
-                        fontSize: '14px'
-                      }}>
-                        Estimated costs: ${estimatedCost}
-                      </Typography>
-                    </Tooltip>
+                  {billingEstimate && (
+                    <>
+                      <Tooltip title="Estimated Monthly Cost">
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "rgb(91, 105, 135)",
+                            fontSize: "14px",
+                          }}
+                        >
+                          Estimated costs: $
+                          {billingEstimate.estimatedCost.toFixed(2)}
+                        </Typography>
+                      </Tooltip>
+                      <Tooltip
+                        title={
+                          <div>
+                            <p>
+                              Reservation Count:{" "}
+                              {billingEstimate.reservationCount}
+                            </p>
+                            <p>
+                              Billing Period:{" "}
+                              {moment(
+                                billingEstimate.billingStartDate
+                              ).format("DD/MM/YYYY")}{" "}
+                              -{" "}
+                              {moment(
+                                billingEstimate.billingEndDate
+                              ).format("DD/MM/YYYY")}
+                            </p>
+                            <p style={{ fontSize: "12px", fontStyle: "italic" }}>
+                              Note: Walk-in and cancelled bookings are not included
+                            </p>
+                          </div>
+                        }
+                      >
+                        <InfoOutlined
+                          sx={{ color: "rgb(91, 105, 135)", fontSize: "16px" }}
+                        />
+                      </Tooltip>
+                    </>
                   )}
                   <NotificationIcon />
                   <AccountMenuItem />
