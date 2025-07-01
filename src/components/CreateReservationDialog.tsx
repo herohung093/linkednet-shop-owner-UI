@@ -701,6 +701,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
         totalEstimatedTime: g.totalEstimatedTime || 0,
       })),
       walkInBooking: data.walkInBooking,
+      reservationOrigin: "ADMIN"
     };
 
     // Submit reservation to API

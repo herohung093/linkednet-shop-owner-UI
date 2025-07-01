@@ -64,6 +64,7 @@ declare interface Reservation {
   totalPrice: number;
   guests: Guest[];
   walkInBooking: boolean;
+  reservationOrigin: string;
   communication: {
     FIRST_BOOKING_REMINDER: string;
     FINAL_BOOKING_REMINDER: string;
