@@ -109,6 +109,7 @@ const MenubarDemo = () => {
       : []),
       { label: "Store Settings", path: "/store-settings" },
       { label: "Store Closed Dates", path: "/manage-store-closed-dates" },
+      { label: "Manage Photos", path: "/manage-photos" },
   ];
 
   const managePromotionsMenuItems: MenuItemProps[] = [

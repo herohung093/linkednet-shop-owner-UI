@@ -31,6 +31,7 @@ import PaymentCancel from "./pages/PaymentCancel.tsx";
 import ManagePromotionsPage from "./pages/ManagePromotionsPage.tsx";
 import useFetchUserDetailsOnRefresh from "./hooks/useFetchUserDetailsOnRefresh";
 import ManageStoreClosedDatePage from "./pages/ManageStoreClosedDatePage.tsx";
+import ManagePhotosPage from "./pages/ManagePhotosPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -49,6 +50,10 @@ const router = createBrowserRouter([
       {
         path: "manage-store-closed-dates",
         element: <ManageStoreClosedDatePage />,
+      },
+      {
+        path: "manage-photos",
+        element: <ManagePhotosPage />,
       },
       {
         path: "services",
