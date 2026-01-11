@@ -252,14 +252,11 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   }, []);
 
   /**
-   * Effect: Prevent dialog from staying open on page refresh
+   * Effect: This useEffect was previously used to prevent dialog from staying open on page refresh
+   * However, it's been removed because it was causing the dialog to close immediately when opening in edit mode
+   * The Dialog component already handles this scenario properly
    */
-  useEffect(() => {
-    // if the dialog is open on refresh, close it
-    if (isCreateDialogOpen) {
-      handleCreateDialogClose();
-    }
-  }, []); // empty dependency array so it only runs once on component mount
+  // Removed problematic useEffect that was closing dialog on mount
 
   // Move fetchStaffAvailability outside of useEffect so it can be called manually
   const fetchStaffAvailability = async (date: moment.Moment, staffId: string) => {
@@ -318,16 +315,22 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
    * Effect: Fetch staff availability when date or selected staff changes.
    */
   useEffect(() => {
-    // Check if editableDate is valid and selectedStaff is not undefined/null
-    if (editableDate && selectedStaff !== undefined && selectedStaff !== null && isMounted.current) {
+    // Only fetch availability if dialog is open AND we have valid date and staff
+    if (
+      isCreateDialogOpen &&
+      editableDate &&
+      selectedStaff !== undefined &&
+      selectedStaff !== null &&
+      isMounted.current
+    ) {
       fetchStaffAvailability(editableDate, selectedStaff);
-    } else {
-      // Clear availability if date is missing or component unmounted
+    } else if (!isCreateDialogOpen) {
+      // Clear availability when dialog closes
       setStaffAvailability([]);
     }
-    // Dependencies: Fetch only when date or staff selection actually changes.
-    // availabilityFetchTrigger is removed as it might cause issues if selectedStaff is temporarily empty.
-  }, [editableDate, selectedStaff, isCreateDialogOpen, isEditMode, existingReservation]); // Removed availabilityFetchTrigger
+    // Dependencies: Fetch when date, staff, or dialog state changes
+    // Including selectedStaff ensures this runs again after form initialization in edit mode
+  }, [editableDate, selectedStaff, isCreateDialogOpen]);
 
   /**
    * Effect: Handle customer search with debouncing
