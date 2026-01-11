@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { axiosWithToken } from "../utils/axios";
 import { parse } from "date-fns";
 import { useSelector } from "react-redux";
@@ -12,6 +12,10 @@ import {
   Fade,
   Divider,
   Tooltip,
+  ToggleButton,
+  ToggleButtonGroup,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -20,11 +24,14 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
 import { Fab, Badge } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import ViewWeekIcon from "@mui/icons-material/ViewWeek";
+import ViewListIcon from "@mui/icons-material/ViewList";
 import moment from "moment";
 import BookingEventListItem from "../components/BookingEventListItem";
 import BookingEventDialog from "../components/BookingEventDialog";
 import withAuth from "../components/HOC/withAuth";
 import CreateReservationDialog from "../components/CreateReservationDialog";
+import ReservationTimeline from "../components/ReservationTimeline";
 import { getEndTimeForFirstGuest } from "../utils/ReservationUtils";
 import { CalendarToday, Event } from "@mui/icons-material";
 
@@ -43,6 +50,12 @@ const ManageReservationsPage: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [storeClosedDates, setStoreClosedDates] = useState<StoreClosedDate[]>([]);
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+  const [viewMode, setViewMode] = useState<"timeline" | "list">(
+    isDesktop ? "timeline" : "list"
+  );
+  const [selectedSlotTime, setSelectedSlotTime] = useState<Date | null>(null);
 
   const handleEventClick = (event: any) => {
     setSelectedEvent(event as ReservationEvent);
@@ -56,7 +69,7 @@ const ManageReservationsPage: React.FC = () => {
 
   const fetchReservations = async (
     params: FetchReservationsParams
-  ): Promise<Reservation[]> => {
+  ): Promise<ReservationEvent[]> => {
     setIsLoading(true);
     try {
       const response = await axiosWithToken.get<Reservation[]>(
@@ -65,7 +78,7 @@ const ManageReservationsPage: React.FC = () => {
       );
       const processedEvents = await convertToProcessedEvents(response.data);
       setEvents(processedEvents);
-      return response.data;
+      return processedEvents;
     } catch (error) {
       console.error("Error fetching reservations:", error);
       throw error;
@@ -108,6 +121,23 @@ const ManageReservationsPage: React.FC = () => {
 
     fetchData();
   }, [selectedStoreId]);
+
+  // Force list view on mobile/tablet since timeline is desktop-only
+  useEffect(() => {
+    if (!isDesktop && viewMode === "timeline") {
+      setViewMode("list");
+    }
+  }, [isDesktop, viewMode]);
+
+  // Filter events when switching to list view
+  useEffect(() => {
+    if (viewMode === "list" && selectedDate && events.length > 0) {
+      const filtered = events
+        .filter((event) => moment(event.start).isSame(selectedDate, "day"))
+        .sort((a, b) => moment(a.start).diff(moment(b.start)));
+      setFilteredEvents(filtered);
+    }
+  }, [viewMode, selectedDate, events]);
 
   const convertToProcessedEvents = (
     reservations: Reservation[]
@@ -257,31 +287,88 @@ const ManageReservationsPage: React.FC = () => {
 
   const handleCreateDialogClose = () => {
     setIsCreateDialogOpen(false);
+    setSelectedSlotTime(null);
   };
 
   const handleReservationCreated = async () => {
     if (selectedDate) {
-      const startDate = selectedDate.startOf("month").format("DD/MM/YYYY");
-      const endDate = selectedDate.endOf("month").format("DD/MM/YYYY");
-      const data = await fetchReservations({ startDate, endDate });
-      fetchStoreClosedDates({ startDate, endDate });
-      const processedEvents = await convertToProcessedEvents(data);
-      setEvents(processedEvents);
-      dateCalendarHandleDateChange(selectedDate, processedEvents);
+      try {
+        const startDate = selectedDate.clone().startOf("month").format("DD/MM/YYYY");
+        const endDate = selectedDate.clone().endOf("month").format("DD/MM/YYYY");
+        // fetchReservations already processes events and calls setEvents internally
+        const processedEvents = await fetchReservations({ startDate, endDate });
+        await fetchStoreClosedDates({ startDate, endDate });
+        // Only filter by day if in list view; timeline view uses timelineEvents memoized value
+        if (viewMode === "list") {
+          dateCalendarHandleDateChange(selectedDate, processedEvents);
+        }
+        // Close dialog and reset slot time after successful data update
+        setIsCreateDialogOpen(false);
+        setSelectedSlotTime(null);
+      } catch (error) {
+        console.error("Error creating reservation:", error);
+      }
     }
   };
 
   // Add this handler for reservation updates
   const handleReservationUpdated = async () => {
     if (selectedDate) {
-      const startDate = moment().startOf("month").format("DD/MM/YYYY");
-      const endDate = moment().endOf("month").format("DD/MM/YYYY");
-      const data = await fetchReservations({ startDate, endDate });
-      fetchStoreClosedDates({ startDate, endDate });
-      const processedEvents = await convertToProcessedEvents(data);
-      setEvents(processedEvents);
-      dateCalendarHandleDateChange(selectedDate, processedEvents);
+      const startDate = selectedDate.clone().startOf("month").format("DD/MM/YYYY");
+      const endDate = selectedDate.clone().endOf("month").format("DD/MM/YYYY");
+      // fetchReservations already processes events and calls setEvents internally
+      const processedEvents = await fetchReservations({ startDate, endDate });
+      await fetchStoreClosedDates({ startDate, endDate });
+      // Only filter by day if in list view; timeline view uses timelineEvents memoized value
+      if (viewMode === "list") {
+        dateCalendarHandleDateChange(selectedDate, processedEvents);
+      }
     }
+  };
+
+  const timelineEvents = useMemo(() => {
+    const referenceDate = selectedDate ?? moment();
+    const weekStart = referenceDate.clone().startOf("week");
+    const weekEnd = referenceDate.clone().endOf("week");
+
+    return events.filter((event) => {
+      const start = moment(event.start);
+      return start.isSameOrAfter(weekStart, "day") && start.isSameOrBefore(weekEnd, "day");
+    });
+  }, [events, selectedDate]);
+
+  const handleTimelineNavigate = async (date: Date, view: string) => {
+    const newDate = moment(date);
+    setSelectedDate(newDate);
+
+    let startDate: string;
+    let endDate: string;
+
+    if (view === "week") {
+      startDate = newDate.clone().startOf("week").format("DD/MM/YYYY");
+      endDate = newDate.clone().endOf("week").format("DD/MM/YYYY");
+    } else if (view === "day") {
+      startDate = newDate.clone().startOf("day").format("DD/MM/YYYY");
+      endDate = newDate.clone().endOf("day").format("DD/MM/YYYY");
+    } else {
+      // Default to week
+      startDate = newDate.clone().startOf("week").format("DD/MM/YYYY");
+      endDate = newDate.clone().endOf("week").format("DD/MM/YYYY");
+    }
+
+    try {
+      await fetchReservations({ startDate, endDate });
+      await fetchStoreClosedDates({ startDate, endDate });
+    } catch (error) {
+      console.error("Failed to fetch data on navigation", error);
+    }
+  };
+
+  const handleTimelineSlotSelect = (slotInfo: { start: Date; end: Date; action: string }) => {
+    const slotDate = moment(slotInfo.start);
+    setSelectedDate(slotDate);
+    setSelectedSlotTime(slotInfo.start);
+    setIsCreateDialogOpen(true);
   };
 
   return (
@@ -295,76 +382,84 @@ const ManageReservationsPage: React.FC = () => {
         </Typography>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 3, flexDirection: { xs: "column", md: "row" } }}>
-        {/* Calendar Section */}
-        <Paper
-          elevation={2}
-          sx={{
-            flex: { md: "0 0 350px" },
-            p: 2,
-            borderRadius: 2,
-            height: "fit-content",
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}>
-            <CalendarToday color="primary" />
-            <Typography variant="h6" fontWeight="medium">
-              Select Date
-            </Typography>
-          </Box>
-
-          {/* Calendar Legend */}
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 1, 
-              mb: 2,
-              p: 1,
-              bgcolor: 'grey.50',
-              borderRadius: 1
+      <Box
+        sx={{
+          display: "flex",
+          gap: 3,
+          flexDirection: viewMode === "timeline" ? "column" : { xs: "column", md: "row" },
+        }}
+      >
+        {/* Calendar Section (hidden when in timeline view) */}
+        {viewMode === "list" && (
+          <Paper
+            elevation={2}
+            sx={{
+              flex: { md: "0 0 350px" },
+              p: 2,
+              borderRadius: 2,
+              height: "fit-content",
             }}
           >
-            <Box 
-              sx={{ 
-                width: 20, 
-                height: 20, 
-                bgcolor: 'rgba(255, 0, 0, 0.1)', 
-                border: '1px solid rgba(0, 0, 0, 0.1)',
-                borderRadius: 0.5
-              }} 
-            />
-            <Typography variant="body2" color="text.secondary">
-              Store Closed
-            </Typography>
-          </Box>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}>
+              <CalendarToday color="primary" />
+              <Typography variant="h6" fontWeight="medium">
+                Select Date
+              </Typography>
+            </Box>
 
-          <LocalizationProvider dateAdapter={AdapterMoment}>
-            <DateCalendar
-              value={selectedDate}
-              loading={isLoading}
-              onMonthChange={handleMonthChange}
-              onChange={(newValue) => dateCalendarHandleDateChange(newValue)}
-              renderLoading={() => <DayCalendarSkeleton />}
-              slots={{ day: EventsDay }}
-              sx={{ 
-                width: "100%",
-                '& .MuiPickersDay-root.Mui-selected': {
-                  backgroundColor: 'primary.dark', // Darker shade of primary color
-                  '&:hover': {
-                    backgroundColor: 'primary.dark',
-                  },
-                  '&:focus': {
-                    backgroundColor: 'secondary.light',
-                  }
-                },
-                '& .MuiPickersDay-root.Mui-selected.Mui-focusVisible': {
-                  backgroundColor: 'secondary.light',
-                }
+            {/* Calendar Legend */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                mb: 2,
+                p: 1,
+                bgcolor: "grey.50",
+                borderRadius: 1,
               }}
-            />
-          </LocalizationProvider>
-        </Paper>
+            >
+              <Box
+                sx={{
+                  width: 20,
+                  height: 20,
+                  bgcolor: "rgba(255, 0, 0, 0.1)",
+                  border: "1px solid rgba(0, 0, 0, 0.1)",
+                  borderRadius: 0.5,
+                }}
+              />
+              <Typography variant="body2" color="text.secondary">
+                Store Closed
+              </Typography>
+            </Box>
+
+            <LocalizationProvider dateAdapter={AdapterMoment}>
+              <DateCalendar
+                value={selectedDate}
+                loading={isLoading}
+                onMonthChange={handleMonthChange}
+                onChange={(newValue) => dateCalendarHandleDateChange(newValue)}
+                renderLoading={() => <DayCalendarSkeleton />}
+                slots={{ day: EventsDay }}
+                sx={{
+                  width: "100%",
+                  "& .MuiPickersDay-root.Mui-selected": {
+                    backgroundColor: "primary.dark", // Darker shade of primary color
+                    "&:hover": {
+                      backgroundColor: "primary.dark",
+                    },
+                    "&:focus": {
+                      backgroundColor: "secondary.light",
+                    },
+                  },
+                  "& .MuiPickersDay-root.Mui-selected.Mui-focusVisible": {
+                    backgroundColor: "secondary.light",
+                  },
+                }}
+              />
+            </LocalizationProvider>
+          </Paper>
+        )}
 
         {/* Bookings List Section */}
         <Paper
@@ -379,43 +474,88 @@ const ManageReservationsPage: React.FC = () => {
             flexDirection: "column",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}>
-            <Event color="primary" />
-            <Typography variant="h6" fontWeight="medium">
-              {selectedDate
-                ? `Bookings for ${selectedDate.format("dddd, MMMM D, YYYY")}`
-                : "Select a date to view bookings"}
-            </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, gap: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Event color="primary" />
+              <Typography variant="h6" fontWeight="medium">
+                {viewMode === "timeline"
+                  ? `Week of ${(selectedDate ?? moment()).startOf("week").format("MMM D, YYYY")}`
+                  : selectedDate
+                  ? `Bookings for ${selectedDate.format("dddd, MMMM D, YYYY")}`
+                  : "Select a date to view bookings"}
+              </Typography>
+            </Box>
+            
+            {/* View Toggle - Hidden on mobile */}
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              onChange={(_event, newValue) => {
+                if (newValue) {
+                  setViewMode(newValue);
+                }
+              }}
+              sx={{ display: { xs: "none", md: "flex" } }}
+              size="small"
+            >
+              <ToggleButton value="timeline" aria-label="timeline view">
+                <Tooltip title="Timeline View">
+                  <ViewWeekIcon />
+                </Tooltip>
+              </ToggleButton>
+              <ToggleButton value="list" aria-label="list view">
+                <Tooltip title="List View">
+                  <ViewListIcon />
+                </Tooltip>
+              </ToggleButton>
+            </ToggleButtonGroup>
           </Box>
 
           <Divider sx={{ mb: 2 }} />
 
-          <Box sx={{ flex: 1, overflow: "auto" }}>
-            {isLoading ? (
-              <Box sx={{ p: 4, textAlign: "center" }}>
-                <Typography color="text.secondary">Loading bookings...</Typography>
-              </Box>
-            ) : filteredEvents.length > 0 ? (
-              <Fade in>
-                <List>
-                  {filteredEvents.map((event) => (
-                    <BookingEventListItem
-                      key={event.event_id}
-                      event={event}
-                      handleEventClick={handleEventClick}
-                      getStatusBackgroundColorForAvata={getStatusBackgroundColorForAvata}
-                    />
-                  ))}
-                </List>
-              </Fade>
-            ) : (
-              <Box sx={{ p: 4, textAlign: "center" }}>
-                <Typography color="text.secondary">
-                  No bookings for this date
-                </Typography>
-              </Box>
-            )}
-          </Box>
+          {/* Timeline View */}
+          {viewMode === "timeline" && (
+            <Box sx={{ flex: 1, overflow: "auto" }}>
+              <ReservationTimeline
+                events={timelineEvents}
+                onSelectEvent={handleEventClick}
+                selectedDate={selectedDate}
+                isLoading={isLoading}
+                onNavigate={handleTimelineNavigate}
+                onSelectSlot={handleTimelineSlotSelect}
+              />
+            </Box>
+          )}
+
+          {/* List View */}
+          {viewMode === "list" && (
+            <Box sx={{ flex: 1, overflow: "auto" }}>
+              {isLoading ? (
+                <Box sx={{ p: 4, textAlign: "center" }}>
+                  <Typography color="text.secondary">Loading bookings...</Typography>
+                </Box>
+              ) : filteredEvents.length > 0 ? (
+                <Fade in>
+                  <List>
+                    {filteredEvents.map((event) => (
+                      <BookingEventListItem
+                        key={event.event_id}
+                        event={event}
+                        handleEventClick={handleEventClick}
+                        getStatusBackgroundColorForAvata={getStatusBackgroundColorForAvata}
+                      />
+                    ))}
+                  </List>
+                </Fade>
+              ) : (
+                <Box sx={{ p: 4, textAlign: "center" }}>
+                  <Typography color="text.secondary">
+                    No bookings for this date
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          )}
         </Paper>
       </Box>
 
@@ -448,6 +588,7 @@ const ManageReservationsPage: React.FC = () => {
         isCreateDialogOpen={isCreateDialogOpen}
         handleCreateDialogClose={handleCreateDialogClose}
         selectedDate={selectedDate}
+        selectedSlotTime={selectedSlotTime}
         onReservationCreated={handleReservationCreated}
       />
     </Container>

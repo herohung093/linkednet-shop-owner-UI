@@ -1,0 +1,120 @@
+/* Custom styling for ReservationTimeline to override react-big-calendar defaults */
+
+.rbc-calendar {
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+.rbc-header {
+  padding: 10px 5px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #333;
+}
+
+.rbc-time-slot {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.rbc-timeslot-group {
+  min-height: 60px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.rbc-day-bg {
+  border-left: 1px solid #e0e0e0;
+}
+
+.rbc-off-range-bg {
+  background-color: #fafafa;
+}
+
+.rbc-event {
+  padding: 2px 5px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  border-radius: 4px;
+}
+
+.rbc-event:hover {
+  opacity: 1 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.rbc-event-label {
+  font-size: 0.75rem;
+}
+
+.rbc-event-content {
+  white-space: normal;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.rbc-toolbar {
+  padding: 15px 0;
+  margin-bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.rbc-toolbar button {
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #333;
+}
+
+.rbc-toolbar button:hover {
+  background-color: #f5f5f5;
+}
+
+.rbc-toolbar button.rbc-active {
+  background-color: #e91e63;
+  color: white;
+  border-color: #e91e63;
+  font-weight: 600;
+}
+
+.rbc-toolbar-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  flex: 1 0 100%;
+  text-align: center;
+}
+
+.rbc-current-time-indicator {
+  background-color: #e91e63;
+  height: 2px;
+}
+
+.rbc-show-more {
+  color: #e91e63;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rbc-overlay {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
+}
+
+.rbc-overlay-header {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.rbc-month-view,
+.rbc-time-view {
+  border: none;
+  border-radius: 4px;
+}

@@ -33,6 +33,7 @@ interface CreateReservationDialogProps {
   onReservationCreated: () => void;
   isEditMode?: boolean;
   existingReservation?: Reservation;
+  selectedSlotTime?: Date | null;
 }
 
 interface FormData {
@@ -75,6 +76,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   onReservationCreated,
   isEditMode = false,
   existingReservation,
+  selectedSlotTime,
 }) => {
   // Form handling with React Hook Form
   const {
@@ -204,6 +206,14 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
       setEditableDate(selectedDate);
     }
   }, [selectedDate, isEditMode, isCreateDialogOpen, existingReservation]);
+
+  // Set selected time from timeline slot if available
+  useEffect(() => {
+    if (selectedSlotTime && isCreateDialogOpen && !isEditMode) {
+      const slotTime = moment(selectedSlotTime).format("HH:mm");
+      setValue("guests.0.selectedAvailability", slotTime);
+    }
+  }, [selectedSlotTime, isCreateDialogOpen, isEditMode, setValue]);
 
   // ========== EFFECTS ==========
 
