@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { axiosWithToken } from "../utils/axios";
 import { parse } from "date-fns";
 import { useSelector } from "react-redux";
@@ -34,6 +34,7 @@ import CreateReservationDialog from "../components/CreateReservationDialog";
 import ReservationTimeline from "../components/ReservationTimeline";
 import { getEndTimeForFirstGuest } from "../utils/ReservationUtils";
 import { CalendarToday, Event } from "@mui/icons-material";
+import { useNotificationWebSocket } from "../hooks/useNotificationWebSocket";
 
 interface FetchReservationsParams {
   startDate: string; //dd/MM/yyyy
@@ -57,14 +58,113 @@ const ManageReservationsPage: React.FC = () => {
   );
   const [selectedSlotTime, setSelectedSlotTime] = useState<Date | null>(null);
 
+  const selectedStoreId = useSelector(
+    (state: RootState) => state.selectedStore.storeUuid
+  );
+
+  const parseStringToDate = (dateString: string): Date => {
+    return parse(dateString, "dd/MM/yyyy HH:mm", new Date());
+  };
+
+  // Helper function to check if booking is in the displayed time range
+  const isBookingInDisplayedTimeRange = useCallback((bookingTime: string): boolean => {
+    if (!selectedDate) return false;
+    
+    const bookingMoment = moment(bookingTime, "DD/MM/YYYY HH:mm");
+    
+    if (viewMode === "timeline") {
+      // For timeline view, check if booking is within the week being displayed
+      const weekStart = selectedDate.clone().startOf("week");
+      const weekEnd = selectedDate.clone().endOf("week");
+      return bookingMoment.isSameOrAfter(weekStart, "day") && bookingMoment.isSameOrBefore(weekEnd, "day");
+    } else {
+      // For list view, check if booking is on the selected date
+      return bookingMoment.isSame(selectedDate, "day");
+    }
+  }, [selectedDate, viewMode]);
+
+  // Handle booking notifications from WebSocket
+  const handleBookingNotification = useCallback(async (notification: Notification) => {
+    // Only handle booking-related notifications
+    if (!notification.type.includes('BOOKING')) {
+      return;
+    }
+
+    try {
+      // Parse metadata to get reservation ID
+      const metadata = notification.metadata ? JSON.parse(notification.metadata) : null;
+      
+      if (!metadata || !metadata.reservationId) {
+        console.warn("Notification does not contain reservation metadata");
+        return;
+      }
+
+      // Fetch the updated/new reservation
+      const response = await axiosWithToken.get<Reservation>(
+        `/reservation/${metadata.reservationId}`
+      );
+      const updatedReservation = response.data;
+
+      // Check if booking is in the displayed time range
+      if (!isBookingInDisplayedTimeRange(updatedReservation.bookingTime)) {
+        return; // Booking is outside the current view, skip update
+      }
+
+      // Convert to ProcessedEvent format
+      const updatedEvent: ReservationEvent = {
+        event_id: updatedReservation.id,
+        title: updatedReservation.customer.firstName,
+        start: parseStringToDate(updatedReservation.bookingTime),
+        end: parseStringToDate(getEndTimeForFirstGuest(updatedReservation)),
+        data: updatedReservation,
+      };
+
+      // Update events list
+      setEvents(prevEvents => {
+        const existingIndex = prevEvents.findIndex(e => e.event_id === updatedEvent.event_id);
+        if (existingIndex >= 0) {
+          // Update existing event
+          const newEvents = [...prevEvents];
+          newEvents[existingIndex] = updatedEvent;
+          return newEvents;
+        } else {
+          // Add new event
+          return [...prevEvents, updatedEvent];
+        }
+      });
+
+      // If in list view and the updated event is on the selected date, update filtered events
+      if (viewMode === "list" && selectedDate) {
+        const eventDate = moment(updatedEvent.start);
+        if (eventDate.isSame(selectedDate, "day")) {
+          setFilteredEvents(prevFiltered => {
+            const existingIndex = prevFiltered.findIndex(e => e.event_id === updatedEvent.event_id);
+            let newFiltered;
+            if (existingIndex >= 0) {
+              newFiltered = [...prevFiltered];
+              newFiltered[existingIndex] = updatedEvent;
+            } else {
+              newFiltered = [...prevFiltered, updatedEvent];
+            }
+            // Sort by booking time
+            return newFiltered.sort((a, b) => moment(a.start).diff(moment(b.start)));
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to handle booking notification:', error);
+    }
+  }, [isBookingInDisplayedTimeRange, parseStringToDate, viewMode, selectedDate]);
+
+  // Use the WebSocket hook for real-time booking updates
+  useNotificationWebSocket({
+    onNotification: handleBookingNotification,
+  });
+
   const handleEventClick = (event: any) => {
     setSelectedEvent(event as ReservationEvent);
     setIsDialogOpen(true);
     setIsStatusModified(false);
-  };
-
-  const parseStringToDate = (dateString: string): Date => {
-    return parse(dateString, "dd/MM/yyyy HH:mm", new Date());
   };
 
   const fetchReservations = async (
@@ -96,10 +196,6 @@ const ManageReservationsPage: React.FC = () => {
     return response.data;
   };
 
-  const selectedStoreId = useSelector(
-    (state: RootState) => state.selectedStore.storeUuid
-  );
-
   useEffect(() => {
     const startDate = moment().startOf("month").format("DD/MM/YYYY");
     const endDate = moment().endOf("month").format("DD/MM/YYYY");
@@ -110,10 +206,10 @@ const ManageReservationsPage: React.FC = () => {
           fetchReservations({ startDate, endDate }),
           fetchStoreClosedDates({ startDate, endDate }),
         ]);
-        const processedEvents = await convertToProcessedEvents(reservationData);
-        setEvents(processedEvents);
-        setStoreClosedDates(closedDateData);
-        dateCalendarHandleDateChange(moment(), processedEvents);
+          // fetchReservations already processes and sets events, so reservationData is already processed
+          setStoreClosedDates(closedDateData);
+          // Use selectedDate (current selected date) instead of moment() to avoid resetting the date
+          dateCalendarHandleDateChange(selectedDate || moment(), reservationData);
       } catch (error) {
         console.error("Failed to fetch data", error);
       }

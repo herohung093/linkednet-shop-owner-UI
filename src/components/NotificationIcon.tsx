@@ -22,14 +22,12 @@ import {
   Schedule as ScheduleIcon,
   NotificationsNone as EmptyNotificationIcon,
 } from '@mui/icons-material';
-import { axiosWithToken, BASE_URL } from '../utils/axios';
+import { axiosWithToken } from '../utils/axios';
 import moment from 'moment';
-import { getToken } from '../helper/getToken';
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client/dist/sockjs';
 import BookingEventDialog from './BookingEventDialog';
 import { parse } from 'date-fns';
 import { getEndTimeForFirstGuest } from '../utils/ReservationUtils';
+import { useNotificationWebSocket } from '../hooks/useNotificationWebSocket';
 
 const NotificationBadge: React.FC = () => {
   const [notificationCount, setNotificationCount] = useState(0);
@@ -38,7 +36,6 @@ const NotificationBadge: React.FC = () => {
   const [notificationPage, setNotificationPage] = useState(1);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [hasMoreNotifications, setHasMoreNotifications] = useState(true);
-  const stompClient = useRef<Client | null>(null);
   const anchorRef = useRef<HTMLButtonElement>(null);
   const theme = useTheme();
 
@@ -50,6 +47,35 @@ const NotificationBadge: React.FC = () => {
 
   const originalTitle = useRef(document.title);
   const titleInterval = useRef<NodeJS.Timeout | null>(null);
+
+  // Handle incoming WebSocket notifications
+  const handleWebSocketNotification = useCallback((notification: Notification) => {
+    setNotifications(prev => [notification, ...prev]);
+    setNotificationCount(prev => prev + 1);
+
+    if (!titleInterval.current && document.hidden) {
+      let toggle = false;
+      titleInterval.current = setInterval(() => {
+        document.title = toggle ? 'New Notification!' : originalTitle.current;
+        toggle = !toggle;
+      }, 1000);
+    }
+  }, []);
+
+  // Use the WebSocket hook
+  useNotificationWebSocket({
+    onNotification: handleWebSocketNotification,
+  });
+
+  // Clean up title interval on unmount
+  useEffect(() => {
+    return () => {
+      if (titleInterval.current) {
+        clearInterval(titleInterval.current);
+        document.title = originalTitle.current;
+      }
+    };
+  }, []);
 
   const fetchNotificationCount = async () => {
     try {
@@ -131,47 +157,6 @@ const NotificationBadge: React.FC = () => {
       console.error('Failed to mark notifications as seen:', error);
     }
   }
-
-  useEffect(() => {
-    const token = getToken();
-    const socket = new SockJS(`${BASE_URL}ws?token=${token}`);
-    
-    stompClient.current = new Client({
-      webSocketFactory: () => socket,
-      connectHeaders: {
-        Authorization: `Bearer ${token}`,
-      },
-      onConnect: () => {
-        stompClient.current?.subscribe('/user/topic/notifications', (message) => {
-          const notification = JSON.parse(message.body);
-          setNotifications(prev => [notification, ...prev]);
-          setNotificationCount(prev => prev + 1);
-
-          if (!titleInterval.current && document.hidden) {
-            let toggle = false;
-            titleInterval.current = setInterval(() => {
-              document.title = toggle ? 'New Notification!' : originalTitle.current;
-              toggle = !toggle;
-            }, 1000);
-          }
-        });
-      },
-      onStompError: (frame) => {
-        console.error('Broker reported error: ' + frame.headers['message']);
-        console.error('Additional details: ' + frame.body);
-      },
-    });
-
-    stompClient.current.activate();
-
-    return () => {
-      stompClient.current?.deactivate();
-      if (titleInterval.current) {
-        clearInterval(titleInterval.current);
-        document.title = originalTitle.current;
-      }
-    };
-  }, []);
 
   const parseNotificationMetadata = (metadata?: string): Record<string, any> | null => {
     if (!metadata) return null;

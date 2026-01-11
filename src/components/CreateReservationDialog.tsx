@@ -201,11 +201,16 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   // Sync editableDate with selectedDate when dialog opens or selectedDate changes (for create mode)
   useEffect(() => {
     if (!isEditMode) {
-      setEditableDate(selectedDate);
+      // If selectedSlotTime is provided, use its date; otherwise use selectedDate
+      if (selectedSlotTime) {
+        setEditableDate(moment(selectedSlotTime));
+      } else {
+        setEditableDate(selectedDate);
+      }
     } else if (isEditMode && isCreateDialogOpen && existingReservation) {
       setEditableDate(selectedDate);
     }
-  }, [selectedDate, isEditMode, isCreateDialogOpen, existingReservation]);
+  }, [selectedDate, selectedSlotTime, isEditMode, isCreateDialogOpen, existingReservation]);
 
   // Set selected time from timeline slot if available
   useEffect(() => {
