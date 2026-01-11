@@ -569,29 +569,39 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
 
     // First check for phone and date, which are common requirements
     if (!editableDate) {
-      alert("Please select a valid date");
+      setActionResultMessage("Please select a valid date");
+      setActionResultType("failure");
+      setActionResultOpen(true);
       return;
     }
     
     if (isPhoneRequired && !data.phone) {
-      alert("Phone number is required for non-walk-in bookings.");
+      setActionResultMessage("Phone number is required for non-walk-in bookings.");
+      setActionResultType("failure");
+      setActionResultOpen(true);
       return;
     } 
     
     if (isPhoneRequired && !isPhoneValid) {
-      alert("Phone number must be a valid 10-digit Australian mobile number starting with 04.");
+      setActionResultMessage("Phone number must be a valid 10-digit Australian mobile number starting with 04.");
+      setActionResultType("failure");
+      setActionResultOpen(true);
       return;
     }
     
     if (!data.firstName) {
-      alert("First name is required");
+      setActionResultMessage("First name is required");
+      setActionResultType("failure");
+      setActionResultOpen(true);
       return;
     }
 
     // Check guest services, staff and time selections
     const guestValidation = validateGuestServices(data.guests);
     if (!guestValidation.valid) {
-      alert(guestValidation.errorMessage);
+      setActionResultMessage(guestValidation.errorMessage);
+      setActionResultType("failure");
+      setActionResultOpen(true);
       return;
     }
 
@@ -641,15 +651,19 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
           } else {
             // Handle case where no staff could be assigned
             console.error(`Could not assign 'Any Professional' for Guest ${guestIndex + 1}. No available staff left.`);
-            alert(`Could not find an available staff member for Guest ${guestIndex + 1}. Please adjust staff selections or time.`);
+            setActionResultMessage(`Could not find an available staff member for Guest ${guestIndex + 1}. Please adjust staff selections or time.`);
+            setActionResultType("failure");
+            setActionResultOpen(true);
             bookingCreationFailed = true; // Set flag to stop submission
             setIsCreating(false); // Reset loading state
             return; // Exit the forEach loop early
           }
         } else {
-          // Handle case where availability data is missing
-           console.error(`Availability data missing for time ${guest1Time} when assigning 'Any Professional' for Guest ${guestIndex + 1}.`);
-           alert(`Could not find availability data for the selected time for Guest ${guestIndex + 1}. Please try again or select a different time.`);
+          // Handle case where no staff are available at the chosen time
+           console.error(`No staff available at ${guest1Time} when assigning 'Any Professional' for Guest ${guestIndex + 1}.`);
+           setActionResultMessage(`No staff are available at the selected time for Guest ${guestIndex + 1}. Please pick another time or choose a different staff member.`);
+           setActionResultType("failure");
+           setActionResultOpen(true);
            bookingCreationFailed = true;
            setIsCreating(false);
            return;
@@ -662,7 +676,9 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
         // Check if this specific staff is already assigned to a PREVIOUS guest in this booking
         if (assignedStaffIdsForThisBooking.includes(specificStaffId)) {
            console.error(`Staff ID ${specificStaffId} is already assigned to another guest in this booking.`);
-           alert(`Staff ${staffList.find(s => s.id === specificStaffId)?.nickname || `ID ${specificStaffId}`} is already assigned to another guest in this booking. Please select different staff for Guest ${guestIndex + 1}.`);
+           setActionResultMessage(`Staff ${staffList.find(s => s.id === specificStaffId)?.nickname || `ID ${specificStaffId}`} is already assigned to another guest in this booking. Please select different staff for Guest ${guestIndex + 1}.`);
+           setActionResultType("failure");
+           setActionResultOpen(true);
            bookingCreationFailed = true;
            setIsCreating(false);
            return; // Exit the forEach loop early
