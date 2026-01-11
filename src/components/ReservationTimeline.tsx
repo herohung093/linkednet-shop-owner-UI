@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Calendar, momentLocalizer } from "react-big-calendar";
+import React, { useMemo, useState } from "react";
+import { Calendar, momentLocalizer, View } from "react-big-calendar";
 import moment from "moment";
 import { Box, CircularProgress } from "@mui/material";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -45,6 +45,11 @@ const ReservationTimeline: React.FC<ReservationTimelineProps> = ({
   onNavigate,
   onSelectSlot,
 }) => {
+  const [currentView, setCurrentView] = useState<View>("week");
+  const [currentDate, setCurrentDate] = useState<Date>(
+    selectedDate?.toDate() || new Date()
+  );
+
   // Convert ProcessedEvent to react-big-calendar format
   const calendarEvents: CalendarEvent[] = useMemo(() => {
     return events.map((event) => ({
@@ -61,9 +66,14 @@ const ReservationTimeline: React.FC<ReservationTimelineProps> = ({
   };
 
   const handleNavigate = (newDate: Date, view: any) => {
+    setCurrentDate(newDate);
     if (onNavigate) {
       onNavigate(newDate, view);
     }
+  };
+
+  const handleViewChange = (newView: View) => {
+    setCurrentView(newView);
   };
 
   const handleSelectSlot = (slotInfo: any) => {
@@ -203,10 +213,11 @@ const ReservationTimeline: React.FC<ReservationTimelineProps> = ({
         onSelectEvent={handleSelectEvent}
         onSelectSlot={handleSelectSlot}
         onNavigate={handleNavigate}
+        onView={handleViewChange}
         eventPropGetter={eventStyleGetter}
-        defaultView="week"
+        view={currentView}
+        date={currentDate}
         views={["week", "day"]}
-        defaultDate={selectedDate?.toDate() || new Date()}
         step={30}
         min={moment().startOf("day").hour(6).toDate()}
         max={moment().startOf("day").hour(22).toDate()}
