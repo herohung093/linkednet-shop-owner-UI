@@ -27,6 +27,9 @@ import moment from 'moment';
 import { getToken } from '../helper/getToken';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client/dist/sockjs';
+import BookingEventDialog from './BookingEventDialog';
+import { parse } from 'date-fns';
+import { getEndTimeForFirstGuest } from '../utils/ReservationUtils';
 
 const NotificationBadge: React.FC = () => {
   const [notificationCount, setNotificationCount] = useState(0);
@@ -38,6 +41,12 @@ const NotificationBadge: React.FC = () => {
   const stompClient = useRef<Client | null>(null);
   const anchorRef = useRef<HTMLButtonElement>(null);
   const theme = useTheme();
+
+  // States for BookingEventDialog
+  const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<ProcessedEvent | null>(null);
+  const [isStatusModified, setIsStatusModified] = useState(false);
+  const [loadingBooking, setLoadingBooking] = useState(false);
 
   const originalTitle = useRef(document.title);
   const titleInterval = useRef<NodeJS.Timeout | null>(null);
@@ -164,6 +173,86 @@ const NotificationBadge: React.FC = () => {
     };
   }, []);
 
+  const parseNotificationMetadata = (metadata?: string): Record<string, any> | null => {
+    if (!metadata) return null;
+    try {
+      return JSON.parse(metadata);
+    } catch (error) {
+      console.error('Failed to parse notification metadata:', error);
+      return null;
+    }
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    // Only handle booking-related notifications
+    if (!notification.type.includes('BOOKING')) {
+      return;
+    }
+
+    // Parse metadata to get reservation ID
+    const metadata = parseNotificationMetadata(notification.metadata);
+    
+    // If metadata doesn't exist (old notifications), do nothing
+    if (!metadata || !metadata.reservationId) {
+      console.warn('Notification does not contain reservation metadata');
+      return;
+    }
+
+    setLoadingBooking(true);
+    try {
+      // Fetch reservation details
+      const response = await axiosWithToken.get<Reservation>(`/reservation/${metadata.reservationId}`);
+      
+      // Convert to ProcessedEvent format
+      const processedEvent: ProcessedEvent = {
+        event_id: response.data.id,
+        title: response.data.customer.firstName,
+        start: parse(response.data.bookingTime, 'dd/MM/yyyy HH:mm', new Date()),
+        end: parse(getEndTimeForFirstGuest(response.data), 'dd/MM/yyyy HH:mm', new Date()),
+        data: response.data,
+      };
+
+      setSelectedEvent(processedEvent);
+      setIsBookingDialogOpen(true);
+      setIsStatusModified(false);
+      setShowNotifications(false); // Close notifications popup
+    } catch (error) {
+      console.error('Failed to fetch reservation details:', error);
+    } finally {
+      setLoadingBooking(false);
+    }
+  };
+
+  const handleBookingStatusChange = (status: string) => {
+    if (selectedEvent) {
+      setSelectedEvent({
+        ...selectedEvent,
+        data: {
+          ...selectedEvent.data,
+          status: status,
+        },
+      });
+      setIsStatusModified(selectedEvent.data.status !== status);
+    }
+  };
+
+  const handleBookingSubmit = async () => {
+    if (!selectedEvent) return;
+
+    try {
+      const response = await axiosWithToken.put('/reservation/', selectedEvent.data);
+      if (response.data) {
+        setSelectedEvent({
+          ...selectedEvent,
+          data: response.data,
+        });
+        setIsStatusModified(false);
+      }
+    } catch (error) {
+      console.error('Failed to update reservation:', error);
+    }
+  };
+
   const getNotificationIcon = (type: string, seen: boolean) => {
     switch (type) {
       case 'BOOKING_CREATED':
@@ -257,15 +346,36 @@ const NotificationBadge: React.FC = () => {
                     notifications.map((notification, index) => (
                       <React.Fragment key={notification.id}>
                         <ListItem
+                          onClick={() => handleNotificationClick(notification)}
                           sx={{
                             px: 2,
                             py: 1.5,
                             backgroundColor: notification.seen ? 'transparent' : 'action.hover',
+                            cursor: notification.type.includes('BOOKING') && notification.metadata ? 'pointer' : 'default',
                             '&:hover': {
-                              backgroundColor: 'action.selected',
+                              backgroundColor: notification.type.includes('BOOKING') && notification.metadata ? 'action.selected' : 'action.hover',
                             },
+                            position: 'relative',
                           }}
                         >
+                          {loadingBooking && (
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                                zIndex: 1,
+                              }}
+                            >
+                              <CircularProgress size={24} />
+                            </Box>
+                          )}
                           <Box sx={{ display: 'flex', width: '100%', gap: 1.5 }}>
                             <Box sx={{ pt: 0.5 }}>
                               {getNotificationIcon(notification.type, notification.seen)}
@@ -288,6 +398,16 @@ const NotificationBadge: React.FC = () => {
                               >
                                 {formatTimeElapsed(notification.timestamp)}
                               </Typography>
+                              {notification.type.includes('BOOKING') && notification.metadata && (
+                                <Typography
+                                  variant="caption"
+                                  color="primary"
+                                  component="div"
+                                  sx={{ mt: 0.5, fontStyle: 'italic' }}
+                                >
+                                  Click to view booking details
+                                </Typography>
+                              )}
                             </Box>
                           </Box>
                         </ListItem>
@@ -332,6 +452,16 @@ const NotificationBadge: React.FC = () => {
           </ClickAwayListener>
         )}
       </Popper>
+
+      {/* Booking Event Dialog */}
+      <BookingEventDialog
+        isDialogOpen={isBookingDialogOpen}
+        setIsDialogOpen={setIsBookingDialogOpen}
+        selectedEvent={selectedEvent}
+        handleStatusChange={handleBookingStatusChange}
+        handleSubmit={handleBookingSubmit}
+        isStatusModified={isStatusModified}
+      />
     </>
   );
 };

@@ -107,6 +107,7 @@ declare interface Notification {
   timestamp: string;
   seen: boolean;
   type: string;
+  metadata?: string; // JSON string containing additional notification data
 }
 
 declare interface UserDetails {

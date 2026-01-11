@@ -39,7 +39,7 @@
     "@stripe/stripe-js": "^5.2.0",
     "@types/moment": "^2.11.29",
     "@types/sockjs-client": "^1.5.4",
-    "axios": "^1.7.2",
+    "axios": "^1.10.0",
     "browser-image-compression": "^2.0.2",
     "firebase": "^10.13.1",
     "framer-motion": "^11.3.19",

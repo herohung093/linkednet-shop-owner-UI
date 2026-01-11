@@ -234,13 +234,13 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                 <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                   <div className="flex flex-wrap items-center gap-3 mb-[15px]">
                     <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                      <label className="w-[100px] text-left text-[15px]">
+                      <label className="w-[100px] text-left text-[15px] text-slate-700">
                         Booking ID
                       </label>
                       <label className="Input ">{selectedEvent.data.id}</label>
                     </fieldset>
                     <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                      <label className="w-[100px] text-left text-[15px]">
+                      <label className="w-[100px] text-left text-[15px] text-slate-700">
                         Created At
                       </label>
                       <label className="Input ">
@@ -249,7 +249,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     </fieldset>
                   </div>
                   <fieldset className="mb-[2px] flex items-center gap-3">
-                    <label className="w-[100px] text-left text-[15px]">
+                    <label className="w-[100px] text-left text-[15px] text-slate-700">
                       Booking Time
                     </label>
                     <div className="flex-grow flex items-center justify-between">
@@ -291,7 +291,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                   </fieldset>
 
                   <fieldset className="mb-[15px] flex items-center gap-3">
-                    <label className="w-[100px] text-left text-[15px]">
+                    <label className="w-[100px] text-left text-[15px] text-slate-700">
                       Total Price
                     </label>
                     <label className="Input ">
@@ -299,7 +299,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     </label>
                   </fieldset>
                   <fieldset className="mb-[15px] flex items-center gap-3">
-                    <label className="w-[100px] text-left text-[15px]">
+                    <label className="w-[100px] text-left text-[15px] text-slate-700">
                       Status
                     </label>
                     <Select.Root
@@ -345,7 +345,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                   </fieldset>
 
                   <fieldset className="mb-[15px] flex items-center gap-3">
-                    <label className="w-[100px] text-left text-[15px]">
+                    <label className="w-[100px] text-left text-[15px] text-slate-700">
                       Customer
                     </label>
                     <div className="flex justify-between w-full">
@@ -382,7 +382,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                   <div className="flex flex-wrap items-center gap-3 mb-[15px]">
                     {selectedEvent.data.customer.email && (
                       <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                        <label className="w-[100px] text-left text-[15px]">
+                        <label className="w-[100px] text-left text-[15px] text-slate-700">
                           Email
                         </label>
                         <label className="Input ">
@@ -392,7 +392,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     )}
                     {selectedEvent.data.customer.phone && (
                       <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                        <label className="w-[100px] text-left text-[15px]">
+                        <label className="w-[100px] text-left text-[15px] text-slate-700">
                           Phone
                         </label>
                         <Box display="flex" alignItems="center">
@@ -429,7 +429,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     )}
                     {selectedEvent.data.customer.blacklisted && (
                       <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                        <label className="w-[100px] text-left text-[15px] sm:text-right">
+                        <label className="w-[100px] text-left text-[15px] text-slate-700 sm:text-right">
                           Status
                         </label>
                         <Chip
@@ -441,13 +441,13 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     )}
                   </div>
                   <fieldset className="mb-[15px] flex items-center gap-3">
-                    <label className="w-[100px] text-left text-[15px]">Note</label>
+                    <label className="w-[100px] text-left text-[15px] text-slate-700">Note</label>
                     <label className="Input text-left break-words">
                       {selectedEvent.data.note}
                     </label>
                   </fieldset>
                   <fieldset className="mb-[15px] flex gap-3">
-                    <label className="w-[100px] text-left text-[15px]">
+                    <label className="w-[100px] text-left text-[15px] text-slate-700">
                       Guests Details
                     </label>
                     <Grid container direction="column">
@@ -460,7 +460,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                               justifyContent="space-between"
                               alignItems="center"
                             >
-                              <Typography variant="body1">
+                              <Typography variant="body1" color="text.primary">
                                 {guest.name === "Me"
                                   ? selectedEvent.data.customer.firstName
                                   : guest.name || "Guest"}{" "}
@@ -484,12 +484,12 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                                           justifyContent="space-between"
                                           width="100%"
                                         >
-                                          <Typography variant="body2">
+                                          <Typography variant="body2" color="text.primary">
                                             {guestService.serviceItem.serviceName}{" "}
                                             {guestService.staff &&
                                               `(${guestService.staff.nickname})`}
                                           </Typography>
-                                          <Typography variant="caption">
+                                          <Typography variant="caption" color="text.primary">
                                             $
                                             {guestService.serviceItem.servicePrice.toFixed(
                                               2
@@ -509,7 +509,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     </Grid>
                   </fieldset>
                   <fieldset className="mb-[15px] flex flex-col gap-3">
-                    <label className="text-left text-[15px]">
+                    <label className="text-left text-[15px] text-slate-700">
                       SMS Communication:
                     </label>
                     <div
@@ -519,6 +519,7 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                         marginLeft: "20px",
                         gap: "5px",
                         alignItems: "center",
+                        color: "#334155"
                       }}
                     >
                       <span>Booking Acknowledgement:</span>
@@ -594,8 +595,8 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
         </Dialog.Root>
       )}
       
-      {/* Only render edit dialog if original dialog is closed */}
-      {!isDialogOpen && selectedEvent && (
+      {/* Only render edit dialog when it should actually be open */}
+      {isEditDialogOpen && !isDialogOpen && selectedEvent && (
         <CreateReservationDialog
           isCreateDialogOpen={isEditDialogOpen}
           handleCreateDialogClose={handleEditDialogClose}
