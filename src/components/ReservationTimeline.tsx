@@ -74,6 +74,10 @@ const ReservationTimeline: React.FC<ReservationTimelineProps> = ({
 
   const handleViewChange = (newView: View) => {
     setCurrentView(newView);
+    // When toggling between day/week, trigger fetch for the new range
+    if (onNavigate) {
+      onNavigate(currentDate, newView);
+    }
   };
 
   const handleSelectSlot = (slotInfo: any) => {
