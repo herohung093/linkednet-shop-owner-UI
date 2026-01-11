@@ -32,7 +32,7 @@ import BookingEventDialog from "../components/BookingEventDialog";
 import withAuth from "../components/HOC/withAuth";
 import CreateReservationDialog from "../components/CreateReservationDialog";
 import ReservationTimeline from "../components/ReservationTimeline";
-import { getEndTimeForFirstGuest } from "../utils/ReservationUtils";
+import { getEndTimeForFirstGuest, getFirstGuestServiceStaff } from "../utils/ReservationUtils";
 import { CalendarToday, Event } from "@mui/icons-material";
 import { useNotificationWebSocket } from "../hooks/useNotificationWebSocket";
 
@@ -240,7 +240,7 @@ const ManageReservationsPage: React.FC = () => {
   ): ReservationEvent[] => {
     return reservations.map((reservation) => ({
       event_id: reservation.id,
-      title: reservation.customer.firstName,
+      title: getFirstGuestServiceStaff(reservation),
       start: parseStringToDate(reservation.bookingTime),
       end: parseStringToDate(getEndTimeForFirstGuest(reservation)),
       data: reservation,
