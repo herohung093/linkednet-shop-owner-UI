@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { axiosWithToken } from "../utils/axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import withAuth from "../components/HOC/withAuth";
+import { clearUserDetails } from "../redux toolkit/userDetailsSlice";
+import { clearSelectedStore } from "../redux toolkit/selectedStoreSlice";
+import { clearStoresList } from "../redux toolkit/storesListSlice";
 
 const PasswordResetPage: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -13,6 +17,7 @@ const PasswordResetPage: React.FC = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handlePasswordReset = async () => {
     if (newPassword !== confirmPassword) {
@@ -98,10 +103,15 @@ const PasswordResetPage: React.FC = () => {
             </p>
             <button
               onClick={() => {
-                navigate("/login", { replace: true });
+                // Clear Redux state
+                dispatch(clearUserDetails());
+                dispatch(clearSelectedStore());
+                dispatch(clearStoresList());
+                // Clear localStorage
                 localStorage.removeItem("authToken");
                 localStorage.removeItem("refreshToken");
                 localStorage.removeItem("storeUuid");
+                navigate("/login", { replace: true });
               }}
               className="w-full flex justify-center items-center h-[40px] bg-slate-900 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             >

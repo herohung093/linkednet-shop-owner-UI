@@ -23,8 +23,9 @@ import SelectStore from "./SelectStore";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { axiosWithToken } from "../utils/axios";
 import { RootState } from "../redux toolkit/store";
-import { setStoresList } from "../redux toolkit/storesListSlice";
-import { setSelectedStoreRedux } from "../redux toolkit/selectedStoreSlice";
+import { setStoresList, clearStoresList } from "../redux toolkit/storesListSlice";
+import { setSelectedStoreRedux, clearSelectedStore } from "../redux toolkit/selectedStoreSlice";
+import { clearUserDetails } from "../redux toolkit/userDetailsSlice";
 import moment from "moment";
 
 const AccountMenuItem = () => {
@@ -84,10 +85,15 @@ const AccountMenuItem = () => {
 
   const handleLogout = () => {
     handleClose();
-    navigate("/login");
+    // Clear Redux state before navigation
+    dispatch(clearUserDetails());
+    dispatch(clearSelectedStore());
+    dispatch(clearStoresList());
+    // Clear localStorage
     localStorage.removeItem("authToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("storeUuid");
+    navigate("/login");
   };
 
   const handleStoreChange = (event: any) => {

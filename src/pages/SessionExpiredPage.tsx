@@ -1,8 +1,18 @@
 import { useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+import { clearUserDetails } from "../redux toolkit/userDetailsSlice";
+import { clearSelectedStore } from "../redux toolkit/selectedStoreSlice";
+import { clearStoresList } from "../redux toolkit/storesListSlice";
 
 const SessionExpired: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const handleLoginRedirect = () => {
+    // Clear Redux state
+    dispatch(clearUserDetails());
+    dispatch(clearSelectedStore());
+    dispatch(clearStoresList());
+    // Clear localStorage
     localStorage.removeItem("authToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("storeUuid");

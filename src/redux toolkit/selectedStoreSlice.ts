@@ -15,8 +15,11 @@ const selectedStoreSlice = createSlice({
     setSelectedStoreRedux(state, action: PayloadAction<number | string >) {
       state.storeUuid = action.payload;
     },
+    clearSelectedStore(state) {
+      state.storeUuid = null;
+    },
   },
 });
 
-export const { setSelectedStoreRedux } = selectedStoreSlice.actions;
+export const { setSelectedStoreRedux, clearSelectedStore } = selectedStoreSlice.actions;
 export default selectedStoreSlice.reducer;

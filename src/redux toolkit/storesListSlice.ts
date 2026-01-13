@@ -40,9 +40,12 @@ const storesListSlice = createSlice({
     deleteStoreList(state, action: PayloadAction<number>) {
       state.storesList = state.storesList.filter(store => store.id !== action.payload);
     },
+    clearStoresList(state) {
+      state.storesList = [];
+    },
   },
 });
 
-export const { setStoresList, addStoreList, updateStoreList, deleteStoreList } = storesListSlice.actions;
+export const { setStoresList, addStoreList, updateStoreList, deleteStoreList, clearStoresList } = storesListSlice.actions;
 export default storesListSlice.reducer;
 export type { StoresState };
