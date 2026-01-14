@@ -7,7 +7,6 @@ import {
   Button,
   Chip,
   Divider,
-  Grid,
   IconButton,
   Link,
   List,
@@ -206,13 +205,16 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
             ref={dialogRef} // Attach ref here
             className="data-[state=open]:animate-contentShow content-dialog z-20"
             aria-describedby={undefined}
-            style={{ 
-              maxHeight: "80vh", 
+            style={{
+              maxHeight: "80vh",
+              maxWidth: "min(90vw, 480px)",
+              width: "100%",
               overflowY: "auto",
+              overflowX: "hidden",
               // Combine Radix's centering transform with our drag transform
               // Note: Radix applies translate(-50%, -50%) via CSS class 'content-dialog'
               // We add our drag offset to that.
-              transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`, 
+              transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`,
               cursor: isDragging ? "grabbing" : "auto",
               // Apply transition only when not dragging
               transition: isDragging ? "none" : "transform 0.1s ease",
@@ -231,77 +233,63 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
             {/* Keep the rest of the content directly inside Dialog.Content */}
             <div>
               {selectedEvent && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                  <div className="flex flex-wrap items-center gap-3 mb-[15px]">
-                    <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                      <label className="w-[100px] text-left text-[15px] text-slate-700">
-                        Booking ID
-                      </label>
-                      <label className="Input ">{selectedEvent.data.id}</label>
-                    </fieldset>
-                    <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                      <label className="w-[100px] text-left text-[15px] text-slate-700">
-                        Created At
-                      </label>
-                      <label className="Input ">
-                        {selectedEvent.data.createdTime}
-                      </label>
-                    </fieldset>
+                <div className="grid gap-3" style={{ gridTemplateColumns: "90px 1fr" }}>
+                  {/* Booking ID */}
+                  <label className="text-[14px] text-slate-600 py-1">Booking ID</label>
+                  <div className="flex items-center">
+                    <span className="Input">{selectedEvent.data.id}</span>
                   </div>
-                  <fieldset className="mb-[2px] flex items-center gap-3">
-                    <label className="w-[100px] text-left text-[15px] text-slate-700">
-                      Booking Time
-                    </label>
-                    <div className="flex-grow flex items-center justify-between">
-                      <IconButton
-                        size="small"
-                        aria-label="account of current user"
-                        aria-controls="menu-appbar"
-                        aria-haspopup="true"
-                        onClick={handleEditClick}
-                        disabled={isPastBooking}
-                        sx={{
-                          color: "#284f5b",
-                          borderRadius: "20px",
-                          backgroundColor: isPastBooking ? "#e0e0e0" : "#d3eae2",
-                          border: "1px solid #E5E7EB",
-                          fontSize: "14px",
-                          paddingRight: "0.5rem",
-                          paddingLeft: "0.5rem",
-                          '&.Mui-disabled': {
-                            color: 'rgba(0, 0, 0, 0.38)',
-                          },
-                        }}
-                      >
-                        {selectedEvent.data.bookingTime.split(" ")[1]} -{" "}
-                        {getEndTimeForFirstGuest(selectedEvent.data).split(" ")[1]}{" "}
-                        ({selectedEvent.data.guests[0]?.totalEstimatedTime} mins)
-                        <EditIcon fontSize="medium" className="ml-1" />
-                      </IconButton>
-                      {isPastBooking && (
-                        <Chip 
-                          label="Past Booking" 
-                          size="small" 
-                          color="default" 
-                          variant="outlined" 
-                          sx={{ ml: 1 }}
-                        />
-                      )}
-                    </div>
-                  </fieldset>
 
-                  <fieldset className="mb-[15px] flex items-center gap-3">
-                    <label className="w-[100px] text-left text-[15px] text-slate-700">
-                      Total Price
-                    </label>
-                    <label className="Input ">
-                      ${selectedEvent.data.totalPrice}
-                    </label>
-                  </fieldset>
-                  <fieldset className="mb-[15px] flex items-center gap-3">
-                    <label className="w-[100px] text-left text-[15px] text-slate-700">
-                      Status
-                    </label>
+                  {/* Created At */}
+                  <label className="text-[14px] text-slate-600 py-1">Created At</label>
+                  <div className="flex items-center">
+                    <span className="Input">{selectedEvent.data.createdTime}</span>
+                  </div>
+
+                  {/* Booking Time */}
+                  <label className="text-[14px] text-slate-600 py-1">Booking Time</label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <IconButton
+                      size="small"
+                      aria-label="edit booking time"
+                      onClick={handleEditClick}
+                      disabled={isPastBooking}
+                      sx={{
+                        color: "#284f5b",
+                        borderRadius: "20px",
+                        backgroundColor: isPastBooking ? "#e0e0e0" : "#d3eae2",
+                        border: "1px solid #E5E7EB",
+                        fontSize: "13px",
+                        paddingRight: "0.5rem",
+                        paddingLeft: "0.5rem",
+                        whiteSpace: "nowrap",
+                        '&.Mui-disabled': {
+                          color: 'rgba(0, 0, 0, 0.38)',
+                        },
+                      }}
+                    >
+                      {selectedEvent.data.bookingTime} - {getEndTimeForFirstGuest(selectedEvent.data).split(" ")[1]} ({selectedEvent.data.guests[0]?.totalEstimatedTime}m)
+                      <EditIcon fontSize="small" sx={{ ml: 0.5 }} />
+                    </IconButton>
+                    {isPastBooking && (
+                      <Chip
+                        label="Past"
+                        size="small"
+                        color="default"
+                        variant="outlined"
+                      />
+                    )}
+                  </div>
+
+                  {/* Total Price */}
+                  <label className="text-[14px] text-slate-600 py-1">Total Price</label>
+                  <div className="flex items-center">
+                    <span className="Input">${selectedEvent.data.totalPrice}</span>
+                  </div>
+
+                  {/* Status */}
+                  <label className="text-[14px] text-slate-600 py-1">Status</label>
+                  <div className="flex items-center gap-2">
                     <Select.Root
                       value={selectedEvent.data.status}
                       onValueChange={handleStatusChange}
@@ -339,203 +327,146 @@ const BookingEventDialog: React.FC<BookingEventDialogProps> = ({
                     {selectedEvent.data.walkInBooking && (
                       <Chip label="Walk-in" color="info" variant="outlined" size="small" />
                     )}
-                    {isPastBooking && !selectedEvent.data.walkInBooking && (
-                      <Chip label="Past Booking" color="default" variant="outlined" size="small" />
-                    )}
-                  </fieldset>
+                  </div>
 
-                  <fieldset className="mb-[15px] flex items-center gap-3">
-                    <label className="w-[100px] text-left text-[15px] text-slate-700">
-                      Customer
-                    </label>
-                    <div className="flex justify-between w-full">
-                      <label className="Input">
-                        {selectedEvent.data.customer.firstName}{" "}
-                        {selectedEvent.data.customer.lastName}
-                      </label>
-                      <Tooltip title={isPastBooking ? "Cannot edit past bookings" : "Edit Booking"}>
-                        <span> {/* Wrap in span to allow tooltip on disabled button */}
-                          <IconButton
-                            aria-label="edit booking"
-                            onClick={handleEditClick}
-                            size="small"
-                            disabled={isPastBooking}
-                            sx={{
-                              color: "#284f5b",
-                              backgroundColor: isPastBooking ? "#e0e0e0" : "#d3eae2",
-                              border: "1px solid #E5E7EB",
-                              marginLeft: 1,
-                              '&:hover': {
-                                backgroundColor: isPastBooking ? "#e0e0e0" : "#b5d0c7"
-                              },
-                              '&.Mui-disabled': {
-                                color: 'rgba(0, 0, 0, 0.38)',
-                              }
-                            }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    </div>
-                  </fieldset>
-                  <div className="flex flex-wrap items-center gap-3 mb-[15px]">
-                    {selectedEvent.data.customer.email && (
-                      <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                        <label className="w-[100px] text-left text-[15px] text-slate-700">
-                          Email
-                        </label>
-                        <label className="Input ">
-                          {selectedEvent.data.customer.email}
-                        </label>
-                      </fieldset>
+                  {/* Customer */}
+                  <label className="text-[14px] text-slate-600 py-1">Customer</label>
+                  <div className="flex items-center gap-2">
+                    <span className="Input">
+                      {selectedEvent.data.customer.firstName}{" "}
+                      {selectedEvent.data.customer.lastName}
+                    </span>
+                    {selectedEvent.data.customer.blacklisted && (
+                      <Chip label="Blacklisted" color="error" variant="outlined" size="small" />
                     )}
-                    {selectedEvent.data.customer.phone && (
-                      <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                        <label className="w-[100px] text-left text-[15px] text-slate-700">
-                          Phone
-                        </label>
-                        <Box display="flex" alignItems="center">
-                          <Link
-                            href={`tel:${selectedEvent.data.customer.phone}`}
-                            className="Input clickable-label"
-                            underline="always"
+                    <Tooltip title={isPastBooking ? "Cannot edit past bookings" : "Edit Booking"}>
+                      <span>
+                        <IconButton
+                          aria-label="edit booking"
+                          onClick={handleEditClick}
+                          size="small"
+                          disabled={isPastBooking}
+                          sx={{
+                            color: "#284f5b",
+                            backgroundColor: isPastBooking ? "#e0e0e0" : "#d3eae2",
+                            border: "1px solid #E5E7EB",
+                            '&:hover': {
+                              backgroundColor: isPastBooking ? "#e0e0e0" : "#b5d0c7"
+                            },
+                            '&.Mui-disabled': {
+                              color: 'rgba(0, 0, 0, 0.38)',
+                            }
+                          }}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  </div>
+
+                  {/* Phone */}
+                  {selectedEvent.data.customer.phone && (
+                    <>
+                      <label className="text-[14px] text-slate-600 py-1">Phone</label>
+                      <div className="flex items-center">
+                        <Link
+                          href={`tel:${selectedEvent.data.customer.phone}`}
+                          className="Input clickable-label"
+                          underline="always"
+                        >
+                          {`${selectedEvent.data.customer.phone.slice(0, 4)} ${selectedEvent.data.customer.phone.slice(4, 7)} ${selectedEvent.data.customer.phone.slice(7, 10)}`}
+                        </Link>
+                        <Tooltip title="Copy Phone Number">
+                          <IconButton
+                            aria-label="copy phone number"
+                            onClick={handleCopyPhoneNumber}
+                            size="small"
                           >
-                            {`${selectedEvent.data.customer.phone.slice(
-                              0,
-                              4
-                            )} ${selectedEvent.data.customer.phone.slice(
-                              4,
-                              7
-                            )} ${selectedEvent.data.customer.phone.slice(7, 10)}`}
-                          </Link>
-                          <Tooltip title="Copy Phone Number">
-                            <IconButton
-                              aria-label="copy phone number"
-                              onClick={handleCopyPhoneNumber}
-                              size="small"
-                            >
-                              <ContentCopyIcon fontSize="inherit" />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
+                            <ContentCopyIcon fontSize="inherit" />
+                          </IconButton>
+                        </Tooltip>
                         <Snackbar
                           open={copyPhoneNumberSuccess}
                           autoHideDuration={3000}
                           onClose={handleCloseSnackbar}
                           message="Phone number copied to clipboard"
                         />
-                      </fieldset>
-                    )}
-                    {selectedEvent.data.customer.blacklisted && (
-                      <fieldset className="flex items-center gap-3 w-full sm:w-auto">
-                        <label className="w-[100px] text-left text-[15px] text-slate-700 sm:text-right">
-                          Status
-                        </label>
-                        <Chip
-                          label="Blacklisted"
-                          color="error"
-                          variant="outlined"
-                        />
-                      </fieldset>
-                    )}
-                  </div>
-                  <fieldset className="mb-[15px] flex items-center gap-3">
-                    <label className="w-[100px] text-left text-[15px] text-slate-700">Note</label>
-                    <label className="Input text-left break-words">
-                      {selectedEvent.data.note}
-                    </label>
-                  </fieldset>
-                  <fieldset className="mb-[15px] flex gap-3">
-                    <label className="w-[100px] text-left text-[15px] text-slate-700">
-                      Guests Details
-                    </label>
-                    <Grid container direction="column">
-                      {selectedEvent.data.guests.map((guest) => (
-                        <Grid item key={guest.name + guest.id}>
-                          <Box>
-                            {/* Guest Header */}
-                            <Box
-                              display="flex"
-                              justifyContent="space-between"
-                              alignItems="center"
-                            >
-                              <Typography variant="body1" color="text.primary">
-                                {guest.name === "Me"
-                                  ? selectedEvent.data.customer.firstName
-                                  : guest.name || "Guest"}{" "}
-                                - {guest.totalEstimatedTime} mins
-                              </Typography>
-                            </Box>
+                      </div>
+                    </>
+                  )}
 
-                            <List sx={{ paddingTop: 0, paddingBottom: 0 }}>
-                              {/* Guest Services */}
-                              {guest.guestServices?.map((guestService) => (
-                                <React.Fragment
-                                  key={guest.name + guestService.serviceItem.id}
-                                >
-                                  <ListItem
-                                    sx={{ paddingTop: 0, paddingBottom: 0 }}
-                                  >
-                                    <ListItemText
-                                      primary={
-                                        <Box
-                                          display="flex"
-                                          justifyContent="space-between"
-                                          width="100%"
-                                        >
-                                          <Typography variant="body2" color="text.primary">
-                                            {guestService.serviceItem.serviceName}{" "}
-                                            {guestService.staff &&
-                                              `(${guestService.staff.nickname})`}
-                                          </Typography>
-                                          <Typography variant="caption" color="text.primary">
-                                            $
-                                            {guestService.serviceItem.servicePrice.toFixed(
-                                              2
-                                            )}
-                                          </Typography>
-                                        </Box>
-                                      }
-                                    />
-                                  </ListItem>
-                                </React.Fragment>
-                              ))}
-                            </List>
-                            <Divider sx={{ my: 1 }} />
-                          </Box>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </fieldset>
-                  <fieldset className="mb-[15px] flex flex-col gap-3">
-                    <label className="text-left text-[15px] text-slate-700">
-                      SMS Communication:
-                    </label>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "auto auto",
-                        marginLeft: "20px",
-                        gap: "5px",
-                        alignItems: "center",
-                        color: "#334155"
-                      }}
-                    >
-                      <span>Booking Acknowledgement:</span>
-                      {renderCommunicationStatus(
-                        selectedEvent?.data?.communication?.BOOKING_ACK
-                      )}
-                      <span>First Booking Reminder:</span>
-                      {renderCommunicationStatus(
-                        selectedEvent?.data?.communication?.FIRST_BOOKING_REMINDER
-                      )}
-                      <span>Final Booking Reminder:</span>
-                      {renderCommunicationStatus(
-                        selectedEvent?.data?.communication?.FINAL_BOOKING_REMINDER
-                      )}
-                    </div>
-                  </fieldset>
+                  {/* Email */}
+                  {selectedEvent.data.customer.email && (
+                    <>
+                      <label className="text-[14px] text-slate-600 py-1">Email</label>
+                      <div className="flex items-center">
+                        <span className="Input">{selectedEvent.data.customer.email}</span>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Note */}
+                  <label className="text-[14px] text-slate-600 py-1">Note</label>
+                  <div className="flex items-center">
+                    <span className="Input text-left break-words">{selectedEvent.data.note}</span>
+                  </div>
+
+                  {/* Guests Details */}
+                  <label className="text-[14px] text-slate-600 py-1">Guests</label>
+                  <div>
+                    {selectedEvent.data.guests.map((guest) => (
+                      <Box key={guest.name + guest.id} sx={{ mb: 1 }}>
+                        <Typography variant="body1" color="text.primary" fontWeight={500}>
+                          {guest.name === "Me"
+                            ? selectedEvent.data.customer.firstName
+                            : guest.name || "Guest"}{" "}
+                          - {guest.totalEstimatedTime} mins
+                        </Typography>
+                        <List sx={{ pt: 0, pb: 0 }}>
+                          {guest.guestServices?.map((guestService) => (
+                            <ListItem
+                              key={guest.name + guestService.serviceItem.id}
+                              sx={{ pt: 0, pb: 0 }}
+                            >
+                              <ListItemText
+                                primary={
+                                  <Box display="flex" justifyContent="space-between" width="100%">
+                                    <Typography variant="body2" color="text.primary">
+                                      {guestService.serviceItem.serviceName}{" "}
+                                      {guestService.staff && `(${guestService.staff.nickname})`}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.primary">
+                                      ${guestService.serviceItem.servicePrice.toFixed(2)}
+                                    </Typography>
+                                  </Box>
+                                }
+                              />
+                            </ListItem>
+                          ))}
+                        </List>
+                        <Divider sx={{ my: 1 }} />
+                      </Box>
+                    ))}
+                  </div>
+
+                  {/* SMS Communication */}
+                  <label className="text-[14px] text-slate-600 py-1">SMS</label>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "auto auto",
+                      gap: "4px 8px",
+                      alignItems: "center",
+                      color: "#334155"
+                    }}
+                  >
+                    <span>Booking Acknowledgement:</span>
+                    {renderCommunicationStatus(selectedEvent?.data?.communication?.BOOKING_ACK)}
+                    <span>First Reminder:</span>
+                    {renderCommunicationStatus(selectedEvent?.data?.communication?.FIRST_BOOKING_REMINDER)}
+                    <span>Final Reminder:</span>
+                    {renderCommunicationStatus(selectedEvent?.data?.communication?.FINAL_BOOKING_REMINDER)}
+                  </div>
                 </div>
               )}
               <div className="mt-[25px] flex justify-end">
