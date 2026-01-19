@@ -198,8 +198,16 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   // Add local state for editable date in edit mode
   const [editableDate, setEditableDate] = useState<moment.Moment | null>(selectedDate);
 
+  // Flag to track when date sync is complete to prevent premature availability fetches
+  const [isDateSynced, setIsDateSynced] = useState<boolean>(false);
+
   // Sync editableDate with selectedDate when dialog opens or selectedDate changes (for create mode)
   useEffect(() => {
+    // Reset sync flag when dialog opens to prevent stale data fetches
+    if (isCreateDialogOpen) {
+      setIsDateSynced(false);
+    }
+
     if (!isEditMode) {
       // If selectedSlotTime is provided, use its date; otherwise use selectedDate
       if (selectedSlotTime) {
@@ -207,8 +215,14 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
       } else {
         setEditableDate(selectedDate);
       }
+      // Mark date as synced after setting it
+      if (isCreateDialogOpen) {
+        setIsDateSynced(true);
+      }
     } else if (isEditMode && isCreateDialogOpen && existingReservation) {
       setEditableDate(selectedDate);
+      // Mark date as synced after setting it
+      setIsDateSynced(true);
     }
   }, [selectedDate, selectedSlotTime, isEditMode, isCreateDialogOpen, existingReservation]);
 
@@ -328,24 +342,26 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
 
   /**
    * Effect: Fetch staff availability when date or selected staff changes.
+   * Only fetches after date sync is complete to prevent fetching with stale dates.
    */
   useEffect(() => {
-    // Only fetch availability if dialog is open AND we have valid date and staff
+    // Only fetch availability if dialog is open AND we have valid date and staff AND date is synced
     if (
       isCreateDialogOpen &&
       editableDate &&
       selectedStaff !== undefined &&
       selectedStaff !== null &&
-      isMounted.current
+      isMounted.current &&
+      isDateSynced // Only fetch after date sync is complete
     ) {
       fetchStaffAvailability(editableDate, selectedStaff);
     } else if (!isCreateDialogOpen) {
       // Clear availability when dialog closes
       setStaffAvailability([]);
     }
-    // Dependencies: Fetch when date, staff, or dialog state changes
+    // Dependencies: Fetch when date, staff, dialog state, or sync status changes
     // Including selectedStaff ensures this runs again after form initialization in edit mode
-  }, [editableDate, selectedStaff, isCreateDialogOpen]);
+  }, [editableDate, selectedStaff, isCreateDialogOpen, isDateSynced]);
 
   /**
    * Effect: Handle customer search with debouncing
@@ -776,6 +792,7 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
       setCustomerResults([]);
       setCustomerSearchInput(""); // Reset dedicated search input
       setSelectedCustomer(null); // Reset selected customer state
+      setIsDateSynced(false); // Reset date sync flag to prevent stale fetches on next open
       reset({
         firstName: "",
         lastName: "",
@@ -817,19 +834,18 @@ const CreateReservationDialog: React.FC<CreateReservationDialogProps> = ({
   // When date changes in edit mode, clear availability selections and set staff based on guest count
   const handleDateChange = (newDate: moment.Moment | null) => {
     setEditableDate(newDate);
-    
+
     // If multiple guests, always set staff to "Any" (0)
     // For single guest, also use "Any" (0) initially to load available times
     const staffValue = "0"; // Always use "0" (Any) initially when date changes
     setValue("selectedStaff", staffValue);
-    
+
     setValue("selectedAvailability", ""); // Clear availability selection
     setStaffAvailability([]); // Clear availability list
-    
-    // If newDate is valid, fetch availability with "Any" staff to show all options
-    if (newDate) {
-      fetchStaffAvailability(newDate, staffValue);
-    }
+
+    // Mark date as synced since manual change is immediate
+    // The useEffect will automatically fetch availability when isDateSynced becomes true
+    setIsDateSynced(true);
   };
 
   // Add state for draggable dialog
