@@ -1,37 +1,61 @@
 import "./App.css";
+import { lazy, Suspense } from "react";
 import Main from "./layout/Main.tsx";
-import StoreSettingPage from "./pages/StoreSettingPage.tsx";
-import LoginPage from "./pages/LoginPage.tsx";
 import {
   createBrowserRouter,
   Navigate,
   RouterProvider,
   useRouteError,
 } from "react-router-dom";
-import StaffsPage from "./pages/StaffsPage.tsx";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import googleOAuthConfig from "./config/googleOAuthConfig";
-import SignUpPage from "./pages/SignupPage.tsx";
-import ServiceTypePage from "./pages/ServiceTypePage.tsx";
-import SessionExpired from "./pages/SessionExpiredPage.tsx";
-import EmailConfirmationPage from "./pages/EmailConfirmationPage.tsx";
-import ResetPasswordVerificationPage from "./pages/ResetPasswordVerificationPage.tsx";
-import PasswordResetPage from "./pages/PasswordResetPage.tsx";
-import ManageReservationsPage from "./pages/ManageReservationsPage.tsx";
-import CreateStorePage from "./pages/CreateStorePage.tsx";
-import NotFoundPage from "./pages/NotFoundPage.tsx";
-import DashboardPage from "./pages/DashboardPage.tsx";
-import EditBookingPage from "./pages/EditBookingPage.tsx";
-import ManageCustomersPage from "./pages/ManageCustomersPage.tsx";
-import CustomerBookingsHistory from "./components/CustomerBookingsHistory.tsx";
-import UpdatePaymentPage from "./pages/UpdatePaymentPage.tsx";
-import CreatePromotionPage from "./pages/CreatePromotionPage.tsx";
-import PaymentSuccess from "./pages/PaymentSuccess.tsx";
-import PaymentCancel from "./pages/PaymentCancel.tsx";
-import ManagePromotionsPage from "./pages/ManagePromotionsPage.tsx";
 import useFetchUserDetailsOnRefresh from "./hooks/useFetchUserDetailsOnRefresh";
-import ManageStoreClosedDatePage from "./pages/ManageStoreClosedDatePage.tsx";
-import ManagePhotosPage from "./pages/ManagePhotosPage.tsx";
+
+// Lazy load all route components for better code splitting
+const LoginPage = lazy(() => import("./pages/LoginPage.tsx"));
+const SignUpPage = lazy(() => import("./pages/SignupPage.tsx"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage.tsx"));
+const StoreSettingPage = lazy(() => import("./pages/StoreSettingPage.tsx"));
+const ManageStoreClosedDatePage = lazy(() => import("./pages/ManageStoreClosedDatePage.tsx"));
+const ManagePhotosPage = lazy(() => import("./pages/ManagePhotosPage.tsx"));
+const ServiceTypePage = lazy(() => import("./pages/ServiceTypePage.tsx"));
+const CreateStorePage = lazy(() => import("./pages/CreateStorePage.tsx"));
+const ManageReservationsPage = lazy(() => import("./pages/ManageReservationsPage.tsx"));
+const ManageCustomersPage = lazy(() => import("./pages/ManageCustomersPage.tsx"));
+const CustomerBookingsHistory = lazy(() => import("./components/CustomerBookingsHistory.tsx"));
+const StaffsPage = lazy(() => import("./pages/StaffsPage.tsx"));
+const SessionExpired = lazy(() => import("./pages/SessionExpiredPage.tsx"));
+const EmailConfirmationPage = lazy(() => import("./pages/EmailConfirmationPage.tsx"));
+const ResetPasswordVerificationPage = lazy(() => import("./pages/ResetPasswordVerificationPage.tsx"));
+const PasswordResetPage = lazy(() => import("./pages/PasswordResetPage.tsx"));
+const EditBookingPage = lazy(() => import("./pages/EditBookingPage.tsx"));
+const UpdatePaymentPage = lazy(() => import("./pages/UpdatePaymentPage.tsx"));
+const CreatePromotionPage = lazy(() => import("./pages/CreatePromotionPage.tsx"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess.tsx"));
+const PaymentCancel = lazy(() => import("./pages/PaymentCancel.tsx"));
+const ManagePromotionsPage = lazy(() => import("./pages/ManagePromotionsPage.tsx"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage.tsx"));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '100vh',
+    fontSize: '18px',
+    color: '#666'
+  }}>
+    Loading...
+  </div>
+);
+
+// Helper to wrap lazy components with Suspense
+const withSuspense = (Component: React.LazyExoticComponent<React.ComponentType<any>>) => (
+  <Suspense fallback={<PageLoader />}>
+    <Component />
+  </Suspense>
+);
 
 const router = createBrowserRouter([
   {
@@ -41,47 +65,47 @@ const router = createBrowserRouter([
     children: [
       {
         path: "dashboard",
-        element: <DashboardPage />,
+        element: withSuspense(DashboardPage),
       },
       {
         path: "store-settings",
-        element: <StoreSettingPage />,
+        element: withSuspense(StoreSettingPage),
       },
       {
         path: "manage-store-closed-dates",
-        element: <ManageStoreClosedDatePage />,
+        element: withSuspense(ManageStoreClosedDatePage),
       },
       {
         path: "manage-photos",
-        element: <ManagePhotosPage />,
+        element: withSuspense(ManagePhotosPage),
       },
       {
         path: "services",
-        element: <ServiceTypePage />,
+        element: withSuspense(ServiceTypePage),
       },
       {
         path: "create-store",
-        element: <CreateStorePage />,
+        element: withSuspense(CreateStorePage),
       },
       {
         path: "manage-bookings",
-        element: <ManageReservationsPage />,
+        element: withSuspense(ManageReservationsPage),
       },
       {
         path: "manage-customers",
-        element: <ManageCustomersPage />,
+        element: withSuspense(ManageCustomersPage),
       },
       {
         path: "customer-bookings-history/:customerId",
-        element: <CustomerBookingsHistory />,
+        element: withSuspense(CustomerBookingsHistory),
       },
       {
         path: "staff",
-        element: <StaffsPage />,
+        element: withSuspense(StaffsPage),
       },
       {
         path: "login",
-        element: <LoginPage />,
+        element: withSuspense(LoginPage),
       },
       {
         path: "/",
@@ -96,52 +120,52 @@ const router = createBrowserRouter([
       },
       {
         path: "signup",
-        element: <SignUpPage />,
+        element: withSuspense(SignUpPage),
       },
       {
         path: "session-expired",
-        element: <SessionExpired />,
+        element: withSuspense(SessionExpired),
       },
       {
         path: "email-confirmation",
-        element: <EmailConfirmationPage />,
+        element: withSuspense(EmailConfirmationPage),
       },
       {
         path: "reset-password-verification",
-        element: <ResetPasswordVerificationPage />,
+        element: withSuspense(ResetPasswordVerificationPage),
       },
       {
         path: "password-reset",
-        element: <PasswordResetPage />,
+        element: withSuspense(PasswordResetPage),
       },
       {
         path: "edit-booking",
-        element: <EditBookingPage />,
+        element: withSuspense(EditBookingPage),
       },
       {
         path: "update-payment-details",
-        element: <UpdatePaymentPage />,
+        element: withSuspense(UpdatePaymentPage),
       },
       {
         path: "create-promotion",
-        element: <CreatePromotionPage />,
+        element: withSuspense(CreatePromotionPage),
       },
 
       {
         path: "manage-promotions",
-        element: <ManagePromotionsPage />,
+        element: withSuspense(ManagePromotionsPage),
       },
       {
         path: "/payment/success",
-        element: <PaymentSuccess />,
+        element: withSuspense(PaymentSuccess),
       },
       {
         path: "/payment/cancel",
-        element: <PaymentCancel />,
+        element: withSuspense(PaymentCancel),
       },
       {
         path: "404",
-        element: <NotFoundPage />, // Add the NotFoundPage route
+        element: withSuspense(NotFoundPage),
       },
       {
         path: "*",

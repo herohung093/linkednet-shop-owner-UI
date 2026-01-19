@@ -1,23 +1,21 @@
 import React, { useEffect, useState } from "react";
-import {
-  Avatar,
-  Box,
-  IconButton,
-  Menu,
-  MenuItem,
-  Typography,
-  Divider,
-  ListItemIcon,
-  Tooltip,
-  useTheme,
-} from "@mui/material";
-import {
-  Logout as LogoutIcon,
-  AccountCircle as AccountIcon,
-  CreditCard as PaymentIcon,
-  KeyboardArrowDown as ArrowDownIcon,
-  Receipt as ReceiptIcon,
-} from "@mui/icons-material";
+// Direct imports for better tree-shaking
+import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import Tooltip from '@mui/material/Tooltip';
+import useTheme from '@mui/material/styles/useTheme';
+// Direct imports for better tree-shaking
+import LogoutIcon from '@mui/icons-material/Logout';
+import AccountIcon from '@mui/icons-material/AccountCircle';
+import PaymentIcon from '@mui/icons-material/CreditCard';
+import ArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import { useNavigate } from "react-router";
 import SelectStore from "./SelectStore";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";

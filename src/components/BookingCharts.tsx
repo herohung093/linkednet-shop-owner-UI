@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Paper, Typography, Box, useMediaQuery, useTheme } from "@mui/material";
+// Direct imports for better tree-shaking
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import useTheme from '@mui/material/styles/useTheme';
 import { BarChart } from "@mui/x-charts/BarChart";
 import { axiosWithToken } from "../utils/axios";
 import { CalendarDays } from "lucide-react";

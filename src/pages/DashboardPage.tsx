@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { Grid, Paper, Typography, Box } from "@mui/material";
+// Direct imports for better tree-shaking
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 import BookingChart from "../components/BookingCharts";
 import StaffChart from "../components/StaffChart";
 import RevenueChart from "../components/RevenueChart";

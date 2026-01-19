@@ -1,5 +1,7 @@
 import React from "react";
-import { Box, Button } from "@mui/material";
+// Direct imports for better tree-shaking
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 
 interface EventTimeButtonProps {
   staffs: number[];

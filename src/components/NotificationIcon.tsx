@@ -1,27 +1,24 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Badge,
-  Box,
-  CircularProgress,
-  ClickAwayListener,
-  IconButton,
-  Paper,
-  Popper,
-  Typography,
-  Fade,
-  Divider,
-  Button,
-  List,
-  ListItem,
-  useTheme,
-} from '@mui/material';
-import {
-  Notifications as NotificationsIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  Schedule as ScheduleIcon,
-  NotificationsNone as EmptyNotificationIcon,
-} from '@mui/icons-material';
+// Direct imports for better tree-shaking
+import Badge from '@mui/material/Badge';
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
+import IconButton from '@mui/material/IconButton';
+import Paper from '@mui/material/Paper';
+import Popper from '@mui/material/Popper';
+import Typography from '@mui/material/Typography';
+import Fade from '@mui/material/Fade';
+import Divider from '@mui/material/Divider';
+import Button from '@mui/material/Button';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import useTheme from '@mui/material/styles/useTheme';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import EmptyNotificationIcon from '@mui/icons-material/NotificationsNone';
 import { axiosWithToken } from '../utils/axios';
 import moment from 'moment';
 import BookingEventDialog from './BookingEventDialog';

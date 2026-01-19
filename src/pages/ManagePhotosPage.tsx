@@ -1,30 +1,28 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  TextField,
-  Paper,
-  Grid,
-  IconButton,
-  Card,
-  CardMedia,
-  CardContent,
-  CardActions,
-  CircularProgress,
-  Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-} from "@mui/material";
-import {
-  PhotoCamera,
-  Delete,
-  Edit,
-  Close,
-  CloudUpload,
-  Image,
-} from "@mui/icons-material";
+// Direct imports for better tree-shaking
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Paper from '@mui/material/Paper';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Card from '@mui/material/Card';
+import CardMedia from '@mui/material/CardMedia';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import CircularProgress from '@mui/material/CircularProgress';
+import Tooltip from '@mui/material/Tooltip';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+// Direct imports for better tree-shaking
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
+import Delete from '@mui/icons-material/Delete';
+import Edit from '@mui/icons-material/Edit';
+import Close from '@mui/icons-material/Close';
+import CloudUpload from '@mui/icons-material/CloudUpload';
+import Image from '@mui/icons-material/Image';
 import { styled } from "@mui/material/styles";
 import { axiosWithToken } from "../utils/axios";
 import withAuth from "../components/HOC/withAuth";

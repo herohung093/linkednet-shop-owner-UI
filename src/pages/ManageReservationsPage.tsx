@@ -3,26 +3,26 @@ import { axiosWithToken } from "../utils/axios";
 import { parse } from "date-fns";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux toolkit/store";
-import {
-  Typography,
-  Box,
-  List,
-  Paper,
-  Container,
-  Fade,
-  Divider,
-  Tooltip,
-  ToggleButton,
-  ToggleButtonGroup,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+// Direct imports for better tree-shaking
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import List from "@mui/material/List";
+import Paper from "@mui/material/Paper";
+import Container from "@mui/material/Container";
+import Fade from "@mui/material/Fade";
+import Divider from "@mui/material/Divider";
+import Tooltip from "@mui/material/Tooltip";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import useTheme from "@mui/material/styles/useTheme";
+import Fab from "@mui/material/Fab";
+import Badge from "@mui/material/Badge";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { PickersDay, PickersDayProps } from "@mui/x-date-pickers/PickersDay";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
-import { Fab, Badge } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ViewWeekIcon from "@mui/icons-material/ViewWeek";
 import ViewListIcon from "@mui/icons-material/ViewList";
@@ -33,7 +33,8 @@ import withAuth from "../components/HOC/withAuth";
 import CreateReservationDialog from "../components/CreateReservationDialog";
 import ReservationTimeline from "../components/ReservationTimeline";
 import { getEndTimeForFirstGuest, getFirstGuestServiceStaff } from "../utils/ReservationUtils";
-import { CalendarToday, Event } from "@mui/icons-material";
+import CalendarToday from "@mui/icons-material/CalendarToday";
+import Event from "@mui/icons-material/Event";
 import { useNotificationWebSocket } from "../hooks/useNotificationWebSocket";
 
 interface FetchReservationsParams {

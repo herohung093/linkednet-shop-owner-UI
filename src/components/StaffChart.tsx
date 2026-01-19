@@ -1,4 +1,9 @@
-import { Box, Paper, Typography, useMediaQuery, useTheme } from "@mui/material";
+// Direct imports for better tree-shaking
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import useTheme from '@mui/material/styles/useTheme';
 import { PieChart } from "@mui/x-charts/PieChart";
 import { useEffect, useState } from "react";
 import { axiosWithToken } from "../utils/axios";

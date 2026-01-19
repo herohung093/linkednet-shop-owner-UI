@@ -1,19 +1,18 @@
 import React, { useEffect, useState, useRef } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  MenuItem,
-  Autocomplete,
-  CircularProgress,
-  IconButton,
-  Checkbox, // Added Checkbox
-  FormControlLabel, // Added FormControlLabel
-  Typography,
-} from "@mui/material";
+// Direct imports for better tree-shaking
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
+import Autocomplete from "@mui/material/Autocomplete";
+import CircularProgress from "@mui/material/CircularProgress";
+import IconButton from "@mui/material/IconButton";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Typography from "@mui/material/Typography";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { axiosWithToken } from "../utils/axios";
 import moment from "moment";

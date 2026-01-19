@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, List, Skeleton, Paper, Chip } from "@mui/material";
+// Direct imports for better tree-shaking
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import List from '@mui/material/List';
+import Skeleton from '@mui/material/Skeleton';
+import Paper from '@mui/material/Paper';
+import Chip from '@mui/material/Chip';
 import BookingEventListItem from "./BookingEventListItem";
 import { parse } from "date-fns";
 import { axiosWithToken } from "../utils/axios";

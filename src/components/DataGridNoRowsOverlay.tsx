@@ -1,5 +1,7 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+// Direct imports for better tree-shaking
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 
 const DataGridNoRowsOverlay: React.FC = () => {
   return (

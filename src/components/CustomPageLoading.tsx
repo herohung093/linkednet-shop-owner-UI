@@ -1,5 +1,7 @@
 import React from 'react';
-import { CircularProgress, Box } from '@mui/material';
+// Direct imports for better tree-shaking
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
 
 const CustomPageLoading: React.FC = () => {
   return (
