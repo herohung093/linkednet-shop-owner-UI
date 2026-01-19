@@ -11,6 +11,7 @@ interface UseNotificationWebSocketOptions {
 
 /**
  * Custom hook to manage WebSocket connection for notifications
+ * Uses the "latest ref" pattern to avoid reconnecting when callback changes
  * @param onNotification - Callback function to handle incoming notifications
  * @param enabled - Whether the WebSocket should be active (default: true)
  */
@@ -19,6 +20,14 @@ export const useNotificationWebSocket = ({
   enabled = true,
 }: UseNotificationWebSocketOptions) => {
   const stompClient = useRef<Client | null>(null);
+
+  // Store the latest callback in a ref to avoid reconnecting when it changes
+  const onNotificationRef = useRef(onNotification);
+
+  // Update ref when callback changes without triggering reconnection
+  useEffect(() => {
+    onNotificationRef.current = onNotification;
+  }, [onNotification]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -42,7 +51,8 @@ export const useNotificationWebSocket = ({
         stompClient.current?.subscribe('/user/topic/notifications', (message) => {
           try {
             const notification: Notification = JSON.parse(message.body);
-            onNotification(notification);
+            // Use the latest callback from ref instead of closure
+            onNotificationRef.current(notification);
           } catch (error) {
             console.error('Failed to parse notification:', error);
           }
@@ -65,7 +75,7 @@ export const useNotificationWebSocket = ({
         stompClient.current.deactivate();
       }
     };
-  }, [enabled, onNotification]);
+  }, [enabled]); // Removed onNotification from dependencies
 
   return { stompClient: stompClient.current };
 };
