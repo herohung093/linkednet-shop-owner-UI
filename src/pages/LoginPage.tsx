@@ -86,10 +86,24 @@ const LoginPage: React.FC = () => {
       setLoading(false);
       if (error?.response?.status === 461) {
         setErrorMessage(
-          "User email has not been activated. Please check your email to activate your account."
+          "Your email address has not been verified. Please check your inbox for the verification link, or click 'Forgot Password' to resend."
+        );
+      } else if (error?.response?.status === 401 || error?.response?.status === 403) {
+        setErrorMessage(
+          "Invalid email or password. Please check your credentials and try again, or click 'Forgot Password' if you need to reset it."
+        );
+      } else if (error?.response?.status >= 500) {
+        setErrorMessage(
+          "Server error. Please try again in a few moments. If the problem persists, contact support."
+        );
+      } else if (error?.code === 'ERR_NETWORK') {
+        setErrorMessage(
+          "Network error. Please check your internet connection and try again."
         );
       } else {
-        setErrorMessage("Invalid username or password");
+        setErrorMessage(
+          "Unable to sign in. Please check your credentials or try again later."
+        );
       }
     }
   };
