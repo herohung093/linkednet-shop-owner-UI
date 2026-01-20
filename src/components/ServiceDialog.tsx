@@ -150,6 +150,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
           <IconButton
             onClick={() => setOpen(true)}
             size="small"
+            aria-label="Add Service"
             sx={{
               backgroundColor: "primary.main",
               color: "white",
@@ -166,6 +167,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
           <IconButton
             onClick={() => setOpen(true)}
             size="small"
+            aria-label="Edit Service"
             sx={{
               color: "action.active",
               "&:hover": {

@@ -46,7 +46,7 @@ const PageLoader = () => (
     fontSize: '18px',
     color: '#666'
   }}>
-    Loading...
+    Loading…
   </div>
 );
 

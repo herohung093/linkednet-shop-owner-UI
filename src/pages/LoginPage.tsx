@@ -115,6 +115,9 @@ const LoginPage: React.FC = () => {
             <input
               type="email"
               id="email"
+              name="email"
+              autoComplete="email"
+              spellCheck="false"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
@@ -128,13 +131,19 @@ const LoginPage: React.FC = () => {
             <input
               type="password"
               id="password"
+              name="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
               required
             />
           </div>
-          <div className={`text-red-600 text-sm ${!error && "hidden"}`}>
+          <div
+            className={`text-red-600 text-sm ${!error && "hidden"}`}
+            role="alert"
+            aria-live="polite"
+          >
             {errorMessage}
           </div>
           <LoadingButton
@@ -177,10 +186,18 @@ const LoginPage: React.FC = () => {
       </div>
       <div className="flex justify-between w-full px-6 mt-8 text-white text-sm">
         <div>
-          <button onClick={() => changeLanguage('en')} className="mr-4 hover:text-blue-200">
+          <button
+            onClick={() => changeLanguage('en')}
+            className="mr-4 hover:text-blue-200"
+            aria-label="Switch to English"
+          >
             English
           </button>
-          <button onClick={() => changeLanguage('vi')} className="hover:text-blue-200">
+          <button
+            onClick={() => changeLanguage('vi')}
+            className="hover:text-blue-200"
+            aria-label="Switch to Vietnamese"
+          >
             Tiếng Việt
           </button>
         </div>

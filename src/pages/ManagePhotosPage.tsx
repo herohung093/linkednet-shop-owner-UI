@@ -675,10 +675,11 @@ const ManagePhotosPage: React.FC = () => {
         </DialogTitle>
         <DialogContent dividers sx={{ p: 0 }}>
           {viewingPhotoUrl && (
-            <img 
-              src={viewingPhotoUrl} 
-              alt="Enlarged view" 
-              style={{ width: '100%', height: 'auto', display: 'block' }} 
+            <img
+              src={viewingPhotoUrl}
+              alt="Enlarged view"
+              loading="lazy"
+              style={{ width: '100%', height: 'auto', display: 'block' }}
             />
           )}
         </DialogContent>
