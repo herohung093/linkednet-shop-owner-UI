@@ -140,6 +140,22 @@ declare interface StoreClosedDate {
   storeConfig: Store;
 }
 
+declare interface StaffUnavailability {
+  id: number;
+  staff: Staff;
+  date: string;
+  note: string;
+  storeUuid: string;
+}
+
+declare interface StaffExtraWorkingDay {
+  id: number;
+  staff: Staff;
+  date: string;
+  note: string;
+  storeUuid: string;
+}
+
 declare module 'sockjs-client/dist/sockjs' {
   import SockJS from '@types/sockjs-client';
 

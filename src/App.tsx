@@ -24,6 +24,8 @@ const ManageReservationsPage = lazy(() => import("./pages/ManageReservationsPage
 const ManageCustomersPage = lazy(() => import("./pages/ManageCustomersPage.tsx"));
 const CustomerBookingsHistory = lazy(() => import("./components/CustomerBookingsHistory.tsx"));
 const StaffsPage = lazy(() => import("./pages/StaffsPage.tsx"));
+const ManageStaffUnavailabilityPage = lazy(() => import("./pages/ManageStaffUnavailabilityPage.tsx"));
+const ManageStaffExtraWorkingDayPage = lazy(() => import("./pages/ManageStaffExtraWorkingDayPage.tsx"));
 const SessionExpired = lazy(() => import("./pages/SessionExpiredPage.tsx"));
 const EmailConfirmationPage = lazy(() => import("./pages/EmailConfirmationPage.tsx"));
 const ResetPasswordVerificationPage = lazy(() => import("./pages/ResetPasswordVerificationPage.tsx"));
@@ -102,6 +104,14 @@ const router = createBrowserRouter([
       {
         path: "staff",
         element: withSuspense(StaffsPage),
+      },
+      {
+        path: "staff-unavailability",
+        element: withSuspense(ManageStaffUnavailabilityPage),
+      },
+      {
+        path: "staff-extra-working-days",
+        element: withSuspense(ManageStaffExtraWorkingDayPage),
       },
       {
         path: "login",

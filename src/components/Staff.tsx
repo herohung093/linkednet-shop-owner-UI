@@ -17,6 +17,9 @@ import CustomLoading from "./Loading";
 import NumericInput from "./NumericInput";
 import { Paper, Avatar, Box, Typography, Chip, Fade } from "@mui/material";
 import { Phone, Mail, Star, CalendarToday } from "@mui/icons-material";
+import { CalendarDays, CalendarPlus } from "lucide-react";
+import StaffUnavailabilityDialog from "./StaffUnavailabilityDialog";
+import StaffExtraWorkingDayDialog from "./StaffExtraWorkingDayDialog";
 
 type FormData = {
   firstName: string;
@@ -97,6 +100,8 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
   });
 
   const [open, setOpen] = useState(false);
+  const [unavailabilityOpen, setUnavailabilityOpen] = useState(false);
+  const [extraWorkingDayOpen, setExtraWorkingDayOpen] = useState(false);
 
   const resetForm = () => {
     reset({
@@ -275,6 +280,29 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
                 </Box>
               </Box>
             </Box>
+
+            <Box sx={{ mt: 2, pt: 1.5, borderTop: "1px solid", borderColor: "divider", display: "flex", flexDirection: "column", gap: 1 }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setUnavailabilityOpen(true);
+                }}
+                className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <CalendarDays size={15} />
+                Manage Days Off
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExtraWorkingDayOpen(true);
+                }}
+                className="flex items-center gap-1.5 text-sm text-green-600 hover:text-green-800 transition-colors"
+              >
+                <CalendarPlus size={15} />
+                Extra Shifts
+              </button>
+            </Box>
           </Box>
         </Paper>
       </Fade>
@@ -282,7 +310,8 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
   };
 
   return (
-    <Dialog.Root
+    <>
+      <Dialog.Root
       open={open}
       onOpenChange={(val) => {
         setOpen(val);
@@ -428,6 +457,25 @@ const Staff: React.FC<StaffProps> = ({ staff, onUpdate, type }) => {
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+
+      {type === "edit" && staff.id && (
+        <StaffUnavailabilityDialog
+          staffId={staff.id}
+          staffName={staff.nickname}
+          open={unavailabilityOpen}
+          onClose={() => setUnavailabilityOpen(false)}
+        />
+      )}
+
+      {type === "edit" && staff.id && (
+        <StaffExtraWorkingDayDialog
+          staffId={staff.id}
+          staffName={staff.nickname}
+          open={extraWorkingDayOpen}
+          onClose={() => setExtraWorkingDayOpen(false)}
+        />
+      )}
+    </>
   );
 };
 

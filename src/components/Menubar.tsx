@@ -87,6 +87,11 @@ const MenubarDemo = () => {
     setOpenMenu("Manage Stores");
   };
 
+  const handleStaffMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+    setOpenMenu("Staff");
+  };
+
   const handleManagePromotionsClick = (
     event: React.MouseEvent<HTMLElement>
   ) => {
@@ -112,6 +117,12 @@ const MenubarDemo = () => {
       { label: "Manage Photos", path: "/manage-photos" },
   ];
 
+  const staffMenuItems: MenuItemProps[] = [
+    { label: "Staff", path: "/staff" },
+    { label: "Staff Days Off", path: "/staff-unavailability" },
+    { label: "Extra Shifts", path: "/staff-extra-working-days" },
+  ];
+
   const managePromotionsMenuItems: MenuItemProps[] = [
     { label: "Create Promotion", path: "/create-promotion" },
     { label: "Promotions", path: "/manage-promotions" },
@@ -120,7 +131,7 @@ const MenubarDemo = () => {
   const mainMenuItems: MenuItemProps[] = [
     { label: "Home", path: "/dashboard" },
     { label: "Manage Stores", children: storeMenuItems },
-    { label: "Staff", path: "/staff" },
+    { label: "Staff", children: staffMenuItems },
     { label: "Services", path: "/services" },
     { label: "Manage Bookings", path: "/manage-bookings" },
     { label: "Manage Customers", path: "/manage-customers" },
@@ -373,12 +384,46 @@ const MenubarDemo = () => {
                         ))}
                       </Menu>
                     </div>
-                    <Button
-                      onClick={() => navigate("/staff")}
-                      sx={mainMenuStyle}
-                    >
-                      Staff
-                    </Button>
+                    <div>
+                      <Button
+                        id="staff-menu"
+                        onClick={handleStaffMenuClick}
+                        sx={mainMenuStyle}
+                      >
+                        Staff
+                      </Button>
+                      <Menu
+                        id="staff-menu"
+                        aria-labelledby="staff-button"
+                        anchorEl={anchorEl}
+                        keepMounted
+                        open={openMenu === "Staff"}
+                        onClose={handleClose}
+                        anchorOrigin={{
+                          vertical: "bottom",
+                          horizontal: "left",
+                        }}
+                        transformOrigin={{
+                          vertical: "top",
+                          horizontal: "left",
+                        }}
+                        MenuListProps={{
+                          "aria-labelledby": "staff-button",
+                        }}
+                      >
+                        {staffMenuItems.map((item, index) => (
+                          <MenuItem
+                            key={index}
+                            onClick={() => {
+                              handleClose();
+                              item.path && navigate(item.path);
+                            }}
+                          >
+                            {item.label}
+                          </MenuItem>
+                        ))}
+                      </Menu>
+                    </div>
                     <Button
                       onClick={() => navigate("/services")}
                       sx={{
